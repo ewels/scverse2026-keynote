@@ -364,8 +364,9 @@ function person(L,x,feet,t,face,moving,s=1,force){
   const fr=force||(moving?['a','idle','b','idle'][Math.floor(t*8)%4]:'idle');
   const [rows,pal]=sprite(L,fr); const bob=moving&&fr!=='idle'?-1:0;
   const x0=Math.round(x)-6*s, top=Math.round(feet)-20*s;
-  for(let r=0;r<20;r++){ const row=rows[r], yo=(r<15?bob:0)*s;
-    for(let c=0;c<12;c++){ const col=pal[row[c]]; if(!col) continue; const cx=face<0?11-c:c; R(x0+cx*s,top+r*s+yo,s,s,col); } }
+  // the waistband row is drawn at both heights so a bob doesn't open a gap at the hips
+  for(let r=0;r<20;r++){ const row=rows[r], offs=r<15?[bob]:r===15&&bob?[bob,0]:[0];
+    for(const yo of offs) for(let c=0;c<12;c++){ const col=pal[row[c]]; if(!col) continue; const cx=face<0?11-c:c; R(x0+cx*s,top+r*s+yo*s,s,s,col); } }
 }
 
 /* ================= scenes ================= */

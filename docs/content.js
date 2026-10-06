@@ -92,7 +92,7 @@ const ICONS = {
   pad:['..oooooooo..','.oooooooooo.','ooowooooaooo','oowwwooakaoo','ooowooooaooo','oooooooooooo','oooo....oooo','ooo......ooo'],
   chip:['..w.w.w.w..','.ooooooooo.','woaaaaaaaow','.oakkkkkao.','woakkkkkaow','.oakkkkkao.','woaaaaaaaow','.ooooooooo.','..w.w.w.w..'],
 };
-const LOGOS = { chip:{ r:10, c:5, rows:['lll','l.l','lll'] }, nfcore:{ r:10, c:3, rows:['l....l','.l..l.','.l..l.','l....l'] } };
+const LOGOS = { chip:{ r:10, c:5, rows:['lll','l.l','lll'] }, nfcore:{ r:10, c:3, rows:['l....l','.l..l.','..ll..','.l..l.','l....l'] } };
 
 window.KEYNOTE_CONTENT = { CHARACTERS, TOPICS, FORKS, GREETER, OUTRO, ICONS, LOGOS };
 })();
