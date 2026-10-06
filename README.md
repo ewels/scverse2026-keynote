@@ -41,6 +41,8 @@ sed -n 's/^PRESENTER_KEY=//p' ../.env | npx wrangler secret put PRESENTER_KEY
 
 The deploy prints the Worker's address: put it in `KEYNOTE_URL` in `.env`. The pages use whatever origin they're served from, so there's nothing else to configure. Changing the key takes effect straight away, even mid-talk.
 
+After that, GitHub Actions deploys every push to `main` that changes `docs/` or `worker/`, once the tests pass. It needs two repository secrets: `CLOUDFLARE_ACCOUNT_ID`, and `CLOUDFLARE_API_TOKEN` with Workers Scripts write access. You can also run it by hand from the Actions tab. A deploy briefly drops every phone, so don't push during the talk.
+
 ## Before the talk
 
 Run `./present.sh` (needs [gum](https://github.com/charmbracelet/gum): `brew install gum`) and pick **Start the talk**. It reads `.env`, opens the stage on the laptop and copies the moderator link to the clipboard, so you never handle the key.
@@ -58,7 +60,8 @@ If the connection drops during the talk, the game carries on and the bars just s
 
 1. Make the repo public on GitHub.
 2. Go to Settings → Pages → Build and deployment. Choose "Deploy from a branch", pick `main` and `/docs`, and save.
-3. Delete the Worker with `npx wrangler delete`, or leave it running, since it costs nothing idle.
+3. Remove the `deploy` job from `.github/workflows/test.yml`, or it will recreate the Worker on the next push.
+4. Delete the Worker with `npx wrangler delete`, or leave it running, since it costs nothing idle.
 
 On GitHub Pages the live features are off: the game works, and the audience page says voting is closed and links to the game.
 

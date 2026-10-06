@@ -1,8 +1,9 @@
-name: Tests
+name: Test and deploy
 
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -21,3 +22,40 @@ jobs:
       - run: npm ci --prefix worker
       - run: npx playwright install --with-deps chromium
       - run: npm test
+
+  # Every deploy restarts the room and briefly drops every phone: don't push to main during the talk.
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Skip if nothing the Worker serves has changed
+        id: changed
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [ "$EVENT" = push ] && git diff --quiet "$BEFORE" HEAD -- docs worker 2>/dev/null; then
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.changed.outputs.deploy == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: lts/*
+      - if: steps.changed.outputs.deploy == 'true'
+        run: npm ci --prefix worker
+      - if: steps.changed.outputs.deploy == 'true'
+        working-directory: worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy
