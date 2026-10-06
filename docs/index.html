@@ -255,7 +255,6 @@ const KEY = (()=>{ let k=PARAMS.get('key');
 const API = String(window.KEYNOTE_API||'').trim().replace(/\/+$/,'');
 const LIVE = PARAMS.has('stage') && /^https?:\/\//.test(API);
 const JOIN_URL = new URL('join/', location.origin + location.pathname.replace(/[^/]*$/,'')).href;
-const QMARK = ['.oooo.','oo..oo','...oo.','..oo..','......','..oo..'];
 const Live = { ws:null, state:null, questions:[], answered:new Set(), outbox:[], retry:1000, bars:new Map(),
   start(){
     if(!LIVE) return;
@@ -275,7 +274,7 @@ const Live = { ws:null, state:null, questions:[], answered:new Set(), outbox:[],
   connect(){
     const ws=this.ws=new WebSocket(`${API.replace(/^http/,'ws')}/api/ws?role=presenter&key=${encodeURIComponent(KEY)}`);
     ws.onopen=()=>{ this.retry=1000; $('#conn').classList.add('on'); $('#conn').textContent='Live';
-      ws.send(JSON.stringify({ t:'config', topics:Object.entries(TOPICS).map(([key,t])=>({ key, title:t.title, short:t.short, colour:t.colour, blurb:t.blurb||'', icon:ICONS[t.icon], secret:!!t.secret })) }));
+      ws.send(JSON.stringify({ t:'config', topics:Object.entries(TOPICS).map(([key,t])=>({ key, title:t.title, short:t.short, colour:t.colour, blurb:t.blurb||'', icon:ICONS[t.icon] })) }));
       while(this.outbox.length) ws.send(JSON.stringify(this.outbox.shift())); };
     ws.onmessage=e=>{ if(e.data==='pong') return; let m; try{ m=JSON.parse(e.data); }catch(err){ return; }
       if(m.t==='state'){ this.state=m; this.questions=(m.questions||[]).filter(q=>!this.answered.has(q.id)); this.render(); } };
@@ -283,7 +282,7 @@ const Live = { ws:null, state:null, questions:[], answered:new Set(), outbox:[],
       setTimeout(()=>this.connect(),this.retry); this.retry=Math.min(10000,this.retry*1.6); };
   },
   send(m){ if(!LIVE) return; if(this.ws && this.ws.readyState===1) this.ws.send(JSON.stringify(m)); else this.outbox.push(m); },
-  icon(t){ const m=t.secret?QMARK:ICONS[t.icon]; const c=document.createElement('canvas'); c.width=m[0].length; c.height=m.length;
+  icon(t){ const m=ICONS[t.icon]; const c=document.createElement('canvas'); c.width=m[0].length; c.height=m.length;
     const g=c.getContext('2d'), pal=iconPal(t); m.forEach((row,y)=>[...row].forEach((ch,x)=>{ if(pal[ch]){ g.fillStyle=pal[ch]; g.fillRect(x,y,1,1); } })); return c; },
   render(){ const st=this.state; if(!st) return; const strip=$('#strip');
     const open=Object.keys(TOPICS).filter(k=>!st.visited.includes(k));
@@ -291,7 +290,7 @@ const Live = { ws:null, state:null, questions:[], answered:new Set(), outbox:[],
     const max=Math.max(5,...open.map(k=>st.counts[k]||0));
     open.forEach(k=>{ const t=TOPICS[k]; let el=this.bars.get(k);
       if(!el){ el=document.createElement('div'); el.className='tb'; el.style.setProperty('--c',t.colour);
-        el.innerHTML=`<div class="body"><div class="tt">${esc(t.secret?'???':t.short)}</div><div class="br"><span class="bar"><i></i></span><span class="n">0</span></div></div>`;
+        el.innerHTML=`<div class="body"><div class="tt">${esc(t.short)}</div><div class="br"><span class="bar"><i></i></span><span class="n">0</span></div></div>`;
         el.prepend(this.icon(t)); strip.appendChild(el); this.bars.set(k,el); }
       const n=st.counts[k]||0; el.querySelector('.bar i').style.width=(n/max*100)+'%'; el.querySelector('.n').textContent=n; });
     let none=strip.querySelector('.none'); if(!open.length && !none){ none=document.createElement('p'); none.className='none'; none.textContent='Every room visited'; strip.appendChild(none); } else if(open.length && none) none.remove();
