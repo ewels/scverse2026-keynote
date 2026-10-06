@@ -751,6 +751,7 @@ let last=performance.now();
 function loop(now){ const dt=Math.min(0.05,(now-last)/1000); last=now;
   try{ Dlg.update(dt); Game.update(dt); Game.render(); }catch(e){ console.error(e); }
   Input.endFrame(); requestAnimationFrame(loop); }
+if(PARAMS.has('debug')){ window.__game=Game; window.__live=Live; }
 const fontsReady=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('8px Silkscreen'),document.fonts.load('16px VT323')]):Promise.resolve();
 Promise.race([fontsReady,new Promise(r=>setTimeout(r,1500))]).then(()=>{ Live.start(); Game.reset(); requestAnimationFrame(loop); });
 })();

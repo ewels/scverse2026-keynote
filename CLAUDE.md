@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A conference keynote presented as a pixel-art side-scrolling game, plus phone companion pages for live audience ranking and Q&A. There is no build step, no bundler and no test suite: the pages are hand-written HTML with inline CSS/JS, and the backend is one Worker file.
+A conference keynote presented as a pixel-art side-scrolling game, plus phone companion pages for live audience ranking and Q&A. There is no build step or bundler: the pages are hand-written HTML with inline CSS/JS, and the backend is one Worker file. The only tooling is Playwright smoke tests at the repo root.
 
 - `docs/` — static site. During the talk the Worker serves it; afterwards it moves to GitHub Pages (`main:/docs`) with live features off. `index.html` is the game engine (and the stage view with `?stage`), `content.js` holds the talk's content (characters, topics, route, pixel icons) as `window.KEYNOTE_CONTENT`, `join/` is the audience phone page, `mod/` is the presenter's moderation phone page.
 - `worker/` — Cloudflare Worker + one SQLite-backed Durable Object (`Room`, fixed id `keynote`) that holds all live state and talks to every client over a single WebSocket endpoint, `/api/ws`. Every other path goes to the `ASSETS` binding, which serves `../docs`.
@@ -27,7 +27,17 @@ cd worker && cp .dev.vars.example .dev.vars && npx wrangler dev   # site and bac
 
 Then open `http://localhost:8787/?stage&key=dev`, `/join/` and `/mod/?key=dev`. `docs/config.js` points the pages at their own origin, except on `*.github.io` and `file://`, where live features are off and the game still works.
 
-Verify changes by driving the pages in a browser — there are no automated tests.
+## Tests
+
+```sh
+npm install && npm --prefix worker install && npx playwright install chromium   # once
+npm test                         # both tests; starts its own wrangler dev on :8799
+npx playwright test offline      # one file
+```
+
+- `tests/offline.spec.js` opens `docs/index.html` from disk and fails on any console error.
+- `tests/live.spec.js` drives the stage, two phones and the moderator page against `wrangler dev`. It resets the shared room, so `workers: 1` must stay.
+- Tests drive the game through `window.__game` and `window.__live`, which exist only with `?debug`. Set positions (`__game.p.x`) rather than holding keys: the loop caps frame time, so walking headless is slow. Keys pressed during a fade are dropped; `pressUntil` in `tests/helpers.js` handles that.
 
 ## Architecture
 

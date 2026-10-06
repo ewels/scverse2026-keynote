@@ -66,6 +66,17 @@ cd worker && cp .dev.vars.example .dev.vars && npx wrangler dev      # site and 
 
 Open `http://localhost:8787/?stage&key=dev`, `http://localhost:8787/join/` and `http://localhost:8787/mod/?key=dev`. Opening `docs/index.html` straight from disk also works, with the live features off.
 
+## Tests
+
+Playwright smoke tests play the game from disk, then run the stage, two phones and the moderator page against a local Worker.
+
+```sh
+npm install && npm --prefix worker install && npx playwright install chromium   # once
+npm test
+```
+
+Add `?debug` to the game's address to expose `window.__game` and `window.__live` in the browser console.
+
 ## Credits
 
 Fonts: Silkscreen and VT323, SIL Open Font License 1.1 (`docs/fonts/`). QR codes: qrcode-generator by Kazuhiko Arase, MIT licence (`docs/vendor/qrcode.js`).
