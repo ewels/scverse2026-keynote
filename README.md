@@ -9,7 +9,7 @@ During the talk everything runs from the Worker, on one address. After the talk 
 
 ## Addresses
 
-With the Worker deployed at `https://keynote-live.USER.workers.dev`:
+With the Worker deployed at `https://scverse2026.USER.workers.dev`:
 
 | Address | Who | What |
 | --- | --- | --- |
