@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A conference keynote presented as a pixel-art side-scrolling game, plus phone companion pages for live audience ranking and Q&A. There is no build step, no bundler and no test suite: the pages are hand-written HTML with inline CSS/JS, and the backend is one Worker file.
 
-- `docs/` — static site. During the talk the Worker serves it; afterwards it moves to GitHub Pages (`main:/docs`) with live features off. `index.html` is the game (and the stage view with `?stage`), `join/` is the audience phone page, `mod/` is the presenter's moderation phone page.
+- `docs/` — static site. During the talk the Worker serves it; afterwards it moves to GitHub Pages (`main:/docs`) with live features off. `index.html` is the game engine (and the stage view with `?stage`), `content.js` holds the talk's content (characters, topics, route, pixel icons) as `window.KEYNOTE_CONTENT`, `join/` is the audience phone page, `mod/` is the presenter's moderation phone page.
 - `worker/` — Cloudflare Worker + one SQLite-backed Durable Object (`Room`, fixed id `keynote`) that holds all live state and talks to every client over a single WebSocket endpoint, `/api/ws`. Every other path goes to the `ASSETS` binding, which serves `../docs`.
 
 ## Project rules
@@ -39,12 +39,12 @@ Verify changes by driving the pages in a browser — there are no automated test
 - audience → `rank`, `upvote`, `ask`
 - server → `state` (plus `pong` for the `ping` keepalive, auto-answered by the Durable Object)
 
-**Topics are defined once, on stage.** `TOPICS` in `docs/index.html` is the source of truth. When the stage connects it sends a `config` message with titles, colours, blurbs and pixel icons, and the worker stores and re-broadcasts that, so the phone pages render topics from server state and never hard-code them. Any new topic field the phones need must also be added to the worker's `config` sanitiser, which drops unknown fields.
+**Topics are defined once, on stage.** `TOPICS` in `docs/content.js` is the source of truth. When the stage connects it sends a `config` message with titles, colours, blurbs and pixel icons, and the worker stores and re-broadcasts that, so the phone pages render topics from server state and never hard-code them. Any new topic field the phones need must also be added to the worker's `config` sanitiser, which drops unknown fields.
 
 **Ranking.** Borda count over rooms not yet visited, computed in `Room.shared()`. Walking into a room in the game sends `visited`, which removes its bar.
 
 **Questions on stage.** Questions the mod promotes are brought up in the game by a character with a "?"; dismissing that dialog sends `asked`, which marks them answered.
 
-**Game page (`docs/index.html`).** One IIFE split by `/* ===== section ===== */` banners: characters (`EDIT ME`), content (`TOPICS`, `FORKS` route layout, `ICONS` as string pixel maps), input (keyboard/clicker map in `KEYMAP`), overlays, the `Live` object (WebSocket, QR code, sidebar bars), canvas pixel helpers, sprites (12×20 built from `look` objects), scenes, and the main loop. The game runs with no backend; `Live.send` is a no-op unless the URL has `?stage` and an API URL is set. The presenter key is moved from the URL into `sessionStorage` and stripped from the address bar.
+**Game page (`docs/index.html`).** One IIFE split by `/* ===== section ===== */` banners, starting by destructuring `window.KEYNOTE_CONTENT`: input (keyboard/clicker map in `KEYMAP`), overlays, the `Live` object (WebSocket, QR code, sidebar bars), canvas pixel helpers, sprites (12×20 built from `look` objects), scenes, and the main loop. The game runs with no backend; `Live.send` is a no-op unless the URL has `?stage` and an API URL is set. The presenter key is moved from the URL into `sessionStorage` and stripped from the address bar.
 
 Limits (question length, cooldowns, max open per phone, etc.) are constants at the top of `worker/src/worker.js`. Vendored assets (`docs/fonts/`, `docs/vendor/qrcode.js`) are third-party; don't edit them.
