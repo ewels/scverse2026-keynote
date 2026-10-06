@@ -20,7 +20,13 @@ const isOpen = q => q.status === 'new' || q.status === 'promoted';
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.pathname === '/api/ws') return env.ROOM.get(env.ROOM.idFromName('keynote')).fetch(request);
+    if (url.pathname === '/api/ws') {
+      // Checked here, not in Room: a running Durable Object keeps the env it started with, so a new key would not reach it.
+      const role = url.searchParams.get('role');
+      const keyOk = Boolean(env.PRESENTER_KEY) && url.searchParams.get('key') === env.PRESENTER_KEY;
+      if ((role === 'presenter' || role === 'mod') && !keyOk) return new Response('Wrong presenter key', { status: 403 });
+      return env.ROOM.get(env.ROOM.idFromName('keynote')).fetch(request);
+    }
     return env.ASSETS.fetch(request);
   },
 };
@@ -28,7 +34,6 @@ export default {
 export class Room extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env);
-    this.env = env;
     this.timer = null;
     this.buckets = new WeakMap();
     ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair('ping', 'pong'));
@@ -39,14 +44,11 @@ export class Room extends DurableObject {
     });
   }
 
-  keyOk(key) { return Boolean(this.env.PRESENTER_KEY) && key === this.env.PRESENTER_KEY; }
-
   async fetch(request) {
     const url = new URL(request.url);
     if (request.headers.get('Upgrade') !== 'websocket') return new Response('Expected a WebSocket', { status: 426 });
     const asked = url.searchParams.get('role');
     const role = asked === 'presenter' || asked === 'mod' ? asked : 'audience';
-    if (role !== 'audience' && !this.keyOk(url.searchParams.get('key'))) return new Response('Wrong presenter key', { status: 403 });
     const device = cleanKey(url.searchParams.get('device')) || crypto.randomUUID();
     const { 0: client, 1: server } = new WebSocketPair();
     this.ctx.acceptWebSocket(server);
