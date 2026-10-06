@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A conference keynote presented as a pixel-art side-scrolling game, plus phone companion pages for live audience ranking and Q&A. There is no build step or bundler: the pages are hand-written HTML with inline CSS/JS, and the backend is one Worker file. The only tooling is Playwright smoke tests at the repo root.
+A conference keynote presented as a pixel-art side-scrolling game, plus phone companion pages for live audience ranking and Q&A. There is no build step or bundler: the pages are hand-written HTML with inline CSS/JS, and the backend is one Worker file. The only tooling is Playwright smoke tests at the repo root (also run in GitHub Actions on push and PR) and `present.sh`, which opens the stage and copies the moderator link using the key and address in the gitignored `.env` (format in `.env.example`; needs `gum`).
 
 - `docs/` — static site. During the talk the Worker serves it; afterwards it moves to GitHub Pages (`main:/docs`) with live features off. `index.html` is the game engine (and the stage view with `?stage`), `content.js` holds the talk's content (characters, topics, route, pixel icons) as `window.KEYNOTE_CONTENT`, `join/` is the audience phone page, `mod/` is the presenter's moderation phone page.
 - `worker/` — Cloudflare Worker + one SQLite-backed Durable Object (`Room`, fixed id `keynote`) that holds all live state and talks to every client over a single WebSocket endpoint, `/api/ws`. Every other path goes to the `ASSETS` binding, which serves `../docs`.
@@ -17,7 +17,8 @@ A conference keynote presented as a pixel-art side-scrolling game, plus phone co
 - Don't change gameplay, art or wording unless asked. All art is drawn in code; no image assets.
 - British English in anything user-facing.
 - Keep diffs small; don't reformat whole files.
-- Never deploy, push, make the repo public or touch GitHub Pages settings. The repo stays private until after the talk.
+- Only deploy, push, make the repo public or touch GitHub Pages settings when explicitly asked.
+- The repo will be made public: never commit personal details (email addresses, Cloudflare account names or IDs, the deployed `*.workers.dev` address). They belong in `.env`.
 
 ## Running locally
 
@@ -41,7 +42,7 @@ npx playwright test offline      # one file
 
 ## Architecture
 
-**Live protocol.** Clients connect to `/api/ws?role=presenter|mod|audience&key=…&device=…`. Presenter and mod roles require `PRESENTER_KEY`; audience is rate-limited by a per-socket token bucket. All state lives in one object `s` (stored under storage key `'s'`) and is rewritten on every change. Broadcasts are coalesced to one per 250 ms, and `messageFor()` tailors the payload per role: the presenter gets only promoted questions in order, the mod gets every question with vote counts, and audience phones get open questions plus their own dismissed ones (shown to the asker as still "new").
+**Live protocol.** Clients connect to `/api/ws?role=presenter|mod|audience&key=…&device=…`. Presenter and mod roles require `PRESENTER_KEY`, checked in the Worker's `fetch` before forwarding to `Room`. Keep it there: a running Durable Object keeps the `env` it started with, so a key checked inside `Room` misses a new or changed secret until the object restarts. The key is uploaded with `wrangler secret put` from `.env`, never `secret bulk`, which would upload every line; audience is rate-limited by a per-socket token bucket. All state lives in one object `s` (stored under storage key `'s'`) and is rewritten on every change. Broadcasts are coalesced to one per 250 ms, and `messageFor()` tailors the payload per role: the presenter gets only promoted questions in order, the mod gets every question with vote counts, and audience phones get open questions plus their own dismissed ones (shown to the asker as still "new").
 
 **Message types** (the `t` field) are the contract between the pages and `worker/src/worker.js` — change both sides together:
 - presenter → `config`, `visited`, `asked`, `ended`, `reset`

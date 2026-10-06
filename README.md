@@ -22,22 +22,35 @@ The QR code on stage points at `/join/` on whatever site you opened the stage on
 
 ## Deploy
 
+Your presenter key and the Worker's address live in `.env`, which git ignores. Create it from the example and generate a key:
+
+```sh
+cp .env.example .env
+sed -i '' "s/^PRESENTER_KEY=.*/PRESENTER_KEY=$(openssl rand -hex 24)/" .env
+```
+
+Then deploy and upload the key, without it ever appearing on screen:
+
 ```sh
 cd worker
 npm install
 npx wrangler login
-npx wrangler secret put PRESENTER_KEY    # any long random string
 npx wrangler deploy
+sed -n 's/^PRESENTER_KEY=//p' ../.env | npx wrangler secret put PRESENTER_KEY
 ```
 
-The deploy prints the Worker's address. The pages use whatever origin they're served from, so there's nothing to configure.
+The deploy prints the Worker's address: put it in `KEYNOTE_URL` in `.env`. The pages use whatever origin they're served from, so there's nothing else to configure. Changing the key takes effect straight away, even mid-talk.
 
 ## Before the talk
 
-1. On the laptop, open `/?stage&key=KEY` and press F for full screen. Full screen also hides the address bar, and with it the key.
+Run `./present.sh` (needs [gum](https://github.com/charmbracelet/gum): `brew install gum`) and pick **Start the talk**. It reads `.env`, opens the stage on the laptop and copies the moderator link to the clipboard, so you never handle the key.
+
+1. On the laptop, press F for full screen. Full screen also hides the address bar, and with it the key.
 2. Click "Reset votes and questions" above the game to clear rehearsal data.
-3. On your phone, open `/mod/?key=KEY` once. It remembers the key, so add it to your home screen.
+3. On your phone, paste the moderator link into the browser. With a shared clipboard (iCloud), it's already there. The page remembers the key, so add it to your home screen.
 4. The dots on the stage sidebar and the moderator page turn green when they're connected.
+
+Run it before the projector is mirroring your screen: the address bar shows the key until the page strips it.
 
 If the connection drops during the talk, the game carries on and the bars just stop moving.
 
@@ -75,7 +88,7 @@ npm install && npm --prefix worker install && npx playwright install chromium   
 npm test
 ```
 
-Add `?debug` to the game's address to expose `window.__game` and `window.__live` in the browser console.
+GitHub Actions runs them on every push and pull request. Add `?debug` to the game's address to expose `window.__game` and `window.__live` in the browser console.
 
 ## Credits
 
