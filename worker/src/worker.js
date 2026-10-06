@@ -1,5 +1,5 @@
-// Live backend for the keynote game. The pages themselves live on GitHub
-// Pages; this Worker only runs the WebSocket that keeps the stage, the
+// Live backend for the keynote game. During the talk this Worker serves the
+// pages in ../docs and runs the WebSocket that keeps the stage, the
 // moderator's phone and every audience phone in sync. One Durable Object
 // holds the rankings and questions.
 import { DurableObject } from 'cloudflare:workers';
@@ -21,7 +21,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === '/api/ws') return env.ROOM.get(env.ROOM.idFromName('keynote')).fetch(request);
-    return new Response('Keynote live backend. The game is on GitHub Pages.', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
+    return env.ASSETS.fetch(request);
   },
 };
 

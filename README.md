@@ -2,12 +2,14 @@
 
 Phil Ewels' scverse 2026 keynote as a side-scrolling game, plus two phone companions for the talk itself.
 
-- `docs/` is a static site for **GitHub Pages**: the game, the audience page and the moderator page. It stays online for free after the talk.
-- `worker/` is a small **Cloudflare Worker** that syncs rankings and questions in real time. It only needs to run during the talk, and the free plan covers it.
+- `docs/` is a static site: the game, the audience page and the moderator page.
+- `worker/` is a small **Cloudflare Worker** that serves `docs/` and syncs rankings and questions in real time. The free plan covers it.
+
+During the talk everything runs from the Worker, on one address. After the talk the game moves to **GitHub Pages**, where it stays online for free with the live features off.
 
 ## Addresses
 
-With the repo published at `https://USER.github.io/REPO/`:
+With the Worker deployed at `https://keynote-live.USER.workers.dev`:
 
 | Address | Who | What |
 | --- | --- | --- |
@@ -16,20 +18,19 @@ With the repo published at `https://USER.github.io/REPO/`:
 | `/join/` | Audience | Rank the topics once, send and vote on questions, get the game link at the end |
 | `/mod/?key=KEY` | You, on your phone | Put questions on screen, mark them answered, dismiss them |
 
-The QR code on stage points at `/join/` on whatever site you opened the stage on. A custom domain on GitHub Pages gives a shorter link to read out.
+The QR code on stage points at `/join/` on whatever site you opened the stage on. A custom domain on the Worker gives a shorter link to read out.
 
-## Set up
+## Deploy
 
-1. **GitHub Pages.** Push this repo to GitHub, then go to Settings → Pages → Build and deployment. Choose "Deploy from a branch", pick `main` and `/docs`, and save.
-2. **Worker.**
-   ```sh
-   cd worker
-   npm install
-   npx wrangler login
-   npx wrangler secret put PRESENTER_KEY    # any long random string
-   npx wrangler deploy
-   ```
-3. **Connect them.** Paste the URL the deploy prints into `LIVE_URL` in `docs/config.js`, then commit and push.
+```sh
+cd worker
+npm install
+npx wrangler login
+npx wrangler secret put PRESENTER_KEY    # any long random string
+npx wrangler deploy
+```
+
+The deploy prints the Worker's address. The pages use whatever origin they're served from, so there's nothing to configure.
 
 ## Before the talk
 
@@ -42,7 +43,11 @@ If the connection drops during the talk, the game carries on and the bars just s
 
 ## After the talk
 
-The game at `/` keeps working with no backend. To switch the live parts off, set `LIVE_URL` back to `''` and push; the audience page then says voting is closed and links to the game. You can also delete the Worker with `npx wrangler delete`, or leave it, since it costs nothing idle.
+1. Make the repo public on GitHub.
+2. Go to Settings → Pages → Build and deployment. Choose "Deploy from a branch", pick `main` and `/docs`, and save.
+3. Delete the Worker with `npx wrangler delete`, or leave it running, since it costs nothing idle.
+
+On GitHub Pages the live features are off: the game works, and the audience page says voting is closed and links to the game.
 
 ## How it behaves
 
@@ -56,11 +61,10 @@ Limits are at the top of `worker/src/worker.js`. Topic titles, blurbs and colour
 ## Run it locally
 
 ```sh
-cd worker && cp .dev.vars.example .dev.vars && npx wrangler dev      # backend on :8787, key "dev"
-cd docs && python3 -m http.server 8000                               # site on :8000
+cd worker && cp .dev.vars.example .dev.vars && npx wrangler dev      # site and backend on :8787, key "dev"
 ```
 
-Open `http://localhost:8000/?stage&key=dev`, `http://localhost:8000/join/` and `http://localhost:8000/mod/?key=dev`. On localhost `config.js` points at the local Worker by itself.
+Open `http://localhost:8787/?stage&key=dev`, `http://localhost:8787/join/` and `http://localhost:8787/mod/?key=dev`. Opening `docs/index.html` straight from disk also works, with the live features off.
 
 ## Credits
 

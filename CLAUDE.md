@@ -6,8 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A conference keynote presented as a pixel-art side-scrolling game, plus phone companion pages for live audience ranking and Q&A. There is no build step, no bundler and no test suite: the pages are hand-written HTML with inline CSS/JS, and the backend is one Worker file.
 
-- `docs/` — static site served by GitHub Pages from `main:/docs`. `index.html` is the game (and the stage view with `?stage`), `join/` is the audience phone page, `mod/` is the presenter's moderation phone page.
-- `worker/` — Cloudflare Worker + one SQLite-backed Durable Object (`Room`, fixed id `keynote`) that holds all live state and talks to every client over a single WebSocket endpoint, `/api/ws`.
+- `docs/` — static site. During the talk the Worker serves it; afterwards it moves to GitHub Pages (`main:/docs`) with live features off. `index.html` is the game (and the stage view with `?stage`), `join/` is the audience phone page, `mod/` is the presenter's moderation phone page.
+- `worker/` — Cloudflare Worker + one SQLite-backed Durable Object (`Room`, fixed id `keynote`) that holds all live state and talks to every client over a single WebSocket endpoint, `/api/ws`. Every other path goes to the `ASSETS` binding, which serves `../docs`.
 
 ## Project rules
 
@@ -22,11 +22,10 @@ A conference keynote presented as a pixel-art side-scrolling game, plus phone co
 ## Running locally
 
 ```sh
-cd worker && cp .dev.vars.example .dev.vars && npx wrangler dev   # backend on :8787, presenter key "dev"
-cd docs && python3 -m http.server 8000                            # site on :8000
+cd worker && cp .dev.vars.example .dev.vars && npx wrangler dev   # site and backend on :8787, presenter key "dev"
 ```
 
-Then open `http://localhost:8000/?stage&key=dev`, `/join/` and `/mod/?key=dev`. `docs/config.js` points at `http://127.0.0.1:8787` automatically on localhost; elsewhere it uses `LIVE_URL` (empty string = live features off, game still works). Deploy the worker with `npx wrangler deploy` from `worker/` (needs the `PRESENTER_KEY` secret).
+Then open `http://localhost:8787/?stage&key=dev`, `/join/` and `/mod/?key=dev`. `docs/config.js` points the pages at their own origin, except on `*.github.io` and `file://`, where live features are off and the game still works.
 
 Verify changes by driving the pages in a browser — there are no automated tests.
 
