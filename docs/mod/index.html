@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f1c">
+<meta name="robots" content="noindex">
+<title>Moderate questions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+@font-face{ font-family:SilkscreenLocal; src:url(../fonts/silkscreen-latin-400-normal.woff2) format('woff2'); font-weight:400; }
+@font-face{ font-family:SilkscreenLocal; src:url(../fonts/silkscreen-latin-700-normal.woff2) format('woff2'); font-weight:700; }
+:root{ --bg:#0b0f1c; --panel:#161d31; --line:#2a3452; --ink:#f2f4f8; --muted:#9aa6c6; --hi:#ffd166; --good:#4be06f; --bad:#ff7b7b;
+  --px:Silkscreen, SilkscreenLocal, "Courier New", monospace;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); color-scheme:dark; }
+*,*::before,*::after{ box-sizing:inherit; }
+html{ scroll-padding-top:env(safe-area-inset-top,0px); }
+body{ margin:0; background:var(--bg); color:var(--ink); font:18px/1.4 "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-tap-highlight-color:transparent; }
+.wrap{ max-width:620px; margin:0 auto; padding:14px 12px 120px; }
+header{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; padding:10px 4px 12px; }
+.top{ position:sticky; top:0; z-index:2; background:var(--bg); border-bottom:2px solid var(--line); padding-top:env(safe-area-inset-top,0px); margin-top:calc(-1 * env(safe-area-inset-top,0px)); }
+.tabs{ display:flex; gap:6px; padding:0 0 10px; }
+.tabs button{ flex:1 1 0; min-height:50px; font-size:17px; background:transparent; border:2px solid var(--line); color:var(--muted); }
+.tabs button[aria-selected="true"]{ background:var(--ink); border-color:var(--ink); color:var(--bg); }
+.badge{ display:inline-block; min-width:1.9em; padding:1px 6px; margin-left:6px; font-family:var(--px); font-size:13px; background:#26304f; color:var(--ink); }
+.tabs button[aria-selected="true"] .badge{ background:var(--bg); color:var(--ink); }
+.badge.ping{ background:var(--hi); color:var(--bg); animation:ping 1s ease-out 2; }
+@keyframes ping{ 50%{ transform:scale(1.25); } }
+.note{ color:var(--muted); font-size:15px; margin:14px 4px 10px; }
+section[hidden]{ display:none; }
+h1{ font-family:var(--px); font-weight:700; font-size:22px; margin:0; }
+.counts{ color:var(--muted); font-size:15px; }
+.counts b{ color:var(--ink); }
+.dot{ color:var(--bad); } .dot.on{ color:var(--good); }
+h2{ font-family:var(--px); font-size:15px; color:var(--muted); margin:22px 4px 8px; }
+h2 .n{ color:var(--ink); }
+.card{ background:var(--panel); border:2px solid var(--line); padding:14px 14px 12px; margin-bottom:10px; }
+.card.fresh{ border-color:var(--hi); animation:glow 1.2s ease-out; }
+@keyframes glow{ from{ box-shadow:0 0 0 6px rgba(255,209,102,.35); } to{ box-shadow:0 0 0 0 rgba(255,209,102,0); } }
+.who{ display:flex; justify-content:space-between; gap:10px; font-size:15px; color:var(--muted); }
+.who b{ color:var(--hi); font-size:16px; }
+.votes{ font-family:var(--px); font-size:14px; color:var(--ink); background:#26304f; padding:2px 8px; margin-left:8px; }
+.votes.zero{ color:var(--muted); background:none; padding:0; }
+.text{ font-size:21px; line-height:1.3; margin:6px 0 12px; overflow-wrap:anywhere; }
+.btns{ display:flex; gap:8px; }
+button{ font:inherit; font-weight:700; font-size:17px; cursor:pointer; border:2px solid var(--line); background:#1f2842; color:var(--ink); min-height:54px; padding:0 10px; border-radius:0; flex:1 1 0; touch-action:manipulation; }
+button:active{ filter:brightness(1.25); }
+button:focus-visible{ outline:3px solid var(--hi); outline-offset:2px; }
+button.go{ flex:2 1 0; background:var(--hi); border-color:var(--hi); color:#0b0f1c; }
+button.ok{ flex:2 1 0; background:var(--good); border-color:var(--good); color:#0b0f1c; }
+.up .card{ border-left:6px solid var(--hi); }
+.pos{ font-family:var(--px); color:var(--hi); margin-right:6px; }
+.empty{ color:var(--muted); margin:4px 4px 0; }
+details{ margin-top:22px; }
+summary{ font-family:var(--px); font-size:15px; color:var(--muted); padding:10px 4px; cursor:pointer; }
+.done .card{ opacity:.75; }
+.done .text{ font-size:17px; margin-bottom:10px; }
+.tag{ font-family:var(--px); font-size:12px; }
+.tag.answered{ color:var(--good); } .tag.dismissed{ color:var(--bad); }
+.toast{ position:fixed; left:12px; right:12px; bottom:calc(14px + env(safe-area-inset-bottom,0px)); max-width:596px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--ink); color:var(--bg); padding:8px 8px 8px 16px; font-weight:700; box-shadow:0 6px 20px rgba(0,0,0,.5); }
+.toast[hidden], .toast button[hidden]{ display:none; }
+.toast button{ flex:none; min-height:46px; background:var(--bg); color:var(--ink); border-color:var(--bg); padding:0 18px; }
+.gate{ margin-top:40px; }
+.gate label{ display:block; font-weight:700; margin-bottom:8px; }
+.gate input{ width:100%; font:inherit; font-size:20px; color:var(--ink); background:var(--panel); border:2px solid var(--line); padding:12px; border-radius:0; margin-bottom:12px; }
+@media (prefers-reduced-motion: reduce){ .card.fresh, .badge.ping{ animation:none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top" id="top">
+    <header>
+      <h1>Questions <span class="dot" id="dot">●</span></h1>
+    </header>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tabNew" data-tab="new" aria-selected="true">New <span class="badge" id="nNew">0</span></button>
+      <button role="tab" id="tabUp" data-tab="up" aria-selected="false">On screen <span class="badge" id="nUp">0</span></button>
+    </div>
+  </div>
+
+  <div class="gate" id="gate" hidden>
+    <label for="key">Presenter key</label>
+    <input id="key" type="password" autocomplete="current-password">
+    <button class="go" id="useKey" style="width:100%">Open</button>
+  </div>
+
+  <main id="main" hidden>
+    <section id="panelNew" role="tabpanel" aria-labelledby="tabNew">
+      <p class="note">Most votes first.</p>
+      <div id="new"></div>
+      <details id="doneBox"><summary>Done <span id="nDone"></span></summary><div id="done" class="done"></div></details>
+    </section>
+    <section id="panelUp" role="tabpanel" aria-labelledby="tabUp" hidden>
+      <p class="note">In the order they'll come up in the game.</p>
+      <div id="up" class="up"></div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" hidden><span id="toastText"></span><button id="undo">Undo</button></div>
+<script src="../config.js"></script>
+<script>
+(() => {
+'use strict';
+const API = String(window.KEYNOTE_API || '').trim().replace(/\/+$/, '');
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const store = { get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} } };
+const params = new URLSearchParams(location.search);
+let key = params.get('key') || store.get('keynote-key') || '';
+if (params.get('key')) { store.set('keynote-key', key); history.replaceState(null, '', location.pathname); }
+
+let ws = null, retry = 1000, all = [], seen = null, undo = null, toastTimer = null, failures = 0;
+let tab = store.get('keynote-mod-tab') === 'up' ? 'up' : 'new';
+function showTab(t){ tab = t; store.set('keynote-mod-tab', t);
+  $('#tabNew').setAttribute('aria-selected', t === 'new'); $('#tabUp').setAttribute('aria-selected', t === 'up');
+  $('#panelNew').hidden = t !== 'new'; $('#panelUp').hidden = t !== 'up';
+  if (t === 'new') $('#nNew').classList.remove('ping'); window.scrollTo(0, 0); }
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+showTab(tab);
+const ago = ts => { const m = Math.floor((Date.now() - ts) / 60000); return m < 1 ? 'just now' : m === 1 ? '1 min ago' : `${m} min ago`; };
+
+function act(id, t, label){
+  const q = all.find(x => x.id === id); if (!q) return;
+  const prev = q.status;
+  if (!send({ t, id })) return;
+  q.status = { promote:'promoted', unpromote:'new', answered:'answered', dismiss:'dismissed', restore:'new' }[t];
+  if (t === 'promote') q.order = Infinity;
+  render();
+  if (label) toast(label, () => send({ t: prev === 'promoted' ? 'promote' : prev === 'new' && t === 'promote' ? 'unpromote' : 'restore', id }));
+}
+function toast(text, fn){ undo = fn; $('#undo').hidden = !fn; $('#toastText').textContent = text; $('#toast').hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { $('#toast').hidden = true; undo = null; }, 6000); }
+$('#undo').addEventListener('click', () => { if (undo) undo(); undo = null; $('#toast').hidden = true; });
+
+function card(q, kind, i){
+  const v = q.votes || 0, votes = kind === 'done' ? '' : `<span class="votes${v ? '' : ' zero'}">▲ ${v}</span>`;
+  const who = `<div class="who"><span>${kind === 'up' ? `<span class="pos">#${i + 1}</span>` : ''}<b>${esc(q.name)}</b>${votes}</span><span>${kind === 'done' ? `<span class="tag ${q.status}">${q.status === 'answered' ? 'Answered' : 'Dismissed'}</span>` : ago(q.ts)}</span></div>`;
+  const text = `<div class="text">${esc(q.text)}</div>`;
+  const btns = kind === 'new'
+    ? `<div class="btns"><button class="go" data-a="promote">Put on screen</button><button data-a="answered">Answered</button><button data-a="dismiss">Dismiss</button></div>`
+    : kind === 'up'
+    ? `<div class="btns"><button class="ok" data-a="answered">Answered</button><button data-a="unpromote">Take off screen</button></div>`
+    : `<div class="btns"><button data-a="restore">Restore</button></div>`;
+  return `<div class="card${seen && !seen.has(q.id) && kind === 'new' ? ' fresh' : ''}" data-id="${q.id}">${who}${text}${btns}</div>`;
+}
+function render(){
+  const fresh = all.filter(q => q.status === 'new').sort((a, b) => (b.votes || 0) - (a.votes || 0) || a.ts - b.ts);
+  const up = all.filter(q => q.status === 'promoted').sort((a, b) => a.order - b.order);
+  const done = all.filter(q => q.status === 'answered' || q.status === 'dismissed').sort((a, b) => (b.changed || b.ts) - (a.changed || a.ts));
+  $('#new').innerHTML = fresh.length ? fresh.map(q => card(q, 'new')).join('') : '<p class="empty">Nothing new.</p>';
+  $('#up').innerHTML = up.length ? up.map((q, i) => card(q, 'up', i)).join('') : '<p class="empty">Nothing on screen yet. Pick one from New.</p>';
+  $('#done').innerHTML = done.map(q => card(q, 'done')).join('');
+  $('#nNew').textContent = fresh.length; $('#nUp').textContent = up.length; $('#nDone').textContent = `(${done.length})`;
+  if (seen && tab === 'up' && fresh.some(q => !seen.has(q.id))) { const b = $('#nNew'); b.classList.remove('ping'); void b.offsetWidth; b.classList.add('ping'); }
+  if (tab === 'new') $('#nNew').classList.remove('ping');
+  document.title = fresh.length ? `(${fresh.length}) Questions` : 'Questions';
+  if (seen && fresh.some(q => !seen.has(q.id)) && navigator.vibrate) navigator.vibrate(60);
+  seen = new Set(all.map(q => q.id));
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('button[data-a]'); if (!b) return;
+  const id = Number(b.closest('.card').dataset.id), a = b.dataset.a;
+  act(id, a, a === 'dismiss' ? 'Dismissed' : a === 'answered' ? 'Marked answered' : a === 'unpromote' ? 'Taken off screen' : a === 'promote' ? 'Put on screen' : '');
+});
+setInterval(render, 30000);
+
+function send(m){ if (ws && ws.readyState === 1) { ws.send(JSON.stringify(m)); return true; } toast('Not connected. Try again in a moment.', null); return false; }
+function connect(){
+  if (!key) { $('#gate').hidden = false; $('#main').hidden = true; return; }
+  if (!/^https?:\/\//.test(API)) { $('#gate').hidden = false; $('#gate label').textContent = 'No live backend set in config.js yet.'; return; }
+  ws = new WebSocket(`${API.replace(/^http/, 'ws')}/api/ws?role=mod&key=${encodeURIComponent(key)}`);
+  let opened = false;
+  ws.onopen = () => { opened = true; failures = 0; retry = 1000; $('#dot').classList.add('on'); $('#gate').hidden = true; $('#main').hidden = false; };
+  ws.onmessage = e => { if (e.data === 'pong') return; let m; try { m = JSON.parse(e.data); } catch (err) { return; } if (m.t === 'state' && m.all) { all = m.all; render(); } };
+  ws.onclose = () => { $('#dot').classList.remove('on');
+    if (!opened && ++failures >= 3) { $('#gate').hidden = false; $('#main').hidden = true; return; }
+    setTimeout(connect, retry); retry = Math.min(10000, retry * 1.6); };
+}
+$('#useKey').addEventListener('click', () => { key = $('#key').value.trim(); if (!key) return; store.set('keynote-key', key); failures = 0; connect(); });
+setInterval(() => { if (ws && ws.readyState === 1) ws.send('ping'); }, 25000);
+
+// Keep the screen awake while the page is open.
+let lock = null;
+async function wake(){ try { if ('wakeLock' in navigator && document.visibilityState === 'visible') lock = await navigator.wakeLock.request('screen'); } catch (e) {} }
+document.addEventListener('visibilitychange', wake); wake();
+connect();
+})();
+</script>
+</body>
+</html>

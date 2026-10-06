@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1424">
+<title>Choose your own keynote</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+@font-face{ font-family:SilkscreenLocal; src:url(../fonts/silkscreen-latin-400-normal.woff2) format('woff2'); font-weight:400; }
+@font-face{ font-family:SilkscreenLocal; src:url(../fonts/silkscreen-latin-700-normal.woff2) format('woff2'); font-weight:700; }
+:root{ --bg:#0f1424; --panel:#171e33; --line:#2a3452; --ink:#eef1f7; --muted:#a3adc8; --hi:#ffd166; --good:#4be06f;
+  --px:Silkscreen, SilkscreenLocal, "Courier New", monospace;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); color-scheme:dark; }
+*,*::before,*::after{ box-sizing:inherit; }
+html{ scroll-padding-top:env(safe-area-inset-top,0px); }
+body{ margin:0; background:var(--bg); color:var(--ink); font:17px/1.45 "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif; }
+.wrap{ max-width:560px; margin:0 auto; padding:20px 16px 48px; }
+h1{ font-family:var(--px); font-weight:700; font-size:30px; line-height:1.02; margin:0 0 8px; }
+h2{ font-family:var(--px); font-size:19px; margin:0 0 4px; color:var(--hi); }
+header p, .hint{ color:var(--muted); margin:0; }
+section{ margin-top:28px; }
+button{ font:inherit; font-weight:700; cursor:pointer; border:2px solid var(--ink); background:transparent; color:var(--ink); padding:9px 16px; min-height:44px; border-radius:0; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible{ outline:3px solid var(--hi); outline-offset:2px; }
+button:disabled{ opacity:.35; cursor:not-allowed; }
+.primary{ background:var(--hi); border-color:var(--hi); color:#0f1424; }
+.link{ border:0; padding:0; min-height:0; text-decoration:underline; text-underline-offset:3px; color:var(--hi); font-weight:700; background:none; }
+
+#topics{ list-style:none; margin:14px 0 0; padding:0; }
+.topic{ --c:#ffd166; display:grid; grid-template-columns:auto 36px 1fr auto; gap:4px 10px; align-items:start; padding:12px; margin-bottom:10px; background:var(--panel); border:2px solid var(--line); border-left:6px solid var(--c); transition:transform .15s; }
+.topic.moved{ transform:scale(1.02); }
+.topic .pos{ font-family:var(--px); font-weight:700; font-size:22px; line-height:1; color:var(--c); min-width:1.4ch; padding-top:4px; }
+.topic canvas{ width:36px; image-rendering:pixelated; margin-top:4px; }
+.topic .txt{ min-width:0; }
+.topic h3{ margin:0; font-family:var(--px); font-size:16px; line-height:1.2; color:var(--c); }
+.topic p{ margin:2px 0 0; color:var(--muted); font-size:15px; }
+.topic .arrows{ display:flex; flex-direction:column; gap:6px; }
+.topic .arrows button{ min-height:40px; min-width:44px; padding:0; font-size:16px; }
+.submit{ width:100%; margin-top:4px; min-height:52px; font-size:18px; }
+
+.summary{ padding:16px; background:var(--panel); border:2px solid var(--good); }
+.summary h2{ color:var(--good); }
+.summary ol{ margin:10px 0 12px; padding-left:1.6em; }
+.summary li{ margin:2px 0; }
+.summary li.visited{ color:var(--muted); text-decoration:line-through; }
+.done{ color:var(--muted); font-size:15px; margin:14px 0 0; }
+
+label{ display:block; font-weight:700; margin:14px 0 6px; }
+input, textarea{ width:100%; font:inherit; color:var(--ink); background:var(--panel); border:2px solid var(--line); padding:10px 12px; border-radius:0; }
+textarea{ resize:vertical; min-height:92px; }
+.qrow{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:10px; }
+.count{ font-family:var(--px); font-size:13px; color:var(--muted); }
+.status{ min-height:1.45em; margin:10px 0 0; }
+.sub{ font-family:var(--px); font-size:15px; color:var(--muted); margin:22px 0 8px; }
+.qs{ list-style:none; margin:0; padding:0; }
+.qs li{ display:flex; gap:12px; align-items:flex-start; padding:10px 12px; margin-bottom:8px; background:var(--panel); border:2px solid var(--line); }
+.qs li.own{ border-color:#3b4770; }
+.qs li.up{ border-left:6px solid var(--hi); }
+.qs .vote{ flex:none; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:52px; min-height:56px; padding:4px; font-size:15px; line-height:1.1; }
+.qs .vote b{ font-family:var(--px); font-size:15px; }
+.qs .vote[aria-pressed="true"]{ background:var(--hi); border-color:var(--hi); color:#0f1424; }
+.qs .vote:disabled{ opacity:1; border-style:dashed; color:var(--muted); cursor:default; }
+.qs .qt{ margin:0; overflow-wrap:anywhere; }
+.qs .qm{ margin:4px 0 0; font-size:14px; color:var(--muted); }
+.qs .qm .tag{ font-family:var(--px); font-size:12px; color:var(--hi); margin-left:6px; }
+.qs .qm .tag.ok{ color:var(--good); }
+.empty{ color:var(--muted); margin:0; }
+details summary{ font-family:var(--px); font-size:15px; color:var(--muted); padding:14px 0 8px; cursor:pointer; }
+
+.end{ padding:18px; background:var(--panel); border:2px solid var(--hi); }
+.end a{ display:inline-block; margin-top:10px; background:var(--hi); color:#0f1424; font-weight:700; text-decoration:none; padding:12px 18px; font-family:var(--px); }
+footer{ margin-top:32px; color:var(--muted); font-size:14px; }
+footer .dot{ color:#ff6b6b; } footer.on .dot{ color:var(--good); }
+@media (prefers-reduced-motion: reduce){ .topic{ transition:none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Choose your own keynote</h1>
+    <p>Phil Ewels at scverse 2026. Rank what you'd like him to talk about, then put your phone away and enjoy the talk.</p>
+  </header>
+
+  <section id="end" class="end" hidden>
+    <h2>That's the talk</h2>
+    <p>Play the game yourself and hunt for the easter eggs. There are at least two.</p>
+    <a href="../">Play the game</a>
+  </section>
+
+  <section id="vote">
+    <div id="ranking">
+      <h2>Rank the topics</h2>
+      <p class="hint">Put them in the order you'd most like to hear them, then submit. It takes about ten seconds.</p>
+      <ol id="topics"><li class="hint">Waiting for the game to start…</li></ol>
+      <button type="button" class="primary submit" id="submit">Submit my ranking</button>
+    </div>
+    <div id="summary" class="summary" hidden>
+      <h2>Your ranking is in</h2>
+      <p class="hint">Phil's screen shows everyone's combined ranking. You can put your phone away now.</p>
+      <ol id="mine"></ol>
+      <button type="button" class="link" id="edit">Change my ranking</button>
+    </div>
+  </section>
+
+  <section id="ask">
+    <h2>Questions</h2>
+    <p class="hint">Ask Phil something, or vote up the questions you most want answered. He picks which go on screen, and a character walks up to him with each one.</p>
+    <label for="name">Your name</label>
+    <input id="name" maxlength="24" autocomplete="given-name">
+    <label for="q">Question</label>
+    <textarea id="q" maxlength="140"></textarea>
+    <div class="qrow"><span class="count" id="qc">0 / 140</span><button class="primary" id="send">Send question</button></div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+    <h3 class="sub" id="fromRoom">From the room</h3>
+    <ul class="qs" id="qs"></ul>
+    <details id="answeredBox" hidden><summary>Answered <span id="nAns"></span></summary><ul class="qs" id="answered"></ul></details>
+  </section>
+
+  <footer id="conn"><span class="dot">●</span> <span id="connText">Connecting</span></footer>
+</div>
+<script src="../config.js"></script>
+<script>
+(() => {
+'use strict';
+const API = String(window.KEYNOTE_API || '').trim().replace(/\/+$/, '');
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+const store = { get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} } };
+let device = store.get('keynote-device');
+if (!device) { device = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2)); store.set('keynote-device', device); }
+$('#name').value = store.get('keynote-name') || '';
+
+const QMARK = ['.oooo.','oo..oo','...oo.','..oo..','......','..oo..'];
+function icon(t){ const m = t.icon && t.icon.length ? t.icon : QMARK;
+  const c = document.createElement('canvas'); c.width = m[0].length; c.height = m.length; const g = c.getContext('2d');
+  const light = '#' + [1,3,5].map(i => { const v = parseInt(t.colour.slice(i,i+2),16); return Math.round(v + (255 - v) * 0.45).toString(16).padStart(2,'0'); }).join('');
+  const pal = { o:t.colour, a:light, w:'#ffffff', k:'#1b1f2a' };
+  m.forEach((row,y) => [...row].forEach((ch,x) => { if (pal[ch]) { g.fillStyle = pal[ch]; g.fillRect(x,y,1,1); } }));
+  return c; }
+
+let state = null, ws = null, retry = 1000, statusTimer = null;
+let order = null, editing = null;
+function status(msg){ $('#status').textContent = msg; clearTimeout(statusTimer); statusTimer = setTimeout(() => { $('#status').textContent = ''; }, 7000); }
+function shuffle(a){ a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function send(m){ if (ws && ws.readyState === 1) { ws.send(JSON.stringify(m)); return true; } status('Not connected yet. Try again in a moment.'); return false; }
+
+// Everyone starts from a shuffled order so the first slot isn't a free win.
+function syncOrder(){
+  const keys = state.config.topics.map(t => t.key), mine = state.mine && state.mine.rank;
+  if (!order) {
+    let saved = null; try { saved = JSON.parse(store.get('keynote-order') || 'null'); } catch (e) {}
+    order = mine || saved || shuffle(keys);
+  }
+  order = order.filter(k => keys.includes(k));
+  keys.forEach(k => { if (!order.includes(k)) order.push(k); });
+  if (editing === null) editing = !mine;
+}
+function move(key, dir){
+  const open = order.filter(k => !state.visited.includes(k));
+  const i = open.indexOf(key), j = i + dir;
+  if (i < 0 || j < 0 || j >= open.length) return;
+  const a = order.indexOf(key), b = order.indexOf(open[j]);
+  [order[a], order[b]] = [order[b], order[a]];
+  store.set('keynote-order', JSON.stringify(order));
+  render(key);
+}
+$('#submit').addEventListener('click', () => { if (send({ t:'rank', order })) { store.set('keynote-order', JSON.stringify(order)); editing = false; render(); window.scrollTo({ top:0, behavior:'smooth' }); } });
+$('#edit').addEventListener('click', () => { editing = true; render(); });
+
+function render(moved){
+  if (!state || !state.config) return;
+  syncOrder();
+  const byKey = Object.fromEntries(state.config.topics.map(t => [t.key, t]));
+  const open = order.filter(k => !state.visited.includes(k)).map(k => byKey[k]);
+  const done = state.config.topics.filter(t => state.visited.includes(t.key));
+  $('#ranking').hidden = !editing; $('#summary').hidden = editing;
+  $('#submit').textContent = state.mine && state.mine.rank ? 'Update my ranking' : 'Submit my ranking';
+  $('#mine').innerHTML = order.map(k => `<li class="${state.visited.includes(k) ? 'visited' : ''}">${esc(byKey[k].title)}</li>`).join('');
+  const box = $('#topics');
+  box.querySelectorAll(':scope > :not(.topic)').forEach(el => el.remove());
+  const have = new Map([...box.querySelectorAll('.topic')].map(el => [el.dataset.key, el]));
+  have.forEach((el, k) => { if (!open.some(t => t.key === k)) el.remove(); });
+  open.forEach((t, i) => {
+    let el = have.get(t.key);
+    if (!el) {
+      el = document.createElement('li'); el.className = 'topic'; el.dataset.key = t.key; el.style.setProperty('--c', t.colour);
+      el.innerHTML = `<span class="pos"></span><div class="txt"><h3>${esc(t.title)}</h3><p>${esc(t.blurb)}</p></div>`
+        + `<div class="arrows"><button type="button" class="up" aria-label="Move ${esc(t.title)} up">▲</button><button type="button" class="down" aria-label="Move ${esc(t.title)} down">▼</button></div>`;
+      el.insertBefore(icon(t), el.querySelector('.txt'));
+      el.querySelector('.up').addEventListener('click', () => move(t.key, -1));
+      el.querySelector('.down').addEventListener('click', () => move(t.key, 1));
+    }
+    box.appendChild(el);
+    el.querySelector('.pos').textContent = i + 1;
+    el.querySelector('.up').disabled = i === 0;
+    el.querySelector('.down').disabled = i === open.length - 1;
+    if (t.key === moved) { el.classList.add('moved'); setTimeout(() => el.classList.remove('moved'), 180); }
+  });
+  const end = state.ended;
+  $('#end').hidden = !end; $('#vote').hidden = end;
+  renderQuestions();
+}
+
+// The shared question list: most votes first, as the server sends it.
+function qItem(q, answered){
+  const tag = answered ? '<span class="tag ok">Answered</span>' : q.status === 'promoted' ? '<span class="tag">Up next on screen</span>' : q.own ? '<span class="tag">Yours</span>' : '';
+  const btn = answered ? '' : `<button type="button" class="vote" data-id="${q.id}" aria-pressed="${q.voted}" ${q.own ? 'disabled aria-label="Your question"' : `aria-label="Vote for this question"`}>▲<b>${q.votes}</b></button>`;
+  return `<li class="${q.own ? 'own' : ''} ${q.status === 'promoted' ? 'up' : ''}">${btn}<div><p class="qt">${esc(q.text)}</p><p class="qm">${esc(q.name)}${tag}</p></div></li>`;
+}
+function renderQuestions(){
+  const qs = state.qs || [], ans = state.answered || [];
+  $('#qs').innerHTML = qs.length ? qs.map(q => qItem(q, false)).join('') : '<li class="empty" style="border:0;background:none;padding:0">No questions yet. Be the first.</li>';
+  $('#answeredBox').hidden = !ans.length; $('#nAns').textContent = `(${ans.length})`;
+  $('#answered').innerHTML = ans.map(q => qItem(q, true)).join('');
+}
+$('#qs').addEventListener('click', e => {
+  const b = e.target.closest('.vote'); if (!b || b.disabled) return;
+  const id = Number(b.dataset.id), q = (state.qs || []).find(x => x.id === id); if (!q) return;
+  if (!send({ t:'upvote', id, on: !q.voted })) return;
+  q.voted = !q.voted; q.votes += q.voted ? 1 : -1;
+  state.qs.sort((a, c) => c.votes - a.votes || a.id - c.id); renderQuestions();
+});
+
+$('#q').addEventListener('input', () => { $('#qc').textContent = `${$('#q').value.length} / 140`; });
+$('#send').addEventListener('click', () => {
+  const name = $('#name').value.trim(), text = $('#q').value.trim();
+  if (!name) { status('Add your name first.'); $('#name').focus(); return; }
+  if (!text) { status('Type a question first.'); $('#q').focus(); return; }
+  store.set('keynote-name', name);
+  if (send({ t:'ask', name, text })) $('#send').disabled = true;
+});
+
+// With no backend (before or after the talk), point people at the game instead.
+let failures = 0;
+function closed(){ $('#end').hidden = false; $('#end h2').textContent = 'Live voting is closed'; $('#vote').hidden = true; $('#ask').hidden = true; $('#connText').textContent = 'Offline'; }
+function connect(){
+  if (!/^https?:\/\//.test(API)) { closed(); return; }
+  ws = new WebSocket(`${API.replace(/^http/, 'ws')}/api/ws?role=audience&device=${encodeURIComponent(device)}`);
+  ws.onopen = () => { retry = 1000; failures = 0; $('#ask').hidden = false; $('#conn').classList.add('on'); $('#connText').textContent = 'Live'; };
+  ws.onmessage = e => {
+    if (e.data === 'pong') return;
+    let m; try { m = JSON.parse(e.data); } catch (err) { return; }
+    if (m.t !== 'state') return;
+    state = m;
+    if (m.mine && m.mine.notice) {
+      status(m.mine.notice); $('#send').disabled = false;
+      if (m.mine.notice.startsWith('Sent')) { $('#q').value = ''; $('#qc').textContent = '0 / 140'; }
+    }
+    render();
+  };
+  ws.onclose = () => { $('#conn').classList.remove('on'); $('#connText').textContent = 'Reconnecting'; if (!state && ++failures >= 3) closed(); setTimeout(connect, retry); retry = Math.min(10000, retry * 1.6); };
+}
+setInterval(() => { if (ws && ws.readyState === 1) ws.send('ping'); }, 25000);
+connect();
+})();
+</script>
+</body>
+</html>
