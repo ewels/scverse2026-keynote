@@ -429,18 +429,22 @@ const FONT=s=>`${s}px Silkscreen, SilkscreenLocal, "Courier New", monospace`;
 function tw(s,size){ ctx.font=FONT(size); return ctx.measureText(s).width; }
 const OPENER=Object.keys(TOPICS).find(k=>TOPICS[k].opener);
 const GAP=96, HALL=Object.keys(TOPICS).filter(k=>k!==OPENER).map((key,i)=>({ key, x:112+i*GAP }));
-const DESK_X=-320, QA_DOOR=112+HALL.length*GAP, FOYER_W=QA_DOOR+40, DESK_GREETER=150, DESK_DOOR=292;
+const DESK_X=-320, QA_DOOR=112+HALL.length*GAP, LOO_DOOR=QA_DOOR+96, FOYER_W=LOO_DOOR+24, DESK_GREETER=150, DESK_DOOR=292;
 const COFFEE_SAYS={1:'Ahh, coffee',2:'Just one more',3:'Is it warm in here?',4:'I can see colours',5:'MORE',6:'*vibrating*',7:'I can hear sounds... wait'}, COFFEE_MAX=8;
+const LOO_LINES=['I can’t go when someone is watching','Not with the whole room looking','Is my mic still on?','Stage fright. Literally.','Maybe after the Q&A'];
+const FOYER_CUPS=[[0,122],[6,122],[3,116]];
 const COFFEE_X=(HALL.find(h=>TOPICS[h.key].place==='coffee')||{x:376}).x, URN_X=COFFEE_X-15, STACK_X=COFFEE_X+15;
 // window centres sit between entrances; the poke list skips the ones a plant or a cameo stands under
 const FOYER_WIN=[...Array(HALL.length+1)].map((_,i)=>64+i*GAP), FOYER_WAVE=[1,3,4,6].map(i=>FOYER_WIN[i]);
 // standing spots between entrances: cameo characters, chatting pairs, the phone call, the cleaner's beat
 const CAMEO_X=[160,640], CHAT_X=[246,266,342,362], PHONE_X=448, SWEEP=[520,600];
-const gfx={ R, T, disc, line, map2d, tri, blob, pine, cumulus, mix, hash, person, ctx, VW, VH,
+// a paper coffee cup, the same in the foyer and the coffee queue
+function cupArt(x,y,full){ R(x,y,6,6,'#ffffff'); R(x,y,6,1,'#e8e8e8'); R(x,y+3,6,1,'#c8322c'); R(x,y+5,6,1,'#d8d8d8'); if(full) R(x+1,y,4,1,'#6b4423'); }
+const gfx={ cup:cupArt, R, T, disc, line, map2d, tri, blob, pine, cumulus, mix, hash, person, ctx, VW, VH,
   look(id){ const c=CHARACTERS.find(c=>c.id===id); if(c) return c.look; if(id==='greeter') return GREETER.look;
     const t=TOPICS[id]||Object.values(TOPICS).find(t=>t.place===id); return t&&t.host.look; },
   hero:()=>Game.hero().look, heroX:()=>Game.p.x, time:()=>Game.time, visited:k=>Game.visited.has(k), carry:(k,v)=>v===undefined?Game.carried[k]:(Game.carried[k]=v),
-  toast:s=>Game.toast(s), egg:(id,label)=>Game.egg(id,label), say:(s,x,y,secs)=>Game.say(s,x,y,secs) };
+  drink:(x,y)=>Game.drink(x,y), drank:n=>Game.drank(n), toast:s=>Game.toast(s), egg:(id,label)=>Game.egg(id,label), say:(s,x,y,secs)=>Game.say(s,x,y,secs) };
 const PLACES={};
 function place(key){ if(PLACES[key]) return PLACES[key]; const t=TOPICS[key], f=(window.KEYNOTE_PLACES||{})[t.place];
   let d=null; try{ d=f&&f(gfx); }catch(e){ console.error(e); }
@@ -470,7 +474,7 @@ const GUARDS=[{ skin:'#c98e62', hair:'#1b1b1b', hairStyle:'bald', top:'#d6dc3c',
   { skin:'#f2c9a0', hair:'#5a3d2b', hairStyle:'short', top:'#d6dc3c', topStyle:'tee', pants:'#1b1f2a' }];
 // Every egg in the venue, engine and places; the end screen counts against this, so add new ids here.
 const EGGS=['sea','plant','organiser','bell','printer','cow','cat','fight','moonwalk','dance','sweep','rain','coffee',
-  'star','theatre-title','triplicate','dino','hoodie','poster','arcade','lost','photobooth','palm'];
+  'star','theatre-title','triplicate','dino','hoodie','poster','arcade','lost','photobooth','palm','toilet','mirror','dryer','knock','gulls'];
 // the venue cat from the hackathon's photos (ginger, white chest), side on, facing right
 const CAT_PAL={ f:'#e8913a', s:'#c06a22', w:'#f6efe2', e:'#3d8a3a', n:'#e88aa0' };
 const CAT_BODY=['..........f..f','f.........ffff','f.........ffef','.f.fsfsfsffwwn','..ffffffffffw.','..fffffffffww.'];
@@ -492,10 +496,10 @@ const Game = {
     token++; this.tm=timers(); this.time=0; this.scene='menu'; this.sel=0; this.chosen=null; this.flash=0;
     this.ended=false; this.badge=false; this.badgeT=0; this.visited=new Set(); this.done=new Set(); this.eggs=new Map(); this.toasts=[]; this.bubbles=[];
     this.plants=[{x:72,ang:0,state:'up',dir:1},{x:QA_DOOR-48,ang:0,state:'up',dir:1}]; this.kickT=0; this.asker=null;
-    this.dk={ door:0, fdoor:0, rings:0, ringT:-9, glareT:-9, jamT:-9, totesT:-9, totesDown:false }; this.fy={ waves:0, wave:null }; this.askerScene=null; this.pl=null; this.topic=null;
+    this.loo={ knocks:0, tries:0, mirrorT:-9, dryT:-9, tapT:-9 }; this.dk={ door:0, fdoor:0, rings:0, ringT:-9, glareT:-9, jamT:-9, totesT:-9, totesDown:false }; this.fy={ waves:0, wave:null }; this.askerScene=null; this.pl=null; this.topic=null;
     this.p={x:40,face:1,t:0,moving:false}; this.camX=0;
     Object.assign(this,{ cat:null, fx:[], reacts:[], annoy:{who:null,n:0,t:0}, fight:null, saved:{}, resume:null, revoked:false, visitor:false,
-      jit:0, gold:false, drinkT:-9, strokeT:-9, strokeFace:1, danceT:0, ovT:0, jumpT:0, openAt:0, idleT:0, idleRun:0, moonT:0, sweeping:false, cl:{x:SWEEP[0],face:1,jobs:[]}, cof:{cups:0,fallT:null,mopT:null}, hostSeen:new Set(), carried:{} });
+      jit:0, gold:false, drinkT:-9, strokeT:-9, strokeFace:1, danceT:0, ovT:0, jumpT:0, openAt:0, idleT:0, idleRun:0, moonT:0, sweeping:false, cl:{x:SWEEP[0],face:1,jobs:[]}, cof:{cups:0,fallT:null,mopT:null,side:[true,true,true]}, hostSeen:new Set(), carried:{} });
     Fade.busy=false; $('#fade').style.opacity='0'; Input.queue.length=0;
     Dlg.close(); Prompt.clear(); Title.hide(); Card.hide(); Caption.hide(); Big.hide(); Menu.show();
   },
@@ -516,7 +520,7 @@ const Game = {
     const key=TOPICS[id]?id:Object.keys(TOPICS).find(k=>TOPICS[k].place===id);
     if(key) return this.enterPlace(key,true);
     if(id==='desk') return this.go('foyer',DESK_X+24);
-    this.go(id,{outside:40,foyer:24,end:160}[id]); },
+    this.go(id,{outside:40,foyer:24,end:160,toilets:24}[id]); },
   go(scene,x){ this.scene=scene; const p=this.p; p.x=x; p.face=1; p.moving=false; this.jit=0; this.gold=false; this.bubbles=[]; this.kickT=0; this.fx=[]; this.idleT=0; this.fight=null;
     const c=this.cat; if(c){ c.x=x-14; c.face=1; c.mode='sit'; c.t=this.time; }
     Caption.hide(); Big.hide(); Prompt.clear(); Title.hide(); this.camX=clamp(x-VW/2,this.minX(),this.width()-VW);
@@ -537,6 +541,7 @@ const Game = {
     Fade.go(()=>{ this.go('foyer',key===OPENER?DESK_X+DESK_DOOR:HALL.find(h=>h.key===key).x);
       this.pl=null; this.topic=null; }); },
   update(dt){
+    if(this.scene==='toilets' && this.time-this.loo.dryT<0.8) this.p.x=Math.max(30,this.p.x-dt*70);
     this.time+=dt; this.tm.tick(dt); if(this.flash>0) this.flash=Math.max(0,this.flash-dt*2.4);
     if(this.kickT>0) this.kickT=Math.max(0,this.kickT-dt);
     this.plants.forEach(pl=>{ if(pl.state==='falling'){ pl.ang=Math.min(Math.PI/2,pl.ang+dt*7); if(pl.ang>=Math.PI/2){ pl.state='down'; this.egg('plant','You kicked over a plant'); } } });
@@ -606,7 +611,16 @@ const Game = {
       { x:URN_X, r:6, label:'Pour a coffee', act:()=>this.pour() },
       ...this.plants.filter(pl=>pl.state==='up').map(pl=>({ x:pl.x, r:18, label:'Kick the plant', act:()=>this.kickPlant(pl) })),
       ...FOYER_WAVE.map(x=>({ x, r:12, label:'Wave at the window', act:()=>this.waveWindow(x) })),
+      { x:LOO_DOOR, r:16, label:'Toilets', act:()=>{ Prompt.clear(); Fade.go(()=>{ this.go('toilets',24); this.egg('toilet','You found the toilets'); }); } },
       { x:QA_DOOR, r:18, label:'Q&amp;A: end the talk', act:()=>{ Prompt.clear(); Fade.go(()=>this.go('end',160)); } } ];
+    if(this.scene==='toilets'){ const lo=this.loo; return [...cat,
+      { x:16, r:12, label:'Back to the foyer', act:()=>{ Prompt.clear(); Fade.go(()=>{ this.go('foyer',LOO_DOOR); this.p.face=-1; }); } },
+      { x:96, r:12, label:'Look in the mirror', act:()=>{ lo.mirrorT=this.time; this.tm.after(0.8,()=>this.egg('mirror','Your reflection waved first')); } },
+      { x:122, r:8, label:'Wash your hands', act:()=>{ lo.tapT=this.time; this.say('Twenty seconds. Happy birthday to...',122,110,2.4); } },
+      { x:150, r:10, label:'Use the hand dryer', act:()=>{ lo.dryT=this.time; this.p.face=1; this.tm.after(1,()=>this.egg('dryer','Blown away by the hand dryer')); } },
+      { x:204, r:16, label:'Knock', act:()=>{ const n=++lo.knocks; this.say(['Occupied!','Still occupied!','Do you MIND?'][Math.min(n,3)-1],204,96,2);
+          if(n===3) this.egg('knock','Knock knock. Occupied.'); } },
+      { x:262, r:16, label:'Use the toilet', act:()=>this.say(LOO_LINES[lo.tries++%LOO_LINES.length],262,100,2.4) } ]; }
     if(this.scene==='end') return [...cat, { x:20, r:14, label:'Back to the foyer', act:()=>{ Prompt.clear(); this.ended=false; Live.send({t:'ended', on:false});
       Fade.go(()=>{ this.go('foyer',QA_DOOR); this.p.face=-1; }); } }];
     return [];
@@ -648,7 +662,8 @@ const Game = {
   },
   step(dir){ const pl=this.pl, n=pl.t.beats.length;
     if(dir>0 && pl.idx>=n){ this.done.add(pl.key); return this.leavePlace(); }
-    if(dir<0 && pl.idx<=0){ pl.idx=-1; pl.out=true; Big.hide(); Caption.hide(); pl.target=pl.d.spawn??24; return; }
+    // Left from the first beat walks back to the door; Left again leaves
+    if(dir<0 && pl.idx<=0){ pl.out=pl.idx<0; pl.idx=-1; pl.pokeAfter=null; Big.hide(); Caption.hide(); pl.target=pl.d.spawn??24; return; }
     pl.out=false; pl.pokeAfter=null; pl.idx+=dir; Big.hide(); Caption.hide();
     const at=pl.idx<n&&pl.t.beats[pl.idx].at, fx=at&&pl.d.focus&&pl.d.focus[at];
     pl.target=pl.idx<n?(fx??this.p.x):(pl.d.exit??this.width()-20); },
@@ -761,13 +776,16 @@ const Game = {
       done:()=>{ pl.state='up'; pl.ang=0; if(i===n-1){ this.sweeping=false; this.egg('sweep','The cleaner swept up after you'); } } })); },
   // the foyer urn: one cup per Action, until the stack falls at COFFEE_MAX
   pour(){ const c=this.cof; if(c.fallT!=null) return this.say('Mind the floor',URN_X,104);
-    if(this.time-this.drinkT<1.2) return;
-    c.cups++; this.drinkT=this.time; this.p.face=1; this.fx.push({ k:'steam', x:URN_X, y:108, vx:0, vy:-6, t:0, life:1 });
-    if(c.cups===COFFEE_MAX-1) this.jit=1;
-    if(c.cups===4) this.tm.after(0.9,()=>{ this.gold=true; });
-    const said=COFFEE_SAYS[c.cups]; if(said) this.tm.after(0.9,()=>{ if(this.scene==='foyer') this.say(said,this.p.x,124,1.8); });
-    if(c.cups<COFFEE_MAX) return; c.fallT=this.time; this.egg('coffee','Too much coffee');
-    this.tm.after(1.6,()=>this.cl.jobs.push({ x:STACK_X+14, dur:5, start:()=>{ c.mopT=this.time; if(this.scene==='foyer') this.say('Really?',this.cl.x,124,2.5); }, done:()=>{ c.cups=0; c.fallT=c.mopT=null; } })); },
+    // take a cup off the side, drink it, then the empty goes on the stack and a fresh cup appears
+    const i=c.side.lastIndexOf(true), [sx,sy]=FOYER_CUPS[Math.max(0,i)]; if(i<0 || !this.drink(COFFEE_X+sx,sy)) return;
+    c.side[i]=false; this.tm.after(2.4,()=>{ c.side[i]=true; }); this.fx.push({ k:'steam', x:URN_X, y:108, vx:0, vy:-6, t:0, life:1 });
+    this.tm.after(1.2,()=>{ c.cups++; if(this.scene==='foyer') this.drank(c.cups);
+      if(c.cups<COFFEE_MAX) return; c.fallT=this.time; this.egg('coffee','Too much coffee');
+      this.tm.after(1.6,()=>this.cl.jobs.push({ x:STACK_X+14, dur:5, start:()=>{ c.mopT=this.time; if(this.scene==='foyer') this.say('Really?',this.cl.x,124,2.5); }, done:()=>{ c.cups=0; c.fallT=c.mopT=null; } })); }); },
+  // n cups into a stack (foyer or coffee queue): golden eyes, a running commentary, shaking near the end
+  drank(n){ if(n===COFFEE_MAX-1) this.jit=1; if(n===4) this.gold=true; const said=COFFEE_SAYS[n]; if(said) this.say(said,this.p.x,this.feet()-30,1.8); },
+  // the hero lifts a cup from (x, y) and drinks it; false while still drinking the last one
+  drink(x,y){ if(this.time-this.drinkT<1.2) return false; this.drinkT=this.time; this.drinkFrom={x,y}; this.p.face=Math.sign(x-this.p.x)||1; return true; },
   /* phase 8 hooks: phone reactions float up from the bottom; enough at once and the crowd stands */
   react(kind,n=1){ for(let i=0;i<Math.min(n,12) && this.reacts.length<40;i++) this.reacts.push({ k:kind, x:24+Math.random()*(VW-CROP-48), t:-i*0.18 }); },
   victory(){ this.jumpT=0.6; this.egg('star','Golden badge');
@@ -783,7 +801,7 @@ const Game = {
     CX=this.scene==='menu'||this.scene==='select'||feat?Math.round(CROP/2):Math.round(clamp(Math.round(this.p.x-(VW-CROP)/2)-this.camX,0,CROP)*S)/S;
     Prompt.el.classList.toggle('top',this.scene==='place'||!!Caption.s);
     if(feat) this.drawFeature();
-    else ({menu:this.drawMenu, select:this.drawSelect, outside:this.drawOutside, foyer:this.drawFoyer, place:this.drawPlace, end:this.drawEnd})[this.scene].call(this);
+    else ({menu:this.drawMenu, select:this.drawSelect, outside:this.drawOutside, foyer:this.drawFoyer, place:this.drawPlace, end:this.drawEnd, toilets:this.drawToilets})[this.scene].call(this);
     ctx.globalAlpha=1; this.drawEggCount(); this.drawToast(); this.drawReacts();
   },
   world(){ ctx.setTransform(S,0,0,S,-Math.round((this.camX+CX)*S),0); },
@@ -801,7 +819,10 @@ const Game = {
     const bob=p.moving&&Math.floor(p.t*8)%2===0?-1:0, top=Math.round(feet)-20+bob, x0=Math.round(x)-6, px=c=>x0+(p.face<0?11-c:c);
     if(this.gold){ const g=Math.sin(this.time*5)>0?'#ffe680':'#ffc21a'; const ey=top+4+(crouch?3:0); R(px(6),ey,1,1,g); R(px(8),ey,1,1,g); }
     if(this.danceT>0||this.ovT>0||crouch) return;
-    if(drink){ R(px(9),top+4,1,3,'#ffffff'); R(px(10),top+4,1,3,'#ffffff'); R(px(9),top+4,1,1,'#6b4423'); R(px(10),top+4,1,1,'#6b4423'); R(px(11),top+5,1,1,'#ffffff'); }
+    // the cup travels from the side to the hero's mouth, then is held there: a small version of cupArt
+    if(drink){ const a=(this.time-this.drinkT)/0.3, hx=Math.min(px(9),px(11)), f=this.drinkFrom||{x:hx,y:top+4}, k=clamp(a,0,1);
+      const cx=Math.round(f.x+(hx-f.x)*k), cy=Math.round(f.y+(top+4-f.y)*k-Math.sin(k*Math.PI)*6);
+      R(cx,cy,3,4,'#ffffff'); R(cx,cy,3,1,'#6b4423'); R(cx,cy+2,3,1,'#c8322c'); }
     if(this.badge){ const bx=Math.round(x), by=top+8; line(bx-2,by,bx-1,by+2,'#e85d75'); line(bx+1,by,bx,by+2,'#e85d75'); R(bx-1,by+3,3,3,this.visitor?'#c9ccd2':'#ffffff'); }
     // hackathon sticker on the hoodie
     if(this.visited.has('nfcore')) [[3,12,'#ffffff'],[4,12,'#3cc87a'],[3,13,'#3cc87a'],[4,13,'#24b064']].forEach(([c,r,col])=>R(px(c),top+r,1,1,col));
@@ -897,7 +918,8 @@ const Game = {
 
   /* ---------- DTU Lyngby campus ---------- */
   drawOutside(){
-    const cx=this.camX, t=this.time, v0=Math.floor(cx)-8, v1=Math.ceil(cx)+VW+8;
+    // thrown out after a fight: the weather turns with you
+    const storm=this.revoked, cx=this.camX, t=this.time, v0=Math.floor(cx)-8, v1=Math.ceil(cx)+VW+8;
     const par=(wx,f)=>Math.round((wx-cx-160)*f+160);
     const vis=(a,b)=>b>v0 && a<v1;
     ctx.setTransform(S,0,0,S,-CX*S,0);
@@ -911,11 +933,13 @@ const Game = {
     const seaX=1040-cx;
     if(seaX<VW){ const x0=Math.max(0,Math.round(seaX)), w=VW-x0;
       R(x0,114,w,4,'#9cc3dd'); R(x0,118,w,10,'#5c98c8'); R(x0,128,w,10,'#4f8cc0'); R(x0,138,w,8,'#4683b8');
-      for(let i=0;i<26;i++){ const x=x0+Math.floor(hash(i*5)*w), y=118+Math.floor(hash(i*9)*26); if(Math.sin(t*2+i)>0.2) R(x,y,3,1,'#cfe4f2'); }
+      for(let i=0;i<26;i++){ const x=x0+Math.floor(hash(i*5)*w), y=118+Math.floor(hash(i*9)*26); if(Math.sin(t*(storm?5:2)+i)>(storm?-0.4:0.2)) R(x,y,storm?5:3,1,storm?'#ffffff':'#cfe4f2'); }
+      if(storm) for(const [yb,amp,k,sp] of [[121,2,0.13,2.2],[131,4,0.09,2.8],[142,6,0.06,3.4]]) for(let x=x0;x<VW;x+=2){
+        const y=Math.round(yb+Math.sin((x+cx*0.3)*k-t*sp)*amp), crest=Math.sin((x+cx*0.3)*k-t*sp)<-0.5; R(x,y,2,146-y,'#3d6f9e'); R(x,y,2,crest?2:1,crest?'#ffffff':'#8fbbe0'); }
       [1080,1140,1200,1260,1320,1380].forEach((wx,i)=>{ const sx=par(wx,0.3); if(sx<x0+2||sx>VW+6) return;
-        R(sx,98,1,16,'#f2f4f6'); R(sx-1,97,3,2,'#e3e7ea'); const a=t*1.6+i;
+        R(sx,98,1,16,'#f2f4f6'); R(sx-1,97,3,2,'#e3e7ea'); const a=t*(storm?9:1.6)+i;
         for(let b=0;b<3;b++){ const ang=a+b*2.094; line(sx,97,sx+Math.cos(ang)*7,97+Math.sin(ang)*7,'#ffffff'); } });
-      const bx=par(1180,0.45)+Math.round(Math.sin(t*0.2)*14); if(bx>x0){ R(bx-6,128,13,2,'#f4efe6'); R(bx-4,130,9,1,'#6b4a2f'); line(bx,127,bx,116,'#6b4a2f'); for(let y=0;y<10;y++) R(bx+1,117+y,Math.round(y*0.6)+1,1,'#ffffff'); }
+      const bx=par(1180,0.45)+Math.round(Math.sin(t*0.2)*14), by=storm?Math.round(Math.sin(t*3)*3):0; if(bx>x0){ ctx.save(); ctx.translate(0,by); R(bx-6,128,13,2,'#f4efe6'); R(bx-4,130,9,1,'#6b4a2f'); line(bx,127,bx,116,'#6b4a2f'); for(let y=0;y<10;y++) R(bx+1,117+y,Math.round(y*0.6)+1,1,'#ffffff'); ctx.restore(); }
       for(let i=0;i<3;i++){ const gx=Math.round(seaX+140+i*38+Math.sin(t*0.7+i)*20), gy=Math.round(60+i*9+Math.sin(t*1.3+i*2)*4), f=Math.sin(t*6+i)>0?1:0;
         if(gx>x0){ line(gx-4,gy-f,gx,gy+1,'#f7f7f7'); line(gx,gy+1,gx+4,gy-f,'#f7f7f7'); } } }
     ctx.setTransform(S,0,0,S,-Math.round(cx*S)-CX*S,0);
@@ -944,7 +968,7 @@ const Game = {
       R(697,102,2,2,c); R(696,104,4,3,c); R(696,107,1,2,c); R(699,107,1,2,c); }
     if(vis(820,850)){ R(834,120,2,26,'#8a6a4a'); R(820,114,32,9,'#f2f2f2'); R(820,114,32,1,'#c8102e'); T('STRAND >',836,116,4,'#1b2332','center'); }
     if(vis(800,1060)) for(let x=804;x<1060;x+=16){ R(x,137,2,9,'#8a6a4a'); if(x+16<1060){ R(x,139,16,1,'#a07c55'); R(x,142,16,1,'#a07c55'); } }
-    if(vis(1090,1120)){ R(1100,94,1,52,'#d9d9d9'); for(let x=0;x<15;x++){ const y=96+Math.round(Math.sin(t*4-x*0.6)); R(1101+x,y,1,10,'#c8102e'); if(x===4||x===5) R(1101+x,y,1,10,'#ffffff'); R(1101+x,y+4,1,2,'#ffffff'); } }
+    if(vis(1090,1120)){ R(1100,94,1,52,'#d9d9d9'); for(let x=0;x<15;x++){ const y=96+Math.round(Math.sin(t*(storm?14:4)-x*0.6)*(storm?2:1)); R(1101+x,y,1,10,'#c8102e'); if(x===4||x===5) R(1101+x,y,1,10,'#ffffff'); R(1101+x,y+4,1,2,'#ffffff'); } }
     if(vis(1120,1320)){ for(let x=1124;x<1304;x+=24) R(x,136,2,10,'#5f4d3a'); R(1120,138,182,1,'#7d684d');
       R(1256,120,32,10,'#1f2a44'); R(1271,130,2,16,'#5f4d3a'); T('ØRESUND',1272,122,4,'#ffffff','center');
       disc(1296,140,4,'#e8e8e8'); disc(1296,140,2,'#5c98c8'); R(1293,137,2,2,'#e0483f'); R(1298,141,2,2,'#e0483f'); }
@@ -965,7 +989,9 @@ const Game = {
     if(vis(1060,1120)){ R(1060,156,60,24,'#e6d3a1'); for(let i=0;i<14;i++) R(1062+Math.floor(hash(i+11)*56),158+Math.floor(hash(i+31)*20),2,1,i%3?'#cdb783':'#f5ecd6'); }
     if(vis(1120,1320)){ R(1120,156,200,24,'#4a88c0'); R(1120,168,200,12,'#437db2');
       for(let i=0;i<24;i++){ const x=1120+Math.floor(hash(i*13)*200), y=157+Math.floor(hash(i*29)*22), s=Math.round(Math.sin(t*1.8+i)*2); R(x+s,y,6,1,'#8fc0e6'); }
-      for(let x=1124;x<1304;x+=24){ R(x,154,3,26,'#5f4d3a'); R(x,160+Math.round(Math.sin(t*2+x)),3,1,'#9ec7e8'); } }
+            for(let x=1124;x<1304;x+=24){ R(x,154,3,26,'#5f4d3a'); R(x,160+Math.round(Math.sin(t*2+x)),3,1,'#9ec7e8'); } }
+    if(storm&&vis(1120,1320)) for(let x=1120;x<1320;x+=2){ const w=Math.sin(x*0.05-t*2.6), h=Math.round(9+w*9+Math.sin(x*0.17+t*1.7)*2);
+      R(x,180-h-12,2,h+12,'#3a6c9c'); R(x,180-h-12,2,2,w>0.4?'#ffffff':'#9ec7e8'); if(w>0.85&&(x+Math.floor(t*20))%6<2) R(x,168-h-4-Math.round(Math.abs(Math.sin(t*7+x))*5),1,1,'#ffffff'); }
     this.drawAsker(OUT_FEET);
     this.drawCat(OUT_FEET); this.drawHero(OUT_FEET); this.drawFx();
     // foreground reeds and dune grass (slightly faster parallax)
@@ -973,8 +999,11 @@ const Game = {
     for(let k=0;k<11;k++){ const wx=k*62+Math.floor(hash(k*5)*26), sx=par(wx,1.18); if(sx>-30&&sx<VW+30) this.reeds(sx,k); }
     for(let k=0;k<3;k++){ const sx=par(1066+k*20,1.18); if(sx>-30&&sx<VW+30) for(let i=0;i<5;i++) line(sx+i*3,181,sx+i*3+(i%3)-1,164+(i%2)*4,'#9aa050'); }
     // once the talk has started it rains, naturally
-    if(this.openAt){ ctx.fillStyle='rgba(70,78,92,.38)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='rgba(205,220,240,.55)';
-      for(let i=0;i<90;i++){ const x=((hash(i)*VW*1.3-t*24-cx*0.9)%(VW+40)+VW+40)%(VW+40)-20, y=((hash(i+300)*VH+t*150)%(VH+10))-6; ctx.fillRect(Math.round(x),Math.round(y),1,4); } }
+    if(this.openAt||storm){ ctx.fillStyle=storm?'rgba(40,46,60,.55)':'rgba(70,78,92,.38)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='rgba(205,220,240,.55)';
+      const n=storm?220:90, drift=storm?110:24, fall=storm?260:150, len=storm?6:4;
+      for(let i=0;i<n;i++){ const x=((hash(i)*VW*1.3-t*drift-cx*0.9)%(VW+40)+VW+40)%(VW+40)-20, y=((hash(i+300)*VH+t*fall)%(VH+10))-6;
+        if(storm){ ctx.fillRect(Math.round(x),Math.round(y),1,len/2); ctx.fillRect(Math.round(x)-1,Math.round(y)+len/2,1,len/2); } else ctx.fillRect(Math.round(x),Math.round(y),1,len); }
+      const fl=t%9; if(storm&&(fl<0.08||fl>0.2&&fl<0.26)){ ctx.fillStyle='rgba(235,240,255,.6)'; ctx.fillRect(0,0,VW,VH); } }
   },
   cow(x,y,s=1){ const m=['..kk..........','.kwwkkkwwwwkk.','kkwwwwkkkwwwwk','.wwkkwwwwkkwwk','..wwwwwwwwwww.','..k.k.....k.k.','..k.k.....k.k.'];
     map2d(m,x,y,{k:'#1f1f1f',w:'#f4f1ea'},s); R(x+s,y+s,s,s,'#e8a0a0'); },
@@ -1175,6 +1204,10 @@ const Game = {
     if(wa<3.6){ const up=clamp(Math.min(wa,3.6-wa)*4,0,1), y=Math.round(88-up*8), wx=wv.x;
       if(wv.cow){ this.cow(wx-14,y-18+Math.round(Math.sin(t*3)),2); }
       else { const bx=wx-6; person(wv.look,bx,y+6,t,1,false); const hx=bx+7+Math.round(Math.sin(t*12)*2); line(bx+3,y-5,hx,y-12,wv.look.top); R(hx-1,y-14,2,2,wv.look.skin); } }
+    // the storm from a fight is still raging outside
+    if(this.revoked){ ctx.fillStyle='rgba(40,46,60,.55)'; ctx.fillRect(0,17,W,63); ctx.fillStyle='rgba(205,220,240,.6)';
+      for(let i=0;i<260;i++){ const x=Math.round(((hash(i)*W-t*110)%W+W)%W), y=17+Math.round((hash(i+300)*63+t*260)%63); ctx.fillRect(x,y,1,3); ctx.fillRect(x-1,y+3,1,3); }
+      const fl=t%9; if(fl<0.08||fl>0.2&&fl<0.26){ ctx.fillStyle='rgba(235,240,255,.6)'; ctx.fillRect(0,17,W,63); } }
     ctx.restore();
     for(const x of FOYER_WIN){ R(x-14,15,28,2,'#4a4f55'); R(x-14,15,2,66,'#4a4f55'); R(x+12,15,2,66,'#4a4f55'); R(x-1,17,2,63,'#4a4f55'); R(x-12,40,24,2,'#4a4f55');
       R(x-16,80,32,3,'#cfc3ad'); R(x-16,83,32,1,'#b3a68e'); line(x-9,76,x-3,22,'rgba(255,255,255,.25)'); }
@@ -1201,11 +1234,16 @@ const Game = {
     map2d(['.yyyy.','yy..yy','....yy','...yy.','..yy..','......','..yy..'],QA_DOOR-6,108,{y:'#ffd166'},2);
     R(QA_DOOR+9,124,3,2,'#d4a017'); sign(QA_DOOR,'#ffd166','Q&A');
     if(Math.sin(t*3)>0){ R(QA_DOOR-27,90,3,3,'#ffd166'); R(QA_DOOR+24,90,3,3,'#ffd166'); }
+    // round the corner past Q&A: the toilets
+    R(LOO_DOOR-12,100,24,46,'#7d8a90'); R(LOO_DOOR-10,102,20,44,'#a9b7bd'); R(LOO_DOOR+6,122,2,4,'#e0e4e6');
+    R(LOO_DOOR-10,84,20,13,'#2f6fb8'); R(LOO_DOOR,86,1,9,'#ffffff');
+    disc(LOO_DOOR-5,87,1,'#ffffff'); R(LOO_DOOR-6,89,3,4,'#ffffff'); R(LOO_DOOR-6,93,1,2,'#ffffff'); R(LOO_DOOR-4,93,1,2,'#ffffff');
+    disc(LOO_DOOR+5,87,1,'#ffffff'); R(LOO_DOOR+4,89,3,2,'#ffffff'); R(LOO_DOOR+3,91,5,2,'#ffffff'); R(LOO_DOOR+4,93,1,2,'#ffffff'); R(LOO_DOOR+6,93,1,2,'#ffffff');
     this.floorTiles(0,W);
     for(const f of spills) f();
     // the urn's cup stack, and the flood when it falls
     const cof=this.cof;
-    const cup=(x,y,top)=>{ R(x,y,6,6,'#ffffff'); R(x,y,6,1,'#e8e8e8'); R(x,y+3,6,1,'#c8322c'); R(x,y+5,6,1,'#d8d8d8'); if(top) R(x+1,y,4,1,'#6b4423'); };
+    const cup=cupArt;
     const f=cof.fallT==null?-1:t-cof.fallT;
     if(f<0) for(let i=0;i<cof.cups;i++){ const w=cof.cups>=6?Math.round(Math.sin(t*5)*(i/7)*(cof.cups-4)*0.8):0; cup(STACK_X-2+w,122-i*6,i===cof.cups-1); }
     // the stack tips off the table, pivoting on its base as it drops to the floor
@@ -1276,7 +1314,7 @@ const Game = {
       R(cx-23,128,46,3,'#f4f1ea'); R(cx-23,131,46,15,'#ece7dc'); R(cx-23,131,46,2,col); for(let x=cx-21;x<cx+23;x+=6) R(x,133,1,13,'#ddd6c8');
       for(const ux of [cx-19,cx-9]){ R(ux,112,8,16,'#c9ced4'); R(ux,112,2,16,'#e6eaee'); R(ux+1,110,6,2,'#9aa1a8'); R(ux+3,108,2,2,'#6f767e'); R(ux+8,121,2,2,'#2b2f36');
         for(let k=0;k<3;k++){ const a=(t*0.7+k/3)%1, y=Math.round(107-a*14), x=ux+4+Math.round(Math.sin(t*2+k*2+a*5)*1.5); ctx.globalAlpha=0.8*(1-a); R(x,y,1,2,'#ffffff'); } ctx.globalAlpha=1; }
-      for(const [x,y] of [[cx+1,124],[cx+6,124],[cx+3,120]]){ R(x,y,4,4,'#ffffff'); R(x,y,4,1,'#d8d8d8'); }
+      this.cof.side.forEach((on,i)=>{ if(on) cupArt(cx+FOYER_CUPS[i][0],FOYER_CUPS[i][1],true); });
       R(cx+12,127,10,1,'#d8dde3'); disc(cx+14,125,1,'#c98a4a'); disc(cx+18,125,1,'#b8763a'); disc(cx+16,123,1,'#d9a05a'); return; }
     if(id==='corridor'){ R(cx-17,97,34,49,'#c9c0ae'); R(cx-15,99,30,47,'#59606d');
       for(let y=99;y<112;y++){ const i=Math.round((y-99)*10/13); R(cx-15+i,y,30-2*i,1,'#6a7280'); }
@@ -1297,6 +1335,31 @@ const Game = {
   },
 
   /* ---------- Q&A ---------- */
+  /* ---------- toilets (past Q&A) ---------- */
+  drawToilets(){
+    this.world(); const t=this.time, lo=this.loo, hx=this.p.x;
+    R(0,0,320,146,'#e9e4d8'); R(0,60,320,86,'#dfe9ec'); for(let x=0;x<320;x+=10) R(x,60,1,86,'#c9d6da'); for(let y=60;y<146;y+=10) R(0,y,320,1,'#c9d6da');
+    R(0,58,320,2,'#9fb3ba'); for(let x=0;x<320;x+=60){ R(x+28,10,4,4,'#cfd8dc'); R(x+26,14,8,1,'#fff8d0'); }
+    for(let y=146;y<180;y+=8) for(let x=0;x<320;x+=8) R(x,y,8,8,(x/8+y/8)%2?'#8e9aa0':'#a3afb5'); R(0,146,320,1,'#6f7a80');
+    // door back out
+    R(4,96,24,50,'#7d8a90'); R(6,98,20,48,'#a9b7bd'); R(22,120,2,4,'#e0e4e6'); R(4,88,24,7,'#16a35a'); T('EXIT',16,89,4,'#ffffff','center');
+    // mirror and sinks: the reflection copies the hero, and waves first if you look
+    R(66,62,60,40,'#8a9399'); R(68,64,56,36,'#bcd6e0'); line(74,96,90,66,'rgba(255,255,255,.5)'); line(80,98,98,66,'rgba(255,255,255,.35)');
+    if(hx>60 && hx<132){ ctx.save(); ctx.beginPath(); ctx.rect(68,64,56,36); ctx.clip(); const wave=t-lo.mirrorT>0.4&&t-lo.mirrorT<2.4;
+      person(this.hero().look,hx,108,this.p.t,this.p.face,this.p.moving,1,wave?(Math.sin(t*9)>0?'cheerA':'cheerB'):null); ctx.restore(); }
+    R(66,116,60,4,'#f4f4f4'); R(66,120,60,3,'#d8dde0'); for(const sx of [80,112]){ R(sx-6,113,12,4,'#ffffff'); R(sx-1,108,2,6,'#b8c0c6'); R(sx-1,108,5,2,'#b8c0c6'); }
+    R(70,123,2,23,'#b8c0c6'); R(120,123,2,23,'#b8c0c6');
+    if(t-lo.tapT<2.4) for(let i=0;i<4;i++) R(115,110+((t*20+i*2)%5),1,2,'#7ec8ff');
+    // hand dryer
+    R(143,88,16,14,'#e8e8e8'); R(143,88,16,2,'#ffffff'); R(149,102,4,3,'#b8c0c6'); R(146,92,4,2,'#2b2f36');
+    if(t-lo.dryT<1.6){ for(let i=0;i<5;i++){ const y=106+i*4, x=151-((t*120+i*13)%40); R(Math.round(x)-6,y,6,1,'rgba(255,255,255,.8)'); } T('VWOOOSH',151,76,5,'#1b2332','center'); }
+    // cubicles: the left one is taken
+    for(const [cx,taken] of [[204,true],[262,false]]){ R(cx-30,66,2,80,'#6f8796'); R(cx+28,66,2,80,'#6f8796'); R(cx-28,66,56,4,'#6f8796');
+      R(cx-24,72,48,66,'#5d7fa0'); R(cx-24,72,48,2,'#7d9fc0'); R(cx+16,104,3,8,'#c8d0d6');
+      R(cx+14,78,8,6,'#1b2332'); R(cx+15,79,6,4,taken?'#e0302e':'#2fb67c'); }
+    if(t%9>2) { R(190,141,6,4,'#2b2f3a'); R(200,141,6,4,'#2b2f3a'); }
+    this.drawActors(154);
+  },
   drawEnd(){
     this.world(); const t=this.time;
     R(0,0,320,146,'#2a1530'); for(let x=0;x<320;x+=8) R(x,0,4,146,'#331a3a');

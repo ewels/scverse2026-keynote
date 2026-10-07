@@ -2,7 +2,8 @@
 (window.KEYNOTE_PLACES = window.KEYNOTE_PLACES || {}).coffee = g => {
   const { R, T, disc, line, mix, hash, person, look, time, ctx } = g;
   const W = 560, EXIT = 548, FLOOR = 154, INK = '#1b2332';
-  const URN = 74, TOWER = 160, BIS = 140, HOST = 104, SPOT = 434, QX = 200, GAP = 24, BACK = 144;
+  const SIDE = [83, 90, 97], MAXCUPS = 8, TOSS = 0.5; // cups waiting on the counter, by the urn
+  const URN = 74, TOWER = 118, BIS = 140, HOST = 104, SPOT = 434, QX = 200, GAP = 24, BACK = 144;
   const SX = 216, SY = 10, SW = 200, SH = 98; // screen frame; content sits in (SX+4..SX+SW-4, SY+18..SY+SH-4)
   const ORDER = ['graphs', 'docs', 'metro', 'deck', 'tidy', 'game'];
   const NAME = { graphs: 'CONTRIBUTOR GRAPHS', docs: 'NF-DOCS', metro: 'NF-METRO', deck: 'STREAM DECK PLUGINS', tidy: 'GFM-TIDY', game: 'THIS GAME' };
@@ -39,7 +40,8 @@
     else if (i === 3) { R(x, y + 1, 11, 9, INK); for (let k = 0; k < 6; k++) R(x + 1 + (k % 3) * 3, y + 2 + Math.floor(k / 3) * 4, 2, 3, Math.floor(t * 2 + k) % 6 === k ? '#ffd166' : '#3cc8d6'); }
     else { R(x + 5, y - 2, 1, 9, '#8a6a4a'); R(x + 1, y + 7, 9, 4, '#d9a441'); for (let k = 0; k < 5; k++) R(x + 2 + k * 2, y + 10, 1, 2, '#a8782c'); }
   };
-  const cup = (x, y, steam, t) => { R(x, y, 4, 5, '#ffffff'); R(x, y, 4, 1, '#6b3d22'); R(x + 4, y + 1, 1, 2, '#d6d0c2'); if (steam && Math.sin(t * 2 + x) > 0) R(x + 1 + Math.round(Math.sin(t * 3 + x)), y - 3, 1, 2, 'rgba(255,255,255,0.7)'); };
+  // a cup in someone's hand: the same small cup the hero drinks from
+  const cup = (x, y, steam, t) => { R(x, y, 3, 4, '#ffffff'); R(x, y, 3, 1, '#6b4423'); R(x, y + 2, 3, 1, '#c8322c'); if (steam && Math.sin(t * 2 + x) > 0) R(x + 1 + Math.round(Math.sin(t * 3 + x)), y - 3, 1, 2, 'rgba(255,255,255,0.7)'); };
   const steamAt = (x, y, t, n) => { for (let i = 0; i < n; i++) { const p = (t * 0.7 + i / n) % 1; R(Math.round(x + Math.sin(t * 2 + i * 2) * 2 + i - 1), Math.round(y - p * 16), 2, 2, `rgba(255,255,255,${(1 - p) * 0.75})`); } };
   // a thick pixel polyline, drawn up to `k` of its length
   const path = (pts, k, c, ox, oy) => {
@@ -189,29 +191,32 @@
     /* queue sign */
     R(186, 112, 2, 30, '#6f7a80'); R(178, 104, 18, 12, '#2b2140'); T('QUEUE', 187, 106, 4, '#ffffff', 'center'); T('HERE', 187, 111, 4, '#ffd166', 'center'); R(182, 141, 10, 2, '#6f7a80');
     /* barista and counter */
-    const pour = (t % 7) < 1.2;
-    person(look('side'), HOST, 126, t, pour ? -1 : 1, false);
+    // Sid puts a fresh cup back on the counter after each one the hero drinks
+    const rf = st.refill, ra = rf ? t - rf.t : 9, pour = !rf && (t % 7) < 1.2;
+    person(look('side'), HOST, 126, t, rf || pour ? -1 : 1, false);
     if (pour) R(HOST - 10, 110, 4, 3, '#ffffff');
     R(28, 116, 148, 4, '#f7f3ea'); R(30, 120, 144, 22, '#8b5e3c'); R(30, 120, 144, 2, '#a87a4a'); for (let x = 36; x < 172; x += 14) R(x, 124, 1, 16, '#7a5232');
     for (const [ux, hot] of [[50, 0], [URN, 1]]) { R(ux - 7, 96, 14, 20, '#9aa3ab'); R(ux - 7, 96, 3, 20, '#c4cbd1'); R(ux - 8, 94, 16, 3, '#6f7a80'); R(ux - 2, 90, 4, 4, '#6f7a80');
       R(ux - 3, 102, 6, 5, hot ? '#e85d5d' : '#3cc87a'); T(hot ? 'C' : 'T', ux, 102, 4, '#ffffff', 'center'); R(ux - 1, 110, 2, 4, '#6f7a80'); R(ux + 4, 106, 5, 2, '#6f7a80');
       if (st.pourT != null && hot && t - st.pourT < 0.5) R(ux, 114, 1, 2, '#5a3320'); steamAt(ux, 90, t + hot, 3); }
-    for (let i = 0; i < 3; i++) cup(84 + i * 6, 111, i === 1, t);
+    st.side.forEach((on, i) => { if (on) g.cup(SIDE[i], 110, true); });
+    if (rf) { const k = c01((ra - 0.3) / 0.6); g.cup(Math.round(HOST - 12 + (SIDE[rf.i] - HOST + 12) * k), Math.round(108 + 2 * k - Math.sin(k * Math.PI) * 5), true); }
+    const fl = st.flood != null ? t - st.flood : -1, cups = st.cups || 0, wob = cups >= 6 && fl < 0 ? Math.min(1, (cups - 5) / 3) : 0;
+    // coffee on the floor
+    if (fl >= 0) { const k = fl < 10 ? c01((fl - 0.6) / 2.5) : c01(1 - (fl - 10) / 3);
+      for (let r = 0; r < 8; r++) { const wv = Math.round(Math.sqrt(1 - Math.pow((r - 4) / 4.5, 2)) * 140 * k); if (wv > 0) R(Math.round(TOWER - 5 - wv / 2), 143 + r * 2, wv, 2, r < 1 ? '#7a4a2a' : '#5a3320'); } }
     // cup tower, or the fallen cups
-    const fl = st.flood != null ? t - st.flood : -1, cups = st.cups || 0, wob = cups >= 10 && fl < 0 ? Math.min(1, (cups - 9) / 5) : 0;
-    if (fl < 0) for (let i = 0; i < cups; i++) { const dx = Math.round(Math.sin(t * 11 + i) * wob * (0.4 + i * 0.12)); R(TOWER - 4 + dx, 111 - i * 3, 9, 5, '#ffffff'); R(TOWER - 4 + dx, 111 - i * 3, 9, 1, '#5a3320'); R(TOWER - 4 + dx, 114 - i * 3, 9, 1, '#d6d0c2'); }
-    else for (let i = 0; i < 15 && fl < 14; i++) {
-      const vx = (hash(i + 3) - 0.4) * 70, y0 = 111 - i * 3, q = Math.min(fl, 1.6), yy = Math.min(146 + hash(i * 5) * 10, y0 + 40 * q * q * (1 + hash(i) * 0.5)), rest = yy >= 146 + hash(i * 5) * 10 - 0.1;
-      const x = TOWER + vx * (rest ? Math.min(fl, 1.1) * 0.9 : q) * (0.6 + hash(i) * 0.5); R(Math.round(x) - 4, Math.round(yy) - (rest ? 3 : 5), 9, rest ? 3 : 5, '#ffffff'); if (rest) R(Math.round(x) - 4, Math.round(yy) - 3, 9, 1, '#5a3320'); }
+    if (st.toss) { const k = c01((t - st.toss.t) / TOSS); g.cup(Math.round(st.toss.x + (TOWER - 3 - st.toss.x) * k), Math.round(FLOOR - 18 + (110 - cups * 6 - FLOOR + 18) * k - Math.sin(k * Math.PI) * 24), false); }
+    if (fl < 0) for (let i = 0; i < cups; i++) { const dx = Math.round(Math.sin(t * 11 + i) * wob * (0.4 + i * 0.12)); g.cup(TOWER - 3 + dx, 110 - i * 6, i === cups - 1); }
+    else for (let i = 0; i < MAXCUPS && fl < 14; i++) {
+      const vx = (hash(i + 3) - 0.4) * 70, y0 = 116 - i * 6, q = Math.min(fl, 1.6), yy = Math.min(146 + hash(i * 5) * 10, y0 + 40 * q * q * (1 + hash(i) * 0.5)), rest = yy >= 146 + hash(i * 5) * 10 - 0.1;
+      const x = TOWER + vx * (rest ? Math.min(fl, 1.1) * 0.9 : q) * (0.6 + hash(i) * 0.5); g.cup(Math.round(x) - 3, Math.round(yy) - 6, false); }
     // biscuits
     R(BIS - 12, 113, 24, 3, '#e8e2d2'); R(BIS - 10, 115, 20, 1, '#cfc8b6');
     for (let i = 0; i < (st.bis == null ? 8 : st.bis); i++) { const bx = BIS - 10 + (i % 4) * 5, by = 110 - Math.floor(i / 4) * 3; disc(bx + 2, by + 1, 2, BISCUIT); R(bx + 1, by, 1, 1, '#6b4420'); }
     if (st.bis === 0) for (let i = 0; i < 4; i++) R(BIS - 8 + i * 5, 113, 1, 1, '#a8782c');
-    // coffee on the floor
-    if (fl >= 0) { const k = fl < 10 ? c01((fl - 0.6) / 2.5) : c01(1 - (fl - 10) / 3);
-      for (let r = 0; r < 8; r++) { const wv = Math.round(Math.sqrt(1 - Math.pow((r - 4) / 4.5, 2)) * 140 * k); if (wv > 0) R(Math.round(TOWER - 40 - wv / 2), 143 + r * 2, wv, 2, r < 1 ? '#7a4a2a' : '#5a3320'); } }
     /* standing tables and the people who have had their turn */
-    for (const tx of [470, 518]) { R(tx - 9, 128, 19, 3, '#f7f3ea'); R(tx - 1, 131, 3, 12, '#6f7a80'); R(tx - 5, 142, 11, 2, '#6f7a80'); cup(tx - 5, 123, true, t); }
+    for (const tx of [470, 518]) { R(tx - 9, 128, 19, 3, '#f7f3ea'); R(tx - 1, 131, 3, 12, '#6f7a80'); R(tx - 5, 142, 11, 2, '#6f7a80'); g.cup(tx - 3, 122, true); }
     GUESTS.forEach((G, i) => { const sip = Math.sin(t * 0.7 + i * 2) > 0.85; person(G.L, G.x, BACK, t + i, G.f, false); cup(G.x + G.f * 5 - 2, sip ? 126 : 131, false, t); });
     if (Math.sin(t * 0.5) > 0.3 && !inner) { const s = Math.floor(t * 0.5 / 6.28) % 2, gx = GUESTS[s].x; R(gx - 6, 112, 12, 8, '#ffffff'); R(gx - 1, 120, 2, 1, '#ffffff'); T('...', gx, 112, 5, INK, 'center'); }
     /* the queue, the presenter and the cabinet */
@@ -242,7 +247,7 @@
       { id: 'queue', x: 236, label: 'Skip the queue' },
       { id: 'game', x: place._cab || QX + GAP * 5, label: 'Poke the arcade cabinet' },
     ]; },
-    enter(st) { Object.assign(st, { cups: 0, bis: 8, flood: null, stare: null, pourT: null, zoom: null, arcade: false, said: 0, act: -1, showT: time(), chgT: time(),
+    enter(st) { Object.assign(st, { cups: 0, side: [true, true, true], refill: null, sip: null, toss: null, bis: 8, flood: null, stare: null, pourT: null, zoom: null, arcade: false, said: 0, act: -1, showT: time(), chgT: time(),
       q: ORDER.map((_, i) => { const [x, y, face] = target(i, -1); return { x, y, face, mv: false }; }) }); },
     update(dt, st, ev) {
       const t = time(), act = actOf(ev);
@@ -252,19 +257,27 @@
         p.mv = Math.abs(dx) > 0.5; if (p.mv) { p.face = Math.sign(dx); p.x += Math.sign(dx) * Math.min(Math.abs(dx), Math.max(30, Math.min(130, Math.abs(dx) * 2)) * dt); } else { p.x = tx; p.face = face; }
         p.y += Math.sign(ty - p.y) * Math.min(Math.abs(ty - p.y), 10 * dt); });
       place._cab = Math.round(st.q[5].x);
+      if (st.grumps && st.grumps.length && t >= st.grumps[0][0]) { const [, line] = st.grumps.shift(), waiting = st.q.filter((_, i) => i > act), who = (waiting.length ? waiting : st.q)[st.grumps.length ? 0 : (waiting.length || st.q.length) - 1];
+        g.say(line, Math.round(who.x), 118, 2.6); }
       if (st.flood != null && t - st.flood > 14) { st.flood = null; st.cups = 0; }
+      // the hero's cup is drunk after 1.2 s: the empty joins the tower and Sid refills the counter
+      if (st.sip != null && t - st.sip.t > 1.2) { const i = st.sip.i; st.sip = null; st.refill = { i, t }; st.toss = { t, x: g.heroX() }; }
+      // the empty cup arcs from the hero's hand on to the top of the tower
+      if (st.toss && t - st.toss.t > TOSS) { st.toss = null; st.cups++;
+        g.drank(st.cups);
+        if (st.cups >= MAXCUPS) { st.flood = t; g.say('Oh no', TOWER, 54); g.egg('coffee', 'Too much coffee'); } }
+      if (st.refill && t - st.refill.t > 0.9) { st.side[st.refill.i] = true; st.refill = null; }
     },
     poke(id, st) {
       const t = time();
       if (id === 'host') { g.say(['Flat white?', 'One at a time, please', 'Oat milk is extra', 'That is a lot of coffee'][st.said++ % 4], HOST, 100); return true; }
       if (id === 'urn') {
         if (st.flood != null) { g.say('Mind the floor', URN, 84); return true; }
-        st.cups++; st.pourT = t;
-        if (st.cups === 10) g.say('The stack is wobbling', TOWER, 70);
-        if (st.cups >= 15) { st.flood = t; g.say('Oh no', TOWER, 64); g.egg('coffee', 'Too much coffee'); }
+        const i = st.side.lastIndexOf(true);
+        if (i >= 0 && st.sip == null && !st.toss && g.drink(SIDE[i], 110)) { st.side[i] = false; st.sip = { i, t }; st.pourT = t; }
         return true;
       }
-      if (id === 'biscuits') { if (st.bis > 0) st.bis--; g.say(st.bis ? `Nom. ${st.bis} biscuits left` : 'No biscuits left', BIS, 100); return true; }
+      if (id === 'biscuits') { if (st.bis === 1) st.grumps = [[t + 0.7, 'Oi! Those were for everyone'], [t + 2.2, 'Not even a custard cream?']]; if (st.bis > 0) st.bis--; g.say(st.bis ? `Nom. ${st.bis} biscuits left` : 'No biscuits left', BIS, 100); return true; }
       if (id === 'queue') { st.stare = t; const end = QX + GAP * Math.max(0, 5 - Math.max(-1, st.act) - 1); g.say('The queue starts back there', end, 118, 2.4); return true; }
       if (id === 'game') { st.arcade = true; st.zoom = t; g.egg('arcade', 'The game inside the game'); return true; }
     },

@@ -6,13 +6,13 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const ORANGE = '#e0602e';
 
-  const CRAB = ['.oo..........oo.', 'o..o........o..o', 'oo.o..w..w..o.oo', '.ooo..k..k..ooo.', '...oooooooooo...', '..ooaaaaaaaaoo..', '.oooooooooooooo.', '..dddddddddddd..'];
-  const SHUT = ['................', 'oooo........oooo'];
-  const LEGS = [['.o.o.o....o.o.o.', 'o.o.o......o.o.o'], ['..o.o.o..o.o.o..', '.o.o.o....o.o.o.']];
-  const CRAB_PAL = { o: ORANGE, a: '#f59a62', d: '#b84a20', w: '#ffffff', k: '#1b1b1b' };
+  const CRAB = ['o.o..............o.o', 'o.o..............o.o', 'ooo...o.o..o.o...ooo', '.o...oooooooooo...o.', '.oo.oooooooooooo.oo.', '..oooookwookwooooo..', '.ooooookkookkoooooo.', '.oooookkkkkkkoooooo.', '..oooooookkooooooo..', '...dddddddddddddd...'];
+  const SHUT = ['....................', '.oo..............oo.'];
+  const LEGS = [['..d.d.d......d.d.d..', '.d.d.d........d.d.d.'], ['...d.d.d....d.d.d...', '..d.d.d......d.d.d..']];
+  const CRAB_PAL = { o: ORANGE, d: '#b84a20', w: '#ffffff', k: '#1b1b1b' };
   const crab = (x, feet, s, t, moving, shut) => {
     const rows = (shut ? SHUT.concat(CRAB.slice(2)) : CRAB).concat(LEGS[moving ? Math.floor(t * 14) % 2 : 0]);
-    map2d(rows, Math.round(x) - 8 * s, Math.round(feet) - 10 * s, CRAB_PAL, s);
+    map2d(rows, Math.round(x) - 10 * s, Math.round(feet) - 12 * s, CRAB_PAL, s);
   };
   const TORT = ['....ssssss......', '..ssSSssSSss....', '.sSSssSSssSSs.hk', '.sssssssssssshhh', 'hddddddddddddhh.'];
   const TLEG = [['..hh...hh...hh..'], ['.hh...hh....hh..']];
@@ -31,7 +31,11 @@
     walker: { skin: '#f1c7a5', hair: '#d9b36a', hairStyle: 'long', top: '#4f9c6b', topStyle: 'tee', pants: '#2f3a55' },
     feeder: { skin: '#8d5a3b', hair: '#1f1f1f', hairStyle: 'short', top: '#e8c547', topStyle: 'sweat', pants: '#3b4a6b' },
     snapper: { skin: '#e8b894', hair: '#6b3f22', hairStyle: 'messy', glasses: true, top: '#3b6fb6', topStyle: 'hoodie', pants: '#2b2f36' },
+    chaos: { skin: '#e8b894', hair: '#1b1b1b', hairStyle: 'messy', glasses: true, top: '#232323', topStyle: 'sweat', pants: '#1b1b1b', shoes: '#111111' },
+    founder: { skin: '#f2c8a8', hair: '#f4f4f4', hairStyle: 'short', beard: true, top: '#f2efe6', topStyle: 'sweat', pants: '#e8e4d8', shoes: '#8a6a4a' },
   };
+  const MAL = 172, HAM = 154;
+  const QUOTE = [[0, MAL, 'Your scientists were so preoccupied'], [2.6, MAL, 'with whether or not they could,'], [5.2, MAL, 'they didn’t stop to think if they should'], [8.4, HAM, 'Spared no expense!']];
   let fx = 122;
   const cur = ev => (ev.beat ? ev.beat.id || ev.beat.at : '');
 
@@ -98,9 +102,9 @@
       if (k <= 0.7) R(206, Math.round(138 - Math.min(1, k / 0.6) * 9), 6, 4, nu);
       R(229, 125, 2, 12, ink); R(226, 125, 8, 1, ink); R(227, 124, 6, 1, ink); R(228, 123, 4, 1, ink); R(229, 122, 2, 1, ink);
     } else if (id === 'combine') {
-      const sl = Math.round(Math.min(1, k * 2.2) * 8);
-      R(193 + sl, 124, 13, 13, old); R(222 - sl, 124, 13, 13, nu);
-      if (sl < 8) { R(212, 129, 4, 1, ink); R(213, 128, 2, 3, ink); } else tick(210, 117, '#2fb67c');
+      const m = Math.min(1, k * 2.2);
+      if (m < 1) for (const [x0, y0] of [[194, 120], [222, 120], [208, 132]]) R(Math.round(x0 + (208 - x0) * m), Math.round(y0 + (126 - y0) * m), 8, 8, old);
+      else { R(206, 124, 12, 12, nu); tick(220, 117, '#2fb67c'); }
     } else { crab(214, 136, 1, t, false); T('?', 228, 117, 7, '#586274'); }
   };
 
@@ -180,8 +184,8 @@
     id, idx, k: 0, n: RACES.indexOf(id) + 1, cx: S0 + 6, tx: S0 + 4, cFace: 1, cDone: false, tDone: false, tShow: false, phase: 'run', ride: false, tMedal: false,
     kind: id === 'rustar' ? 'star' : id === 'fastqc' ? 'java' : '',
     tSpeed: (S1 - S0) / (id === 'rustqc' ? 24 : id === 'rustar' ? 16 : 20),
-    tags: id === 'rustqc' ? ['RUSTQC', '6 QC TOOLS'] : id === 'rustar' ? ['RUSTAR', 'STAR'] : ['FASTQC-RUST', 'FASTQC'],
-    labels: id === 'rustqc' ? ['RUSTQC', '6 TOOLS', '15 MIN', '15+ HRS'] : id === 'rustar' ? ['RUSTAR', 'STAR', '1ST', '2ND'] : ['FASTQC-RS', 'FASTQC', '1ST', 'FASTER'],
+    tags: id === 'rustqc' ? ['RUSTQC', '14+ QC TOOLS'] : id === 'rustar' ? ['RUSTAR', 'STAR'] : ['FASTQC-RUST', 'FASTQC'],
+    labels: id === 'rustqc' ? ['RUSTQC', '14+ TOOLS', '15 MIN', '15+ HRS'] : id === 'rustar' ? ['RUSTAR', 'STAR', '1ST', '2ND'] : ['FASTQC-RS', 'FASTQC', '1ST', 'FASTER'],
     foot: '',
   });
 
@@ -201,11 +205,12 @@
     focus: { gates: GX, sign: 266, track: 774 },
     props: [
       { id: 'palm', x: 36, label: 'Shake the palm tree' },
-      { id: 'pond', x: 278, label: 'Look in the pond' },
+      { id: 'pond', x: 278, label: 'Throw bread in the pond' },
+      { id: 'pair', x: MAL, label: 'Listen in' },
       { id: 'dino', x: 628, label: 'Poke the dinosaur' },
     ],
     enter(st) {
-      fx = 122; st.gate = 0; st.torch = false; st.cocos = []; st.shakes = 0; st.palmFall = null; st.dinoN = 0; st.clicks = 0; st.npcs = [
+      fx = 122; st.quote = null; st.said = 0; st.bread = 0; st.gulls = []; st.flock = null; st.gate = 0; st.torch = false; st.cocos = []; st.shakes = 0; st.palmFall = null; st.dinoN = 0; st.clicks = 0; st.npcs = [
         { L: LOOKS.walker, x: 420, face: 1, home: t => 390 + (Math.sin(t * 0.13) * 0.5 + 0.5) * 100, coffee: true },
         { L: LOOKS.feeder, x: 358, face: -1, face0: -1, home: () => 358 },
         { L: LOOKS.snapper, x: 470, face: 1, face0: 1, home: () => 470, camera: true },
@@ -224,6 +229,9 @@
       }
       if (flee && !st.yelled) { st.yelled = true; st.npcs.forEach((n, i) => g.say(['Run!', 'Aaah!', 'Not again!'][i], n.x, 128, 1.6)); }
       if (rT > 7) st.yelled = false;
+      if (st.quote == null && g.heroX() > 90) st.quote = t;
+      while (st.quote != null && st.said < QUOTE.length && t - st.quote >= QUOTE[st.said][0]) { const [, x, s] = QUOTE[st.said++]; g.say(s, x, 128, 2.6); }
+      if (st.flock != null && t - st.flock > 14) { st.flock = null; st.bread = 0; st.gulls = []; }
       st.cocos.forEach(c => { if (c.y < 148) { c.vy += 300 * dt; c.y = Math.min(148, c.y + c.vy * dt); } else if (Math.abs(c.vx) > 1) { c.x += c.vx * dt; c.vx *= 1 - dt * 2; } });
       const race = RACES.includes(id) && !ev.walking;
       if (!race) st.race = null;
@@ -239,7 +247,11 @@
         if (n === 6) g.say('No more coconuts', 36, 128); else if (n === 8) g.say('*creak*', 36, 128);
         else if (n === 10) { st.palmFall = t; g.say('TIMBER!', 36, 128); g.egg('palm', 'You felled the palm tree'); }
         return true; }
-      if (id === 'pond') { st.ripple = t; return true; }
+      if (id === 'pond') { st.ripple = t; if (st.flock != null) return true;
+        const n = ++st.bread; if (n >= 2) while (st.gulls.length < Math.min(10, (n - 1) * 2)) st.gulls.push(t + st.gulls.length % 2 * 0.4);
+        if (n === 10) { st.flock = t; g.egg('gulls', 'You summoned the gulls'); st.npcs.forEach((p, i) => g.say(['My sandwich!', 'Not the gulls!', 'Run!'][i], p.x, 128, 2)); }
+        return true; }
+      if (id === 'pair') { if (st.said >= QUOTE.length) { st.quote = t; st.said = 0; } return true; }
       if (id === 'dino') {
         st.dinoT = t; st.dinoN++;
         if (st.dinoN % 3 === 0 && (st.roar == null || t - st.roar > 9)) { st.roar = t; g.say('(silent roar)', DX - 6, DB - 50, 2.4); g.egg('dino', 'The dinosaur roared'); }
@@ -284,9 +296,11 @@
         if (n.camera && !n.moving) { const up = Math.sin(t * 0.7) > 0.3; R(Math.round(n.x) + n.face * 4, up ? 137 : 142, 4, 3, '#2b2e31'); if (up && Math.sin(t * 0.7) > 0.95) R(Math.round(n.x) + n.face * 6, 136, 1, 1, '#ffffff'); }
         if (n.L === LOOKS.feeder && !n.moving) { const p = (t * 0.6) % 1; R(Math.round(n.x - 8 - p * 14), Math.round(140 + p * p * 12), 1, 1, '#e8c547'); }
       }
+      person(LOOKS.founder, HAM, 154, t, 1, false); R(HAM - 4, 133, 8, 1, '#e8dcb5'); R(HAM - 3, 130, 6, 3, '#e8dcb5'); R(HAM - 3, 132, 6, 1, '#8a6a4a'); line(HAM + 5, 144, HAM + 6, 153, '#6b4a2f'); disc(HAM + 5, 143, 1, '#d9a53a');
+      person(LOOKS.chaos, MAL, 154, t, -1, false); R(MAL - 1, 143, 2, 2, LOOKS.chaos.skin);
       const rs = st.race;
       if (rs) {
-        if (rs.id === 'rustqc') for (let i = 5; i >= 0; i--) { const x = Math.min(rs.tx, S1 + 4) - i * 18; if (x > S0 - 120) tortoise(x, 145, t + i * 0.3, rs.k > 1.5 && !rs.tDone, ''); }
+        if (rs.id === 'rustqc') for (let i = 13; i >= 0; i--) { const x = Math.min(rs.tx, S1 + 4) - i * 18; if (x > S0 - 120) tortoise(x, 145, t + i * 0.3, rs.k > 1.5 && !rs.tDone, ''); }
         else tortoise(rs.tx, 145, t, rs.k > 1.5 && !rs.tDone, rs.kind);
         if (rs.tMedal) medal(Math.round(rs.tx) + 4, 131, '#c0c6cc');
         const ride = rs.phase === 'ride', cy = ride ? 140 : 136;
@@ -302,6 +316,12 @@
       if (rs && rs.k > 0) { const fxx = Math.round(fx) + 14, fy = 112 + (flag ? Math.round(Math.sin(t * 10) * 2) : 6); R(fxx, fy, 1, 24, '#3b3f47'); for (let y = 0; y < 8; y++) for (let x = 0; x < 10; x++) R(fxx + 1 + x, fy + y + (flag ? Math.round(Math.sin(t * 8 + x) * 0.6) : 0), 1, 1, ((x >> 1) + (y >> 1)) % 2 ? '#1b1b1b' : '#f7f3ea'); }
       R(EXIT - 12, 100, 24, 50, '#f7f3ea'); R(EXIT - 9, 103, 18, 47, '#1b2030'); R(EXIT - 12, 88, 24, 9, '#2fb67c'); T('EXIT', EXIT, 89.5, 5, '#ffffff', 'center');
       R(812, 24, 8, 126, '#c2b393');
+      const gull = (x, y, i) => { const f = Math.sin(t * 9 + i * 1.3) > 0 ? 1 : 0, xx = Math.round(x), yy = Math.round(y); line(xx - 3, yy - f, xx, yy + 1, '#f7f7f7'); line(xx, yy + 1, xx + 3, yy - f, '#f7f7f7'); };
+      st.gulls.forEach((at, i) => { const k = clamp((t - at) / 1.6, 0, 1), e = 1 - k;
+        gull(306 + Math.sin(t * 0.9 + i * 2.1) * (30 + i * 3) + e * 260, 64 + (i % 5) * 9 + Math.sin(t * 1.7 + i) * 5 - e * 70, i); });
+      if (st.flock != null) { const ft = t - st.flock, k = clamp(ft / 2.5, 0, 1), up = Math.max(0, ft - 11) * 90, hx = g.heroX();
+        for (let i = 0; i < 320; i++) { const r = 40 + hash(i) * 170, a = t * (0.5 + hash(i + 7) * 0.6) + i * 2.4;
+          gull(hx + Math.cos(a) * r + (1 - k) * (500 + hash(i + 3) * 300), 16 + hash(i + 11) * 120 + Math.sin(a * 1.7) * 10 - up - (1 - k) * 60, i); } }
       for (let i = 0; i < 10; i++) { const x = ((t * (18 + i * 2) + i * 97) % (W + 40)) - 20, y = 40 + i * 9 + Math.sin(t * 2 + i) * 5; R(Math.round(x), Math.round(y), 2, 1, i % 3 ? '#58a852' : '#d9b45a'); R(Math.round(x) + 1, Math.round(y) + 1, 1, 1, i % 3 ? '#3f8f45' : '#c9953f'); }
     },
   };

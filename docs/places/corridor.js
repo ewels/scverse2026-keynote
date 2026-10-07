@@ -7,7 +7,7 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const PASSER = { skin: '#efc6a3', hair: '#3a2a1f', hairStyle: 'short', top: '#3cc87a', topStyle: 'hoodie', pants: '#2b2f45' };
   const LOST = { skin: '#c98e62', hair: '#1f1f1f', hairStyle: 'messy', glasses: true, top: '#f5a623', topStyle: 'tee', pants: '#4a403a' };
-  let lastX = 14, dotX = 150, dotFace = 1, dotMoving = false;
+  let lastX = 14, dotX = 150, dotFace = 1, dotMoving = false, dotEnd = 1, dotRest = 0;
 
   const sign = (st, i, t, litF) => {
     const s = st.sd[i], x = SX[i], p = s.t0 == null ? 1 : clamp((t - s.t0) / 0.6, 0, 1), dir = p < 0.5 ? -s.dir : s.dir, w = Math.max(2, Math.round(30 * Math.abs(Math.cos(p * Math.PI))));
@@ -82,7 +82,8 @@
     enter(st) { st.sd = [0, 1, 2].map(() => ({ dir: 1, t0: null })); st.pick = []; st.qi = 0; st.hereT = null; st.lost = null; st.said = 0; dotX = 150; lastX = 14; },
     update(dt, st, ev) {
       const t = time(); if (ev.beat && !ev.walking) lastX = this.focus[ev.beat.at] ?? lastX;
-      const goal = DOT[0] + (Math.sin(t * 0.18) * 0.5 + 0.5) * (DOT[1] - DOT[0]), d = goal - dotX; dotMoving = Math.abs(d) > 1; if (dotMoving) { dotX += Math.sign(d) * Math.min(Math.abs(d), 14 * dt); dotFace = Math.sign(d); }
+      const goal = DOT[dotEnd], d = goal - dotX; dotMoving = Math.abs(d) > 0.5 && t > dotRest;
+      if (dotMoving) { dotX += Math.sign(d) * Math.min(Math.abs(d), 14 * dt); dotFace = Math.sign(d); } else if (t > dotRest) { dotEnd = 1 - dotEnd; dotRest = t + 2; }
       if (st.lost == null && st.sd.every(s => s.dir < 0)) { st.lost = t; g.egg('lost', 'Someone followed the signs'); }
       if (st.lost != null && st.sd.some(s => s.dir > 0)) st.lost = null;
     },

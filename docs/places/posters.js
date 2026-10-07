@@ -147,6 +147,11 @@
     easelLegs(BOARD, BY + BH, BW);
     R(BX - 2, BY - 2, BW + 4, BH + 4, '#3b3f47'); R(BX, BY, BW, BH, '#5b6472');
     for (let k = 0; k < 20; k++) R(BX + Math.floor(hash(k + 70) * BW), BY + Math.floor(hash(k + 90) * BH), 1, 1, '#66707e');
+    if (st.selfie != null && t - st.selfie < 4) {
+      R(BX + 4, BY + 4, BW - 8, BH - 8, PAPER); R(BX + 4, BY + 4, BW - 8, 12, OR); shadowT('YOU', BOARD, BY + 6, 7, '#ffffff', 'center', ORD);
+      person(g.hero(), BOARD, BY + BH - 8, t, 1, false, 2);
+      return;
+    }
     if (id === 'logs') {
       if (st.lkB !== ev.beatIdx) { st.lkB = ev.beatIdx; st.lk0 = null; }
       if (ev.walking) st.lk0 = null; else if (st.lk0 == null) st.lk0 = t;
@@ -171,11 +176,6 @@
         for (let b = 0; b < 8; b++) { const hh = Math.round((8 + hash(b + 31) * 30) * ease((k - 0.7 - b * 0.12) / 0.5)); R(BX + 12 + b * 8, BY + 66 - hh, 6, hh, b % 2 ? OR : '#6c8cff'); }
         if (k > 2) star(BX + BW - 6, BY + 4, t, 1.3);
       }
-      return;
-    }
-    if (st.selfie != null) {
-      R(BX + 4, BY + 4, BW - 8, BH - 8, PAPER); R(BX + 4, BY + 4, BW - 8, 12, OR); shadowT('YOU', BOARD, BY + 6, 7, '#ffffff', 'center', ORD);
-      person(g.hero(), BOARD, BY + BH - 8, t, 1, false, 2);
       return;
     }
     for (let x = BX + 5; x < BX + BW - 5; x += 6) { R(x, BY + 5, 3, 1, '#c8ccd2'); R(x, BY + BH - 6, 3, 1, '#c8ccd2'); }
@@ -350,7 +350,7 @@
       { id: 'presenter', get x() { return Math.round(this.st ? this.st.pres.x : PRES); }, label: 'Ask about the poster' },
       { id: 'bin', x: MACH - 14, label: 'Throw something in' },
       { id: 'coffee', x: TABLE, label: 'Stack another cup' },
-      { id: 'board', x: BOARD, label: 'Look at the empty board' },
+      { id: 'board', x: BOARD, label: 'Look at the board' },
     ],
     enter(st) {
       hx = 66; st.cups = 3; st.fallen = []; st.easelN = 0; st.easelDown = false; st.pile = []; st.binN = 0; st.hostN = 0; st.viewC = 160;
@@ -389,7 +389,7 @@
         if (st.cups >= 10) { for (let i = 0; i < 10; i++) st.fallen.push({ x: TABLE - 4 + (i % 4) * 5, y: 104 + Math.floor(i / 4) * 5, vx: (hash(i + t) - 0.5) * 120, vy: -40 - hash(i * 3 + t) * 60 }); st.cups = 0; g.say('Oh no', TABLE, 100, 1.5); return true; }
         st.cups++; if (st.cups === 10) g.say('A perfect pyramid', TABLE, 100, 2); return true;
       }
-      if (id === 'board') { if (st.selfie == null) { st.selfie = t; g.egg('poster', 'You are the poster now'); } else g.say('Looking good', BOARD, 26, 1.6); return true; }
+      if (id === 'board') { if (st.selfie == null) g.egg('poster', 'You are the poster now'); else g.say('Looking good', BOARD, 26, 1.6); st.selfie = t; return true; }
       if (id === 'host') { g.say(['I file a report on everything', 'One report. Not forty tabs.', 'Got a log file? I will take it.', 'Rita. The Reporter. Yes, really.'][st.hostN++ % 4], hx, 128); return true; }
     },
     draw(st, ev) {
