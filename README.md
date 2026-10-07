@@ -72,7 +72,7 @@ On GitHub Pages the live features are off: the game works, and the audience page
 - **Moderator page.** Two tabs: **New**, most votes first, and **On screen**, in the order they'll come up in the game. The New count flashes if a question arrives while you're on the other tab. Every action has a few seconds of Undo. The page keeps your phone awake, and buzzes on Android when a question arrives.
 - **End of the talk.** Audience phones switch to a link to the game.
 
-Limits are at the top of `worker/src/worker.js`. The talk's content (characters, topics, the order of the doors, what everyone says) is in `docs/content.js`, with a guide to every field at the top. The phone page picks the topics up from the stage.
+Limits are at the top of `worker/src/worker.js`. The talk's content (characters, topics, each topic's beats) is in `docs/content.js`, with a guide to every field at the top, and each topic's place is drawn by its own script in `docs/places/`. The phone page picks the topics up from the stage.
 
 ## Run it locally
 
