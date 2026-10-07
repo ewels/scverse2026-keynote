@@ -9,7 +9,7 @@
 - [ ] Phase 4: hackathon room, courtyard
 - [ ] Phase 5: cloakroom, poster hall
 - [ ] Phase 6: coffee queue, corridor, photo booth
-- [ ] Phase 7: venue-wide play and easter eggs
+- [x] Phase 7: venue-wide play and easter eggs
 - [ ] Phase 8: live changes
 - [ ] Phase 9: final checks
 
@@ -123,3 +123,17 @@ MUST: start with this, audience doesn't get a choice
   - Hosts named Sam the Session Chair, Mo the Maintainer, Ferris the Crab, Ada the Agent, Rita the Reporter, Sid the Barista, Dot the Docent, Pip the Photographer. Ferris is drawn as a crab by the courtyard, the others as people.
 - Known issues: in stage mode the sidebar strip now has eight bars and pushes the question and voter counts below the bottom edge (phase 8 drops the opener; it may still need tighter bars). Badge always says SPEAKER (hero variants are phase 3/7).
 
+
+### Phase 7: venue-wide play and easter eggs
+
+- Done (all in `docs/index.html`): the venue cat (ginger, white chest; only after the hackathon; wanders into the foyer and places, sits, washes, leaves; Action strokes it with hearts and "prrr"; three strokes and it follows through one door, and the next door closes on it), annoyance (third quick poke on a host, cameo or greeter gets "Yes?", "What now?", "Stop. It."; the sixth starts the fight), the fight (dust cloud with stars and fists, two hi-vis security staff march the hero out, outside by the entrance with "BADGE REVOKED"; the greeter then prints a VISITOR badge and the desk door goes straight back into the interrupted place), idle chat after 25 s (nearest NPCs chat, then "*taps watch*"), moonwalk with sparkles, the dance code (Left Right Left Right Action within 2 s, everyone dances 3 s; the Action is swallowed), the foyer coffee urn (cups stack, wobble at 10, fall and flood at 15, the cleaner comes over and mops), kicking both foyer plants (the cleaner sighs and sweeps them back), leaving mid-talk (exits added: foyer far left back to registration, registration far left outside; after the opener it rains and the next speaker waits with a laptop), Lukas/Luca get a line from each host on first entry, hackathon sticker on the hero, a carried hat, jittery walk after `egg('coffee')` until the next place is left, end screen shows found/total.
+- Hooks for places: `g.visited(topic)`, `g.heroX()`, `g.carry(key, value)`. `photobooth.js` now carries its hat with `carry('hat')` so the engine draws it everywhere (the only place file touched). Hooks for phase 8: `Game.react(kind, n)` floats `clap`, `heart`, `laugh`, `coffee` or `star` icons up from the bottom (capped at 40 on screen); `Game.ovation()` makes every sprite hop for 4 s with a burst of claps.
+- Decisions:
+  - Place progress (st and beat) is kept only when a fight throws you out; a normal re-visit still starts fresh. Resuming skips the place's `enter`.
+  - Right in a place during a fight cancels it on the spot (the egg is still recorded). In free-walk scenes the fight runs its 6 s course.
+  - From the third quick host poke the place's own `poke('host')` is skipped in favour of the cross replies. Pokes more than 4 s apart reset the count.
+  - The egg total is a static `EGGS` list in the engine (22 ids, place eggs included); `?debug` warns if an egg is recorded that is not in it. The foyer urn and the coffee place share the `coffee` egg. Idle chat and annoyance are not eggs.
+  - "Every plant in the venue" means the two foyer plants.
+  - The fight cloud covers the hero only; the poked NPC stays visible beside it (places draw their own hosts).
+- Not done: phone reactions and the hidden phone egg (phase 8 wires `react`/`ovation`); victory jump for the golden star.
+- Known issues: the cleaner walks the whole hall to reach far plants (15 s or so). The dance and ovation move sprites drawn with `person()` only, so the crab, the theatre audience and other custom-drawn NPCs stay still. The hat and sticker are not drawn while dancing.

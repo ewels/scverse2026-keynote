@@ -29,6 +29,13 @@ One classic script per place (no modules: `index.html` must run from `file://`).
 - `hero()`: the current hero's look. `time()`: seconds since the game started.
 - `say(text, x, y, secs)`: a speech bubble whose tail points at `(x, y)` in world coordinates.
 - `toast(text)`: a banner at the top. `egg(id, label)`: records an easter egg once and toasts `EASTER EGG: label`.
+- `heroX()`: the hero's x in world coordinates.
+- `visited(topic)`: true once that topic's place has been entered this game (`g.visited('nfcore')` gates the cat).
+- `carry(key, value)` / `carry(key)`: a value that lasts for the rest of the game, across scenes. The engine draws a carried `hat` (`tophat`, `beret`, `party`, `shades`) on the hero everywhere; `null` takes it off.
+
+A new egg id must also be added to `EGGS` in `index.html`, or the end screen's total will be short (`?debug` warns in the console).
+
+The engine owns some play across every place: the venue cat (after the hackathon) walks in and is stroked with Action when it is the nearest thing, poking the host six times fast starts a fight (the place's `poke('host')` is skipped from the third quick poke on), and a fight saves the place's `st` and beat so the next visit resumes there without calling `enter` again. `egg('coffee')` gives the hero a jittery walk until they leave the next place.
 
 Controls inside a place: Right goes to the next beat (or featurette step), Left replays the previous one, Action pokes the prop or host in reach; with nothing in reach the hero walks to the nearest one on screen and pokes it. Action never moves the talk on. Left before the first beat, or on it, walks the hero back to `spawn` and out to the foyer (the opener goes back to the registration desk); Right during that walk cancels it.
 

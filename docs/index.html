@@ -208,21 +208,27 @@ function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;'
 function iconPal(t){ return { o:t.colour, a:mix(t.colour,'#ffffff',0.45), w:'#ffffff', k:'#1b1f2a' }; }
 
 /* ================= input ================= */
-const Input = { held:{left:false,right:false}, queue:[],
+const Input = { held:{left:false,right:false}, queue:[], hist:[], moon:false, relR:-1e9, code:false,
   take(...n){ const i=this.queue.findIndex(q=>n.includes(q)); if(i<0) return false; this.queue.splice(i,1); return true; },
-  dir(){ return (this.held.right?1:0)-(this.held.left?1:0); }, endFrame(){ this.queue.length=0; } };
+  dir(){ return (this.held.right?1:0)-(this.held.left?1:0); }, endFrame(){ this.queue.length=0; },
+  press(k){ const now=performance.now(); if(k==='left') this.moon=this.held.right||now-this.relR<350;
+    if(k!=='action') this.held[k]=true; this.hist=[...this.hist,[k,now]].slice(-5);
+    // the dance code swallows its Action, so it never pokes anything
+    if(this.hist.map(h=>h[0]).join()==='left,right,left,right,action' && now-this.hist[0][1]<2000){ this.hist=[]; this.code=true; return; }
+    this.queue.push(k); },
+  release(k){ if(k==='action') return; this.held[k]=false; if(k==='right') this.relR=performance.now(); else this.moon=false; } };
 const KEYMAP = { ArrowLeft:'left', KeyA:'left', PageUp:'left', ArrowRight:'right', KeyD:'right', PageDown:'right', Space:'action', Enter:'action', NumpadEnter:'action', KeyB:'action', F5:'action' };
 window.addEventListener('keydown', e=>{
   const k=KEYMAP[e.code];
-  if(k){ e.preventDefault(); if(k!=='action') Input.held[k]=true; if(!e.repeat) Input.queue.push(k); return; }
+  if(k){ e.preventDefault(); if(!e.repeat) Input.press(k); return; }
   if(e.code==='KeyR') Game.reset();
   if(e.code==='KeyF') toggleFs();
 });
-window.addEventListener('keyup', e=>{ const k=KEYMAP[e.code]; if(k && k!=='action') Input.held[k]=false; });
-window.addEventListener('blur', ()=>{ Input.held.left=Input.held.right=false; });
+window.addEventListener('keyup', e=>{ const k=KEYMAP[e.code]; if(k) Input.release(k); });
+window.addEventListener('blur', ()=>{ Input.held.left=Input.held.right=Input.moon=false; });
 document.querySelectorAll('.pad button[data-k]').forEach(b=>{ const k=b.dataset.k;
-  const down=e=>{ e.preventDefault(); if(k!=='action') Input.held[k]=true; Input.queue.push(k); };
-  const up=()=>{ if(k!=='action') Input.held[k]=false; };
+  const down=e=>{ e.preventDefault(); Input.press(k); };
+  const up=()=>{ if(Input.held[k]) Input.release(k); };
   b.addEventListener('pointerdown',down); b.addEventListener('pointerup',up); b.addEventListener('pointerleave',up); b.addEventListener('pointercancel',up); b.addEventListener('click',e=>e.preventDefault()); });
 $('.pad [data-restart]').addEventListener('click', ()=>Game.reset());
 function toggleFs(){ const sh=$('#shell'); if(document.fullscreenElement) document.exitFullscreen(); else if(sh.requestFullscreen) sh.requestFullscreen().catch(()=>{}); }
@@ -391,6 +397,8 @@ function spritePal(L){ const t=L.top, dark=lum(t)<0.22;
 const spriteCache=new Map();
 function sprite(L,frame){ let c=spriteCache.get(L); if(!c){ c={pal:spritePal(L)}; spriteCache.set(L,c); } if(!c[frame]) c[frame]=buildSprite(L,frame); return [c[frame],c.pal]; }
 function person(L,x,feet,t,face,moving,s=1,force){
+  if(Game.danceT>0){ const ph=Math.floor(Game.time*4+x/9)&3; face=ph<2?1:-1; moving=false; force=force||(ph&1?'a':'b'); feet-=(ph&1)*s; }
+  else if(Game.ovT>0) feet-=Math.round(Math.abs(Math.sin(Game.time*7+x)))*3*s;
   const fr=force||(moving?['a','idle','b','idle'][Math.floor(t*8)%4]:'idle');
   const [rows,pal]=sprite(L,fr); const bob=moving&&fr!=='idle'?-1:0;
   const x0=Math.round(x)-6*s, top=Math.round(feet)-20*s;
@@ -405,12 +413,13 @@ function tw(s,size){ ctx.font=FONT(size); return ctx.measureText(s).width; }
 const OPENER=Object.keys(TOPICS).find(k=>TOPICS[k].opener);
 const HALL=Object.keys(TOPICS).filter(k=>k!==OPENER).map((key,i)=>({ key, x:120+i*64 }));
 const FOYER_W=640, THEATRE_DOOR=40, QA_DOOR=600, DESK_GREETER=150, DESK_DOOR=292;
+const COFFEE_X=(HALL.find(h=>TOPICS[h.key].place==='coffee')||{x:376}).x, URN_X=COFFEE_X-15, STACK_X=COFFEE_X+15;
 // window centres sit between entrances; the poke list skips the ones a plant or a cameo stands under
 const FOYER_WIN=[88,152,216,280,344,408,472,536], FOYER_WAVE=[152,280,344,472];
 const gfx={ R, T, disc, line, map2d, tri, blob, pine, cumulus, mix, hash, person, ctx, VW, VH,
   look(id){ const c=CHARACTERS.find(c=>c.id===id); if(c) return c.look; if(id==='greeter') return GREETER.look;
     const t=TOPICS[id]||Object.values(TOPICS).find(t=>t.place===id); return t&&t.host.look; },
-  hero:()=>Game.hero().look, time:()=>Game.time,
+  hero:()=>Game.hero().look, heroX:()=>Game.p.x, time:()=>Game.time, visited:k=>Game.visited.has(k), carry:(k,v)=>v===undefined?Game.carried[k]:(Game.carried[k]=v),
   toast:s=>Game.toast(s), egg:(id,label)=>Game.egg(id,label), say:(s,x,y,secs)=>Game.say(s,x,y,secs) };
 const PLACES={};
 function place(key){ if(PLACES[key]) return PLACES[key]; const t=TOPICS[key], f=(window.KEYNOTE_PLACES||{})[t.place];
@@ -437,6 +446,27 @@ const CROWD=[
 ];
 const CLEANER={ skin:'#d9a27c', hair:'#3a3a3a', hairStyle:'short', top:'#3d6f8e', topStyle:'tee', pants:'#3d6f8e', shoes:'#2b2b2b' };
 const VOLUNTEER={ skin:'#efc6a3', hair:'#c8501e', hairStyle:'messy', top:'#e85d75', topStyle:'tee', pants:'#394257' };
+const GUARDS=[{ skin:'#c98e62', hair:'#1b1b1b', hairStyle:'bald', top:'#d6dc3c', topStyle:'tee', pants:'#1b1f2a' },
+  { skin:'#f2c9a0', hair:'#5a3d2b', hairStyle:'short', top:'#d6dc3c', topStyle:'tee', pants:'#1b1f2a' }];
+const NEXT_SPEAKER={ skin:'#e8b894', hair:'#6b4a2f', hairStyle:'long', glasses:true, top:'#3a5a8c', topStyle:'sweat', pants:'#2b2b36' };
+// Every egg in the venue, engine and places; the end screen counts against this, so add new ids here.
+const EGGS=['sea','plant','organiser','bell','printer','cow','cat','cat-follow','fight','moonwalk','dance','sweep','rain','coffee',
+  'theatre-title','triplicate','dino','hoodie','poster','arcade','lost','photobooth'];
+// the venue cat from the hackathon's photos (ginger, white chest), side on, facing right
+const CAT_PAL={ f:'#e8913a', s:'#c06a22', w:'#f6efe2', e:'#3d8a3a', n:'#e88aa0' };
+const CAT_BODY=['..........f..f','f.........ffff','f.........ffef','.f.fsfsfsffwwn','..ffffffffffw.','..fffffffffww.'];
+const CAT_WALK=[[...CAT_BODY,'..f.f.....f.f.','..w.w.....w.w.'],[...CAT_BODY,'...f.f...f.f..','...w.w...w.w..']];
+const CAT_SIT=['.....f..f','.....ffff','.....ffef','.....ffwn','....ffww.','...fsfww.','..ffsfww.','..fffffw.','..ffsffw.','fffffffww'];
+const CAT_WASH=['.....f..f','.....ffff','.....ffff','.....ffww','....ffwww','...fsfww.','..ffsfww.','..fffffw.','..ffsffw.','fffffffww'];
+const HEART=['.r.r.','rrrrr','.rrr.','..r..'];
+const REACT={ heart:{ rows:['.rr.rr.','rrrrrrr','rrrrrrr','.rrrrr.','..rrr..','...r...'], pal:{r:'#ff6b81'} },
+  star:{ rows:['...y...','..yyy..','yyyyyyy','.yyyyy.','.yy.yy.','y.....y'], pal:{y:'#ffd166'} },
+  clap:{ rows:['.s...s.','ss...ss','sss.sss','.sssss.','..sss..'], pal:{s:'#f2c9a0'} },
+  laugh:{ rows:['..yyy..','.yyyyy.','yykykyy','yyyyyyy','ykkkkky','.ykkky.','..yyy..'], pal:{y:'#ffd166',k:'#1b2332'} },
+  coffee:{ rows:['.w.w...','..w.w..','ccccc..','cbbbcc.','cbbbc.c','cbbbcc.','.ccc...'], pal:{c:'#ffffff',b:'#6b4423',w:'#dfe7f1'} } };
+const NOT_PHIL=["You're not Phil.","Wait, where's Phil?","Organiser badge, then?","Did Phil get lost?","You'll do, I suppose."];
+const flip=m=>m.map(r=>[...r].reverse().join(''));
+const shadow=m=>m.map(r=>r.replace(/[^.]/g,'k'));
 const Game = {
   reset(){
     token++; this.tm=timers(); this.time=0; this.scene='menu'; this.sel=0; this.chosen=null; this.flash=0;
@@ -444,6 +474,8 @@ const Game = {
     this.plants=[{x:88,ang:0,state:'up',dir:1},{x:552,ang:0,state:'up',dir:1}]; this.kickT=0; this.asker=null;
     this.dk={ door:0, rings:0, ringT:-9, glareT:-9, jamT:-9, totesT:-9, totesDown:false }; this.fy={ waves:0, wave:null }; this.askerScene=null; this.pl=null; this.topic=null;
     this.p={x:40,face:1,t:0,moving:false}; this.camX=0;
+    Object.assign(this,{ cat:null, catNext:0, fx:[], reacts:[], annoy:{who:null,n:0,t:0}, fight:null, saved:{}, resume:null, revoked:false, hub:false,
+      jit:0, danceT:0, ovT:0, idleT:0, idleRun:0, moonT:0, sweeping:false, cl:{x:140,face:1,jobs:[]}, cof:{cups:0,fallT:null,mopT:null}, hostSeen:new Set(), carried:{} });
     Fade.busy=false; $('#fade').style.opacity='0'; Input.queue.length=0;
     Dlg.close(); Prompt.clear(); Title.hide(); Card.hide(); Caption.hide(); Big.hide(); Menu.show();
   },
@@ -453,7 +485,8 @@ const Game = {
   others(){ return CHARACTERS.filter(c=>c!==this.hero()); },
   width(){ return this.scene==='outside'?OUT_W:this.scene==='foyer'?FOYER_W:this.scene==='place'?this.pl.d.width||320:320; },
   toast(s){ this.toasts.push({s,t:3}); },
-  egg(id,label){ if(this.eggs.has(id)) return; this.eggs.set(id,label); this.toast('EASTER EGG: '+label); },
+  egg(id,label){ if(id==='coffee' && !this.jit) this.jit=1; if(this.eggs.has(id)) return; this.eggs.set(id,label); this.toast('EASTER EGG: '+label);
+    if(!EGGS.includes(id)) console.warn('Egg missing from EGGS: '+id); },
   say(s,x,y,secs=2.5){ this.bubbles=this.bubbles.filter(b=>b.x!==x); this.bubbles.push({s,x,y,t:secs}); },
   // ?debug only: jump straight to a scene, a topic id or a place id.
   goto(id){ token++; Fade.busy=false; $('#fade').style.opacity='0'; Dlg.close(); Menu.hide(); Card.hide();
@@ -462,16 +495,25 @@ const Game = {
     if(key) return this.enterPlace(key,true);
     if(id==='foyer'||id==='end') this.badge=true;
     this.go(id,{outside:40,desk:24,foyer:THEATRE_DOOR+24,end:160}[id]); },
-  go(scene,x){ this.scene=scene; const p=this.p; p.x=x; p.face=1; p.moving=false; this.bubbles=[]; this.kickT=0;
+  go(scene,x){ this.scene=scene; const p=this.p; p.x=x; p.face=1; p.moving=false; this.bubbles=[]; this.kickT=0; this.fx=[]; this.idleT=0; this.fight=null;
+    if(scene==='foyer') this.hub=true;
+    // a following cat comes through one door with the hero; the next one closes on it
+    const c=this.cat; if(c && c.follow>0 && --c.follow>0 && scene!=='outside'){ c.x=x-14; c.mode='sit'; c.t=this.time; } else { this.cat=null; this.catNext=this.time+6+Math.random()*10; }
     Caption.hide(); Big.hide(); Prompt.clear(); Title.hide(); this.camX=clamp(x-VW/2,0,this.width()-VW);
     if(scene==='end'){ if(!this.ended){ this.ended=true; Live.send({t:'ended', on:true}); } this.endTitle(); } },
-  endTitle(){ Title.show(OUTRO[0],OUTRO[1],`Easter eggs found: ${this.eggs.size}  ·  R for the menu`); },
-  enterPlace(key,now){ const f=()=>{ const d=place(key);
-      this.pl={ key, t:TOPICS[key], d, st:{}, idx:-1, target:null, stepT:0, feat:null, poked:null }; this.topic=key;
-      this.visited.add(key); Live.send({t:'visited', topic:key}); this.go('place',d.spawn??24); d.enter&&d.enter(this.pl.st); };
+  endTitle(){ Title.show(OUTRO[0],OUTRO[1],`Easter eggs found: ${this.eggs.size}/${new Set([...EGGS,...this.eggs.keys()]).size}  ·  R for the menu`); },
+  // a place left by force (the fight) resumes at the beat it was on, with its state as it was
+  enterPlace(key,now){ const f=()=>{ const d=place(key), sv=this.saved[key]; delete this.saved[key]; if(this.resume===key) this.resume=null;
+      this.pl={ key, t:TOPICS[key], d, st:sv?sv.st:{}, idx:-1, target:null, stepT:0, feat:null, poked:null }; this.topic=key;
+      this.visited.add(key); Live.send({t:'visited', topic:key}); this.go('place',d.spawn??24);
+      if(!sv) d.enter&&d.enter(this.pl.st); else if(sv.idx>=0){ this.pl.idx=sv.idx-1; this.step(1); }
+      if(this.jit===1) this.jit=2;
+      const h=this.hero().id, tok=token;
+      if((h==='lukas'||h==='luca') && d.host!=null && !this.hostSeen.has(key)){ this.hostSeen.add(key);
+        this.tm.after(1.4,()=>{ if(tok===token && this.pl && this.pl.key===key) this.say(NOT_PHIL[Object.keys(TOPICS).indexOf(key)%NOT_PHIL.length],d.host,(d.floor||154)-26,3); }); } };
     Prompt.clear(); if(now) f(); else Fade.go(f); },
   // back: left before the talk got going, so the opener returns to the desk it was entered from
-  leavePlace(back){ const key=this.pl.key; Prompt.clear();
+  leavePlace(back){ const key=this.pl.key; Prompt.clear(); if(this.jit===2) this.jit=0;
     Fade.go(()=>{ if(back && key===OPENER){ this.go('desk',DESK_DOOR); this.p.face=-1; }
       else this.go('foyer',key===OPENER?THEATRE_DOOR+24:HALL.find(h=>h.key===key).x);
       this.pl=null; this.topic=null; }); },
@@ -479,18 +521,31 @@ const Game = {
     this.time+=dt; this.tm.tick(dt); if(this.flash>0) this.flash=Math.max(0,this.flash-dt*2.4);
     if(this.kickT>0) this.kickT=Math.max(0,this.kickT-dt);
     this.plants.forEach(pl=>{ if(pl.state==='falling'){ pl.ang=Math.min(Math.PI/2,pl.ang+dt*7); if(pl.ang>=Math.PI/2){ pl.state='down'; this.egg('plant','You kicked over a plant'); } } });
+    if(!this.sweeping && this.plants.every(pl=>pl.state==='down')) this.sweepPlants();
     if(this.toasts.length && (this.toasts[0].t-=dt)<=0) this.toasts.shift();
     this.bubbles=this.bubbles.filter(b=>(b.t-=dt)>0);
+    this.fx=this.fx.filter(f=>{ f.x+=f.vx*dt; f.y+=f.vy*dt; return (f.t+=dt)<f.life; }); this.reacts=this.reacts.filter(r=>(r.t+=dt)<3);
+    this.danceT=Math.max(0,this.danceT-dt); this.ovT=Math.max(0,this.ovT-dt);
+    const live=!['menu','select'].includes(this.scene);
+    if(Input.code){ Input.code=false; if(live){ this.danceT=3; this.egg('dance','Everybody dance'); } }
+    if(Input.queue.length||Input.dir()){ if(this.idleT<0) this.idleRun++; this.idleT=0; } else this.idleT+=dt;
+    this.updCleaner(dt); if(live) this.updCat(dt);
     if(this.scene==='desk') this.updateDesk(dt);
     if(Fade.busy) return;
     if(Dlg.open){ if(Input.take('action','right')) Dlg.next(); return; }
     if(this.scene==='menu'){ if(Input.take('right','action')) Fade.go(()=>this.enterSelect()); return; }
     if(this.scene==='select'){ this.updateSelect(); return; }
     if(Big.open && this.scene!=='place'){ if(Input.take('action','left','right')) Big.hide(); return; }
+    // Right in a place snaps the fight back, so the talk is never stuck behind it
+    if(this.fight){ if(this.scene==='place' && Input.queue.includes('right')) this.fight=null; else return this.updFight(dt); }
+    if(this.idleT>25){ this.idleT=-15; this.idleChat(); }
 
     const p=this.p, W=this.width();
     if(this.scene==='place') this.walkTo(dt);
-    else { const d=Input.dir(); p.moving=d!==0 && this.kickT===0; if(p.moving){ p.face=d; p.x=clamp(p.x+d*72*dt,10,W-(this.scene==='outside'?28:10)); p.t+=dt; } }
+    else { const moon=Input.moon&&Input.held.left, d=moon?-1:Input.dir(); p.moving=d!==0 && this.kickT===0;
+      if(p.moving){ p.face=moon?1:d; p.x=clamp(p.x+d*72*(this.jit?1.5:1)*dt,10,W-(this.scene==='outside'?28:10)); p.t+=dt; }
+      if(moon && p.moving){ this.moonT+=dt; if(this.moonT>0.4 && Math.random()<dt*20) this.fx.push({k:'spark',x:p.x+3+Math.random()*5,y:this.feet()-1-Math.random()*5,vx:0,vy:-5,t:0,life:0.9});
+        if(this.moonT>2) this.egg('moonwalk','Moonwalk'); } else this.moonT=0; }
     this.camX+=(clamp(p.x-VW/2,0,W-VW)-this.camX)*(1-Math.exp(-dt*6));
     this.updateAsker(dt,W);
     const ak=this.asker, asking=ak && ak.near && ak.phase==='wait' && Live.questions.length>0 && this.kickT===0;
@@ -514,23 +569,32 @@ const Game = {
   near(items){ const x=this.p.x; return items.filter(i=>Math.abs(x-i.x)<(i.r||14)).sort((a,b)=>Math.abs(x-a.x)-Math.abs(x-b.x))[0]; },
   items(){
     const tl=t=>`<span style="color:${t.colour}">${esc(t.title)}</span>`;
-    if(this.scene==='outside') return [{ x:ENTRANCE, label:'Enter Building 101', act:()=>Fade.go(()=>this.go('desk',24)) }];
-    if(this.scene==='desk') return [
-      this.badge?{ x:DESK_GREETER, r:22, label:`Talk to ${esc(GREETER.name)}`, act:()=>this.say(this.dk.rings>=3?'And leave the bell alone.':'Enjoy the talk!',DESK_GREETER,106) }
-                :{ x:DESK_GREETER, r:22, label:'Collect your badge', act:()=>this.giveBadge() },
+    const cat=this.cat?[{ x:this.cat.x, r:12, label:'Stroke the cat', act:()=>this.stroke() }]:[];
+    if(this.scene==='outside') return [{ x:ENTRANCE, label:'Enter Building 101', act:()=>Fade.go(()=>this.go('desk',24)) },
+      ...(this.hub?[{ x:ENTRANCE+22, r:8, label:'Talk to the next speaker', act:()=>this.say("Nearly done? I'm on next.",ENTRANCE+22,124) }]:[])];
+    if(this.scene==='desk') return [...cat,
+      this.badge?{ x:DESK_GREETER, r:22, label:`Talk to ${esc(GREETER.name)}`, act:()=>this.pester('greeter',DESK_GREETER,106,()=>this.say(this.dk.rings>=3?'And leave the bell alone.':'Enjoy the talk!',DESK_GREETER,106)) }
+                :{ x:DESK_GREETER, r:22, label:this.revoked?'Ask for a new badge':'Collect your badge', act:()=>this.giveBadge() },
+      ...(this.hub&&this.badge?[{ x:14, r:8, label:'Step outside', act:()=>{ Prompt.clear(); Fade.go(()=>{ this.go('outside',ENTRANCE); this.p.face=-1; this.egg('rain','You left mid-talk'); }); } }]:[]),
       { x:118, r:9, label:'Ring the bell', act:()=>this.ringBell() },
       { x:193, r:10, label:'Poke the badge printer', act:()=>this.jamPrinter() },
       { x:248, r:11, label:this.dk.totesDown?'Restack the tote bags':'Take a tote bag', act:()=>this.knockTotes() },
-      ...(this.badge?[{ x:DESK_DOOR, r:18, label:`Enter ${tl(TOPICS[OPENER])}`, act:()=>this.enterPlace(OPENER) }]:[]) ];
-    if(this.scene==='foyer') return [
+      ...(this.badge?[this.resume?{ x:DESK_DOOR, r:18, label:`Back to ${tl(TOPICS[this.resume])}`, act:()=>this.enterPlace(this.resume) }
+        :this.hub?{ x:DESK_DOOR, r:18, label:'Back to the foyer', act:()=>{ Prompt.clear(); Fade.go(()=>this.go('foyer',THEATRE_DOOR+24)); } }
+        :{ x:DESK_DOOR, r:18, label:`Enter ${tl(TOPICS[OPENER])}`, act:()=>this.enterPlace(OPENER) }]:[]) ];
+    if(this.scene==='foyer') return [...cat,
       ...HALL.map(h=>({ x:h.x, r:16, label:`Enter ${tl(TOPICS[h.key])}`, act:()=>this.enterPlace(h.key) })),
-      ...this.others().map((c,i)=>({ x:216+i*192, label:`Talk to ${esc(c.name)}`, act:()=>this.say(c.cameo,216+i*192,126) })),
+      ...this.others().map((c,i)=>({ x:216+i*192, label:`Talk to ${esc(c.name)}`, act:()=>this.pester(c.id,216+i*192,126,()=>this.say(c.cameo,216+i*192,126)) })),
+      { x:URN_X, r:6, label:'Pour a coffee', act:()=>this.pour() },
+      { x:12, r:9, label:'Back to registration', act:()=>{ Prompt.clear(); Fade.go(()=>{ this.go('desk',DESK_DOOR); this.p.face=-1; }); } },
       ...this.plants.filter(pl=>pl.state==='up').map(pl=>({ x:pl.x, r:18, label:'Kick the plant', act:()=>this.kickPlant(pl) })),
       ...FOYER_WAVE.map(x=>({ x, r:12, label:'Wave at the window', act:()=>this.waveWindow(x) })),
       { x:QA_DOOR, r:18, label:'Q&amp;A: end the talk', act:()=>{ Prompt.clear(); Fade.go(()=>this.go('end',160)); } } ];
     return [];
   },
   giveBadge(){ const h=this.hero(), org=h.id==='lukas'||h.id==='luca'; this.badge=true; this.badgeT=this.time; Prompt.clear();
+    if(this.revoked){ this.revoked=false; $('#big').style.setProperty('--acc','#9aa0aa'); Big.show('VISITOR',h.name+' · scverse 2026','badge');
+      return Caption.show('A visitor badge. Behave yourself this time.',GREETER.name,GREETER.colour); }
     $('#big').style.setProperty('--acc',h.accent); Big.show(h.name,(org?'ORGANISER':'SPEAKER')+' · scverse 2026','badge');
     const vote=()=>Caption.show('Scan the QR code to rank the rooms and ask questions',GREETER.name,GREETER.colour);
     if(!org) return vote();
@@ -541,7 +605,7 @@ const Game = {
   ev(){ const pl=this.pl; return { beat:pl.t.beats[pl.idx]||null, beatIdx:pl.idx, stepT:pl.stepT, poked:pl.poked, walking:pl.target!=null }; },
   walkTo(dt){ const pl=this.pl, p=this.p; if(pl.target==null){ p.moving=false; return; }
     const dx=pl.target-p.x; p.moving=Math.abs(dx)>0.5;
-    if(p.moving){ p.face=Math.sign(dx); p.x+=Math.sign(dx)*Math.min(Math.abs(dx),130*dt); p.t+=dt; }
+    if(p.moving){ p.face=Math.sign(dx); p.x+=Math.sign(dx)*Math.min(Math.abs(dx),(this.jit?180:130)*dt); p.t+=dt; }
     else { p.x=pl.target; pl.target=null; if(pl.out) return this.leavePlace(true);
       if(pl.pokeAfter){ const id=pl.pokeAfter; pl.pokeAfter=null; return this.poke(id); } this.startBeat(); } },
   updatePlace(dt,asking){
@@ -550,7 +614,7 @@ const Game = {
     if(pl.feat){ if(Input.take('right')) this.featStep(1); else if(Input.take('left')) this.featStep(-1); if(!asking) Prompt.clear(); return; }
     if(Input.take('right')) this.step(1); else if(Input.take('left')) this.step(-1);
     const pokeable=[...(d.props||[]), ...(d.host!=null?[{ id:'host', x:d.host, label:`Talk to ${pl.t.host.name}` }]:[])];
-    const it=pl.target==null && this.near(pokeable);
+    const it=pl.target==null && this.near(this.cat?[...pokeable,{ id:'cat', x:this.cat.x, r:12, label:'Stroke the cat' }]:pokeable);
     if(it && Input.take('action')) this.poke(it.id);
     // nothing in reach: walk over to the nearest thing on screen, so the clicker can reach every prop
     else if(pl.target==null && Input.take('action')){ const p=this.p, vis=pokeable.filter(o=>o.x>this.camX+8 && o.x<this.camX+VW-8).sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x));
@@ -579,9 +643,11 @@ const Game = {
   featStep(dir){ const pl=this.pl, ft=pl.feat, s=ft.step+dir;
     if(s>=0 && s<ft.f.steps){ ft.step=s; pl.stepT=0; return this.featCaption(); }
     Fade.go(()=>{ pl.feat=null; this.step(dir); }); },
-  poke(id){ const pl=this.pl, r=pl.d.poke&&pl.d.poke(id,pl.st); pl.poked={id,t:0};
-    if(typeof r==='string') this.toast(r);
-    else if(r==null && id==='host') this.say(`Hi, I'm ${pl.t.host.name}!`,pl.d.host,(pl.d.floor||154)-26); },
+  poke(id){ const pl=this.pl, d=pl.d; if(id==='cat') return this.stroke();
+    const run=()=>{ const r=d.poke&&d.poke(id,pl.st); pl.poked={id,t:0};
+      if(typeof r==='string') this.toast(r);
+      else if(r==null && id==='host') this.say(`Hi, I'm ${pl.t.host.name}!`,d.host,(d.floor||154)-26); };
+    if(id==='host') this.pester('host:'+pl.key,d.host,(d.floor||154)-26,run); else run(); },
 
   /* ---------- audience questions ---------- */
   updateAsker(dt,W){
@@ -622,6 +688,65 @@ const Game = {
     else if(Input.take('right')){ if(this.sel<CHARACTERS.length-1){ this.sel++; Card.show(CHARACTERS[this.sel]); } }
     else if(Input.take('action')) this.choose();
   },
+  /* ---------- venue-wide play ---------- */
+  feet(){ return this.scene==='outside'?OUT_FEET:this.scene==='place'?this.pl.d.floor||154:this.scene==='end'?146:154; },
+  // poking the same NPC fast gets crosser replies, and the sixth poke starts a fight
+  pester(who,x,y,normal){ const a=this.annoy; if(a.who===who && this.time-a.t<4) a.n++; else { a.who=who; a.n=1; } a.t=this.time;
+    if(a.n>=6){ a.n=0; return this.startFight(x); }
+    if(a.n>=3) return this.say(['Yes?','What now?','Stop. It.'][a.n-3],x,y);
+    normal(); },
+  startFight(x){ const p=this.p, vx=this.camX+CX+VW-CROP; this.fight={ t:this.time, x:Math.round((p.x+x)/2), sx:vx+14 }; this.bubbles=[];
+    if(this.pl) this.pl.target=null; Big.hide(); Prompt.clear(); this.egg('fight','You started a fight'); },
+  guardX(i){ const f=this.fight, a=this.time-f.t, s=f.sx+i*16, e=f.x+(i?14:-14);
+    return a<3.6?s+(e-s)*clamp((a-1.2)/2.4,0,1):this.p.x+(i?14:-14); },
+  updFight(dt){ const f=this.fight, a=this.time-f.t, p=this.p; p.moving=false; Prompt.clear();
+    if(this.scene==='place'){ const pl=this.pl; pl.stepT+=dt; pl.d.update&&pl.d.update(dt,pl.st,this.ev()); }
+    if(a>=3.6){ p.x=f.x-(a-3.6)*42; p.face=-1; p.moving=true; p.t+=dt; }
+    if(a>=6.2) Fade.go(()=>this.ejected());
+    this.camX+=(clamp(p.x-VW/2,0,this.width()-VW)-this.camX)*(1-Math.exp(-dt*6)); },
+  ejected(){ const pl=this.pl; if(pl){ this.saved[pl.key]={ st:pl.st, idx:pl.idx }; this.resume=pl.key; }
+    this.pl=null; this.topic=null; this.badge=false; this.revoked=true; Dlg.close();
+    this.go('outside',ENTRANCE-24); this.toast('BADGE REVOKED'); },
+  idleChat(){ const sc=this.scene, pl=this.pl, p=this.p, run=this.idleRun, tok=token;
+    let who=sc==='foyer'?[...this.others().map((c,i)=>[216+i*192,126]),[270,122],[290,122],[334,122],[350,122],[472,122]]
+      :sc==='desk'?[[DESK_GREETER,106],[206,106]]:sc==='place'&&pl.d.host!=null&&!pl.feat?[[pl.d.host,(pl.d.floor||154)-26]]:[];
+    who=who.sort((a,b)=>Math.abs(a[0]-p.x)-Math.abs(b[0]-p.x)).slice(0,2); if(!who.length) return;
+    const lines=who.length>1?[[0,'Is this part of the talk?'],[1,'A pause for effect, I think'],[0,'A long one'],[1,'*taps watch*']]:[[0,'So...'],[0,'Take your time'],[0,'*taps watch*']];
+    lines.forEach(([i,s],k)=>this.tm.after(k*2.6,()=>{ if(tok===token && run===this.idleRun && this.scene===sc) this.say(s,who[i][0],who[i][1],2.4); })); },
+  updCat(dt){ const sc=this.scene, t=this.time, p=this.p; if(!this.visited.has('nfcore') || this.fight || !['foyer','place','desk'].includes(sc)) return;
+    let c=this.cat;
+    if(!c){ if(t<this.catNext || sc==='desk') return; const s=Math.random()<0.5?-1:1, vx=this.camX+CX;
+      c=this.cat={ x:s<0?vx-12:vx+VW-CROP+12, tx:vx+50+Math.random()*(VW-CROP-100), face:-s, mode:'walk', t, strokes:0, follow:0 }; }
+    if(c.follow){ const dx=p.x-p.face*16-c.x;
+      if(Math.abs(dx)>4){ c.mode='walk'; c.face=Math.sign(dx); c.x+=c.face*Math.min(Math.abs(dx),Math.max(40,Math.abs(dx)*2.5)*dt); }
+      else if(c.mode==='walk'){ c.mode='sit'; c.t=t; } return; }
+    if(c.mode==='walk'||c.mode==='leave'){ const dx=c.tx-c.x; c.face=Math.sign(dx)||c.face; c.x+=c.face*Math.min(Math.abs(dx),22*dt);
+      if(Math.abs(dx)<0.5){ if(c.mode==='leave'){ this.cat=null; this.catNext=t+12+Math.random()*15; } else { c.mode='sit'; c.t=t; } } return; }
+    const a=t-c.t, vx=this.camX+CX;
+    if(c.mode==='sit'&&a>4){ c.mode='wash'; c.t=t; } else if(c.mode==='wash'&&a>3){ c.mode='rest'; c.t=t; }
+    else if(c.mode==='rest'&&a>3){ c.mode='leave'; c.tx=c.x<vx+(VW-CROP)/2?vx-14:vx+VW-CROP+14; } },
+  stroke(){ const c=this.cat, y=this.feet()-10; if(!c) return; if(!c.follow){ c.mode='sit'; c.t=this.time; }
+    c.strokes++; this.say('prrr',c.x,y,1.6);
+    for(let i=0;i<3;i++) this.fx.push({ k:'heart', x:c.x-4+i*4, y:y-2, vx:(i-1)*3, vy:-10-i*3, t:-i*0.25, life:1.6 });
+    this.egg('cat','You stroked the cat');
+    if(c.strokes===3){ c.follow=2; this.egg('cat-follow','The cat is following you'); } },
+  updCleaner(dt){ const c=this.cl, job=c.jobs[0];
+    if(!job){ c.x+=c.face*9*dt; if(c.x>FOYER_W-140) c.face=-1; if(c.x<140) c.face=1; return; }
+    const dx=job.x-c.x; if(Math.abs(dx)>1){ c.face=Math.sign(dx); c.x+=c.face*Math.min(Math.abs(dx),45*dt); return; }
+    if(job.t0==null){ job.t0=this.time; job.start&&job.start(); }
+    if(this.time-job.t0>job.dur){ c.jobs.shift(); job.done&&job.done(); } },
+  sweepPlants(){ this.sweeping=true; const n=this.plants.length;
+    this.plants.forEach((pl,i)=>this.cl.jobs.push({ x:pl.x+pl.dir*16, dur:1.6,
+      start:()=>{ if(i===0 && this.scene==='foyer') this.say('*sigh*',this.cl.x,124,2); },
+      done:()=>{ pl.state='up'; pl.ang=0; if(i===n-1){ this.sweeping=false; this.egg('sweep','The cleaner swept up after you'); } } })); },
+  // the foyer urn: one cup per Action; the stack wobbles at 10 and falls at 15
+  pour(){ const c=this.cof; if(c.fallT!=null) return this.say('Mind the floor',URN_X,104);
+    c.cups++; this.fx.push({ k:'steam', x:URN_X, y:108, vx:0, vy:-6, t:0, life:1 });
+    if(c.cups<15) return; c.fallT=this.time; this.egg('coffee','Too much coffee');
+    this.cl.jobs.push({ x:STACK_X+14, dur:5, start:()=>{ c.mopT=this.time; if(this.scene==='foyer') this.say('Really?',this.cl.x,124,2.5); }, done:()=>{ c.cups=0; c.fallT=c.mopT=null; } }); },
+  /* phase 8 hooks: phone reactions float up from the bottom; enough at once and the crowd stands */
+  react(kind,n=1){ for(let i=0;i<Math.min(n,12) && this.reacts.length<40;i++) this.reacts.push({ k:kind, x:24+Math.random()*(VW-CROP-48), t:-i*0.18 }); },
+  ovation(){ this.ovT=4; this.react('clap',12); },
   kickPlant(pl){ const p=this.p; p.face=pl.x>=p.x?1:-1; pl.dir=p.face; this.kickT=0.5; Prompt.clear();
     this.tm.after(0.14,()=>{ pl.state='falling'; }); },
 
@@ -633,13 +758,44 @@ const Game = {
     Prompt.el.classList.toggle('top',this.scene==='place'||!!Caption.s);
     if(feat) this.drawFeature();
     else ({menu:this.drawMenu, select:this.drawSelect, outside:this.drawOutside, desk:this.drawDesk, foyer:this.drawFoyer, place:this.drawPlace, end:this.drawEnd})[this.scene].call(this);
-    ctx.globalAlpha=1; this.drawToast();
+    ctx.globalAlpha=1; this.drawToast(); this.drawReacts();
   },
   world(){ ctx.setTransform(S,0,0,S,-Math.round((this.camX+CX)*S),0); },
-  drawActors(feet){ this.drawAsker(feet);
-    person(this.hero().look,this.p.x,feet,this.p.t,this.p.face,this.p.moving,1,this.kickT>0.12&&this.kickT<0.42?'kick':null);
+  drawActors(feet){ this.drawAsker(feet); this.drawCat(feet);
+    const f=this.fight, a=f?this.time-f.t:9;
+    if(a>=3.6) this.drawHero(feet);
+    if(f){ if(a<3.6) this.drawCloud(f.x+Math.round(Math.sin(a*3)*8),feet,a);
+      for(let i=0;i<2;i++){ const gx=this.guardX(i); person(GUARDS[i],gx,feet,this.time,a<3.6?-1:-1,a>1.2,1); R(Math.round(gx)-4,feet-9,8,1,'#f4f4f4'); } }
+    this.drawFx();
     for(const b of this.bubbles){ const w=Math.ceil(tw(b.s,5))+6, vx=this.camX+CX, x=Math.round(clamp(b.x-w/2,vx+2,vx+VW-CROP-w-2)), y=Math.round(b.y)-12, bx=Math.round(b.x);
       R(x-1,y-1,w+2,11,'#1b2332'); R(x,y,w,9,'#ffffff'); R(bx-2,y+9,5,1,'#ffffff'); R(bx-1,y+10,3,1,'#ffffff'); R(bx,y+11,1,1,'#ffffff'); T(b.s,x+3,y+2,5,'#1b2332'); } },
+  drawHero(feet){ const p=this.p, x=p.x+(this.jit?(Math.floor(this.time*12)%2?1:-1)*0.6:0);
+    person(this.hero().look,x,feet,p.t,p.face,p.moving,1,this.kickT>0.12&&this.kickT<0.42?'kick':null);
+    const bob=p.moving&&Math.floor(p.t*8)%2===0?-1:0, top=Math.round(feet)-20+bob, x0=Math.round(x)-6, px=c=>x0+(p.face<0?11-c:c);
+    if(this.danceT>0||this.ovT>0) return;
+    // hackathon sticker on the hoodie
+    if(this.visited.has('nfcore')) [[3,12,'#ffffff'],[4,12,'#3cc87a'],[3,13,'#3cc87a'],[4,13,'#24b064']].forEach(([c,r,col])=>R(px(c),top+r,1,1,col));
+    const h=this.carried.hat, hx=x0+6;
+    if(h==='tophat'){ R(hx-4,top-6,8,7,'#1b1b1b'); R(hx-6,top+1,12,2,'#1b1b1b'); R(hx-4,top-1,8,1,'#d8402a'); }
+    else if(h==='beret'){ R(hx-5,top-2,10,3,'#c0392b'); R(hx-3,top-3,6,1,'#c0392b'); R(hx-1,top-4,2,1,'#c0392b'); }
+    else if(h==='party') for(let i=0;i<8;i++) R(hx-4+(i>>1),top+1-i,8-i,1,i%2?'#ffd166':'#b28dff');
+    else if(h==='shades'){ R(hx-5,top+4,3,2,'#1b1b1b'); R(hx,top+4,3,2,'#1b1b1b'); R(hx-2,top+4,2,1,'#1b1b1b'); } },
+  drawCat(feet){ const c=this.cat; if(!c) return;
+    const m=c.mode==='walk'||c.mode==='leave'?CAT_WALK[Math.floor(this.time*7)%2]:c.mode==='wash'&&Math.floor(this.time*2.5)%2?CAT_WASH:CAT_SIT, r=c.face<0?flip(m):m;
+    map2d(r,Math.round(c.x)-(r[0].length>>1),Math.round(feet)-r.length,CAT_PAL); },
+  drawCloud(cx,feet,a){ const y=feet-11, t=this.time;
+    ctx.globalAlpha=clamp((3.6-a)*3,0,1);
+    for(let i=0;i<8;i++) disc(cx+Math.cos(i*0.8+t*4)*10,y+Math.sin(i*1.7+t*5)*5,6+i%3,i%2?'#ece7dc':'#cfc8bb');
+    const k=Math.floor(a*3);
+    for(let i=0;i<3;i++){ const ang=hash(k*7+i)*6.28, sx=Math.round(cx+Math.cos(ang)*15), sy=Math.round(y+Math.sin(ang)*9);
+      if(i<2) map2d(['.y.','yyy','.y.'],sx-1,sy-1,{y:'#ffd166'}); else { R(sx-2,sy-2,5,4,'#1b2332'); R(sx-1,sy-1,3,2,'#f2c9a0'); } }
+    T('!?',cx,y-18,5,'#1b2332','center'); ctx.globalAlpha=1; },
+  drawFx(){ for(const f of this.fx){ if(f.t<0) continue; ctx.globalAlpha=clamp((f.life-f.t)*2,0,1); const x=Math.round(f.x), y=Math.round(f.y);
+      if(f.k==='heart') map2d(HEART,x-2,y-2,{r:'#ff6b81'}); else if(f.k==='steam') R(x+Math.round(Math.sin(f.t*6)),y,1,2,'#ffffff');
+      else { R(x,y-1,1,3,f.t%0.3<0.15?'#ffd166':'#ffffff'); R(x-1,y,3,1,'#ffd166'); } } ctx.globalAlpha=1; },
+  drawReacts(){ if(!this.reacts.length) return; ctx.setTransform(S,0,0,S,-CX*S,0);
+    for(const r of this.reacts){ if(r.t<0) continue; const m=REACT[r.k]||REACT.star, x=Math.round(CX+r.x+Math.sin(r.t*3+r.x)*4), y=Math.round(VH-16-r.t*38);
+      ctx.globalAlpha=clamp((3-r.t)*2,0,1); map2d(shadow(m.rows),x+1,y+1,{k:'#1b2332'}); map2d(m.rows,x,y,m.pal); } ctx.globalAlpha=1; },
   drawToast(){ const ts=this.toasts[0]; if(!ts) return; ctx.setTransform(S,0,0,S,-CX*S,0);
     ctx.globalAlpha=clamp(Math.min(ts.t*2,(3-ts.t)*4),0,1); const w=Math.ceil(tw(ts.s,5))+16, x=Math.round(CX+(VW-CROP)/2-w/2);
     R(x,22,w,13,'#1f2a44'); R(x,34,w,1,'#ffd166'); T(ts.s,x+w/2,26,5,'#ffd166','center'); ctx.globalAlpha=1; },
@@ -768,11 +924,16 @@ const Game = {
       for(let i=0;i<24;i++){ const x=1120+Math.floor(hash(i*13)*200), y=157+Math.floor(hash(i*29)*22), s=Math.round(Math.sin(t*1.8+i)*2); R(x+s,y,6,1,'#8fc0e6'); }
       for(let x=1124;x<1304;x+=24){ R(x,154,3,26,'#5f4d3a'); R(x,160+Math.round(Math.sin(t*2+x)),3,1,'#9ec7e8'); } }
     this.drawAsker(OUT_FEET);
-    person(this.hero().look,this.p.x,OUT_FEET,this.p.t,this.p.face,this.p.moving);
+    if(this.hub && vis(ENTRANCE,ENTRANCE+40)){ const sx=ENTRANCE+22, b=Math.floor(t*0.7)%3===0; person(NEXT_SPEAKER,sx,OUT_FEET,t,-1,false);
+      R(sx-5,OUT_FEET-8,7,5,'#9aa0aa'); R(sx-5,OUT_FEET-8,7,1,'#c9ced6'); if(b) T('...',sx,OUT_FEET-30,5,'#1b2332','center'); }
+    this.drawHero(OUT_FEET); this.drawFx();
     // foreground reeds and dune grass (slightly faster parallax)
     ctx.setTransform(S,0,0,S,-CX*S,0);
     for(let k=0;k<11;k++){ const wx=k*62+Math.floor(hash(k*5)*26), sx=par(wx,1.18); if(sx>-30&&sx<VW+30) this.reeds(sx,k); }
     for(let k=0;k<3;k++){ const sx=par(1066+k*20,1.18); if(sx>-30&&sx<VW+30) for(let i=0;i<5;i++) line(sx+i*3,181,sx+i*3+(i%3)-1,164+(i%2)*4,'#9aa050'); }
+    // after the opener it has started raining, naturally
+    if(this.hub){ ctx.fillStyle='rgba(70,78,92,.38)'; ctx.fillRect(0,0,VW,VH); ctx.fillStyle='rgba(205,220,240,.55)';
+      for(let i=0;i<90;i++){ const x=((hash(i)*VW*1.3-t*24-cx*0.9)%(VW+40)+VW+40)%(VW+40)-20, y=((hash(i+300)*VH+t*150)%(VH+10))-6; ctx.fillRect(Math.round(x),Math.round(y),1,4); } }
   },
   cow(x,y,s=1){ const m=['..kk..........','.kwwkkkwwwwkk.','kkwwwwkkkwwwwk','.wwkkwwwwkkwwk','..wwwwwwwwwww.','..k.k.....k.k.','..k.k.....k.k.'];
     map2d(m,x,y,{k:'#1f1f1f',w:'#f4f1ea'},s); R(x+s,y+s,s,s,'#e8a0a0'); },
@@ -1005,8 +1166,16 @@ const Game = {
     if(Math.sin(t*3)>0){ R(QA_DOOR-27,90,3,3,'#ffd166'); R(QA_DOOR+24,90,3,3,'#ffd166'); }
     this.floorTiles(0,W);
     for(const f of spills) f();
+    // the urn's cup stack, and the flood when it falls
+    const cof=this.cof;
+    if(cof.fallT==null) for(let i=0;i<cof.cups;i++){ const w=cof.cups>=10?Math.round(Math.sin(t*5)*(i/14)*(cof.cups-8)*0.6):0, y=125-i*3;
+      R(STACK_X-2+w,y,5,3,'#ffffff'); R(STACK_X-2+w,y+2,5,1,'#d8d8d8'); if(i===cof.cups-1) R(STACK_X-1+w,y,3,1,'#6b4423'); }
+    else { const e=clamp((t-cof.fallT)/1.5,0,1), m=cof.mopT!=null?clamp((t-cof.mopT)/5,0,1):0, hw=Math.round(36*e*(1-m)), cx=STACK_X+14;
+      for(let y=150;y<157;y++){ const k=1-Math.abs(y-153)/4, w=Math.round(hw*k); if(w>0) R(cx-w,y,2*w,1,y===151?'#8a5a32':'#6b4423'); }
+      if(m<0.9) for(let i=0;i<15;i++){ const d=hash(i*13)*2-1, x=Math.round(STACK_X+d*e*30+i%3), y=147+Math.floor(hash(i*7)*8); R(x,y,4,3,'#ffffff'); R(x,y,4,1,'#d8d8d8'); } }
+    R(1,40,22,8,'#2fb67c'); T('< EXIT',12,41.5,4,'#ffffff','center');
     // cleaner and their wet trail
-    const cl=this.cleaner(), cf=cl.face;
+    const cl=this.cl, cf=cl.face;
     ctx.fillStyle='rgba(255,255,255,.16)'; for(let i=0;i<36;i+=2){ const a=1-i/36; ctx.globalAlpha=a; ctx.fillRect(Math.round(cl.x-cf*(8+i)),151+(i%4?1:2),2,1); } ctx.globalAlpha=1;
     { const sx=Math.round(cl.x-cf*40); R(sx-3,142,7,1,'#ffd43b'); for(let y=0;y<11;y++) R(sx-1-Math.floor(y/4),143+y,3+Math.floor(y/4)*2,1,'#ffd43b'); R(sx,146,1,4,'#1b2332'); R(sx,151,1,1,'#1b2332'); }
     // chatting groups, someone on the phone
@@ -1030,7 +1199,6 @@ const Game = {
     this.others().forEach((c,i)=>{ const x=216+i*192; if(!(this.asker && this.asker.who===c)) person(c.look,x,153,t,this.p.x<x?-1:1,false); });
     this.drawActors(154);
   },
-  cleaner(){ const L=FOYER_W-280, d=(this.time*9)%(2*L), fwd=d<L; return { x:140+(fwd?d:2*L-d), face:fwd?1:-1 }; },
   waveWindow(x){ const fy=this.fy; fy.waves++; const cow=fy.waves%5===0;
     fy.wave={ x, t:this.time, cow, look:CROWD[(fy.waves*3+1)%CROWD.length] };
     if(cow){ this.egg('cow','A cow waved back'); this.tm.after(0.6,()=>{ if(this.scene==='foyer') this.say('Moo.',x,58,2); }); } },

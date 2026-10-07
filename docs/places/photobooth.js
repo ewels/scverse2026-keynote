@@ -90,7 +90,7 @@
       { id: 'stand', x: STAND, label: 'Try on a hat', r: 16 },
       { id: 'snake', x: SNAKE, label: 'Squeeze the snake', r: 10 },
     ],
-    enter(st) { st.photos = 0; st.worn = 0; st.flash = -9; st.strip = null; st.said = 0; st.hiss = -9; lastX = 14; },
+    enter(st) { st.photos = 0; st.worn = Math.max(0, HATS.indexOf(g.carry ? g.carry('hat') : '')); st.flash = -9; st.strip = null; st.said = 0; st.hiss = -9; lastX = 14; },
     update(dt, st, ev) { if (ev.beat && !ev.walking) lastX = this.focus[ev.beat.at] ?? lastX; },
     poke(id, st) {
       const t = time();
@@ -102,7 +102,7 @@
         if (five) { g.say('That is not you', 100, 100, 3); g.egg('photobooth', kind === 'cat' ? 'The booth photographed a cat' : 'The booth photographed a pigeon'); }
         return true;
       }
-      if (id === 'stand') { st.worn = (st.worn + 1) % HATS.length; g.say(['Back on the hook', 'Very fetching', 'Très chic', 'Party time', 'Cool'][st.worn], STAND, 78); return true; }
+      if (id === 'stand') { st.worn = (st.worn + 1) % HATS.length; if (g.carry) g.carry('hat', HATS[st.worn] || null); g.say(['Back on the hook', 'Very fetching', 'Très chic', 'Party time', 'Cool'][st.worn], STAND, 78); return true; }
       if (id === 'snake') { st.hiss = t; g.say('Sssss', SNAKE, 96, 1.4); return true; }
     },
     draw(st, ev) {
@@ -152,7 +152,7 @@
       R(EXIT - 12, 100, 24, 54, '#f7f3ea'); R(EXIT - 9, 103, 18, 51, '#1b2030'); R(EXIT - 12, 88, 24, 9, '#2fb67c'); T('EXIT', EXIT, 89.5, 5, '#ffffff', 'center');
     },
     drawFront(st) {
-      const k = HATS[st.worn]; if (!g.heroX || !k) return;
+      const k = HATS[st.worn]; if (g.carry || !g.heroX || !k) return;
       const x = Math.round(g.heroX()); if (k === 'shades') hat('shades', x - 1, 138, 1); else hat(k, x, 135, 1);
     },
   };
