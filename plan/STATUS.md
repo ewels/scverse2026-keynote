@@ -11,7 +11,7 @@
 - [x] Phase 6: coffee queue, corridor, photo booth
 - [x] Phase 7: venue-wide play and easter eggs
 - [x] Phase 8: live changes
-- [ ] Phase 9: final checks (review done and fixed; playthrough done, polish round in progress; egg hunt running)
+- [x] Phase 9: final checks
 
 ## Subagent models
 
@@ -154,5 +154,13 @@ MUST: start with this, audience doesn't get a choice
 ### Phase 9: checks
 
 - Code review: no serious bugs. Fixed: idle NPC chatter firing mid-talk (would have happened on stage), ovation timing after a reset, the worker's reaction map growing forever, the dance code swallowing a B press on the menu, per-frame allocation.
-- Playthrough: no errors or stuck states. Polish round launched for the coffee queue (least finished), clipped signs in the stage crop (courtyard, cloakroom, corridor), slow-starting beats (hackathon, posters, photo booth) and the theatre review beat.
+- Playthrough: no errors or stuck states. Polish round done for the coffee queue (least finished), clipped signs in the stage crop (courtyard, cloakroom, corridor), slow-starting beats (hackathon, posters, photo booth) and the theatre review beat.
+- Egg hunt: all 23 eggs fire and are reachable with the clicker (the golden star needs a phone; tested via its hook only). The `lost` egg in the corridor is fiddly (each sign needs exactly one poke). Six quick pokes on a host starts a fight by design; Right cancels it inside a place.
+- Coffee queue rebuilt (560 wide, queue shuffles forward, each project gets a big screen).
+
+## Next steps (suggested)
+
+- Read through every caption: they are agent-written first drafts.
+- Rehearse with the real clicker: `./present.sh` (local dev option) or `cd worker && npx wrangler dev`, then `/?stage&key=dev`.
+- Things not done: the photo booth is the plainest place; the dance and ovation only move `person()` sprites (not Ferris or the theatre audience); bailing out of a place still marks it visited.
 
