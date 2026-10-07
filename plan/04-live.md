@@ -14,7 +14,7 @@ Change both sides of every message together (`docs/` and `worker/src/worker.js`)
 - The worker rate-limits it with the existing token bucket, plus a per-phone cooldown of one reaction per second.
 - The worker sends presenters a new `react` server message with a small batch of counts per kind, coalesced like state broadcasts (at most four per second). Reactions are not stored.
 - The phone page gets a row of reaction buttons under the ranking, and the hidden logo tap from `03-play.md`.
-- The stage floats a small pixel icon up from the bottom of the scene per reaction (capped on screen), and triggers the standing ovation when 20+ arrive within five seconds.
+- The stage floats a small pixel icon up from the bottom of the scene per reaction (capped on screen), and triggers the standing ovation when a third of the connected phones (at least three) react within five seconds. The worker's coalesced batch should therefore carry the number of distinct phones that reacted, not only counts.
 
 ## Clock
 

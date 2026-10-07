@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { stubFonts, pickPhil, enterFoyer, enterDoor, leaveRoom, pressUntil } from './helpers.js';
+import { stubFonts, pickPhil, enterTheatre, playPlace, setX, pressUntil, QA_DOOR } from './helpers.js';
 
 async function open(browser, url) {
   const context = await browser.newContext();
@@ -21,11 +21,11 @@ test('stage, phones and moderator stay in sync', async ({ browser }) => {
     return s && s.voters === 0 && s.onScreen === 0 && !s.visited.length && !s.ended; });
   await pickPhil(stage);
 
-  // Rankings: Borda count over 5 open rooms, 5 points for first down to 1 for last.
+  // Rankings: Borda count over 8 open rooms, 8 points for first down to 1 for last.
   const ana = await open(browser, '/join/'), bea = await open(browser, '/join/');
   const orders = [];
   for (const phone of [ana, bea]) {
-    await expect(phone.locator('#topics .topic')).toHaveCount(5);
+    await expect(phone.locator('#topics .topic')).toHaveCount(8);
     await phone.locator('#topics .topic').first().locator('.down').click();
     orders.push(await phone.$$eval('#topics .topic', els => els.map(e => e.dataset.key)));
     await phone.locator('#submit').click();
@@ -68,16 +68,14 @@ test('stage, phones and moderator stay in sync', async ({ browser }) => {
   await pressUntil(stage, 'b', () => document.querySelector('#dialogue').classList.contains('hidden'));
   await expect(mod.locator('#done .card', { hasText: popular }).locator('.tag.answered')).toHaveText('Answered');
 
-  // Visiting a room removes its bar.
-  await enterFoyer(stage);
-  await enterDoor(stage, 'left');
-  await expect(stage.locator('#strip .tb')).toHaveCount(4);
-  await expect(stage.locator('#strip .tb .tt', { hasText: 'AGENTS' })).toHaveCount(0);
+  // Visiting a place removes its bar.
+  await enterTheatre(stage);
+  await expect(stage.locator('#strip .tb')).toHaveCount(7);
+  await expect(stage.locator('#strip .tb .tt', { hasText: 'WHY' })).toHaveCount(0);
 
-  // Finishing the game sends the phones to the game link.
-  await leaveRoom(stage);
-  await enterDoor(stage, 'right');
-  await leaveRoom(stage);
+  // The Q&A door ends the talk and sends the phones to the game link.
+  await playPlace(stage);
+  await setX(stage, QA_DOOR);
   await pressUntil(stage, 'b', () => window.__game.ended);
   for (const phone of [ana, bea]) {
     await expect(phone.locator('#end')).toBeVisible();
@@ -91,11 +89,11 @@ test('stage, phones and moderator stay in sync', async ({ browser }) => {
   await expect(rogue.locator('#conn')).toHaveText('Reconnecting');
   await rogue.evaluate(async () => {
     window.__live.send({ t: 'reset' });
-    window.__live.send({ t: 'visited', topic: 'community' });
+    window.__live.send({ t: 'visited', topic: 'nfcore' });
     window.__live.send({ t: 'ended', on: false });
     const tries = ['presenter', 'mod', 'audience'].map(role => new Promise(done => {
       const ws = new WebSocket(`${location.origin.replace(/^http/, 'ws')}/api/ws?role=${role}&key=wrong`);
-      ws.onopen = () => { for (const t of ['reset', 'visited', 'ended', 'dismiss']) ws.send(JSON.stringify({ t, topic: 'community', on: false, id: 1 })); setTimeout(done, 500); };
+      ws.onopen = () => { for (const t of ['reset', 'visited', 'ended', 'dismiss']) ws.send(JSON.stringify({ t, topic: 'nfcore', on: false, id: 1 })); setTimeout(done, 500); };
       ws.onerror = done;
     }));
     await Promise.all(tries);

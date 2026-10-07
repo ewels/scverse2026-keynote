@@ -3,7 +3,7 @@
 ## Progress
 
 - [x] Plan written
-- [ ] Phase 1: engine
+- [x] Phase 1: engine
 - [ ] Phase 2: lecture theatre
 - [ ] Phase 3: registration desk and foyer hub
 - [ ] Phase 4: hackathon room, courtyard
@@ -105,3 +105,21 @@ MUST: start with this, audience doesn't get a choice
 ## Log
 
 (One entry per phase: what was done, what was skipped, anything to look at.)
+
+### Phase 1: engine
+
+- Done: place framework (`docs/places/<place>.js` on `window.KEYNOTE_PLACES`, `gfx` helpers, API in `docs/places/README.md`), placeholder places for all eight topics, new content schema with first-draft beats for all eight topics, step-through controls, caption bar, speech bubbles, big text cards, toasts and `egg()`, featurettes with a step counter, and the new flow: outside, registration desk (badge card, voting caption, theatre doors open), theatre (forced first), foyer hub (640 wide, an entrance per place, ticks, crowd favourite banners from `Live.state.counts`), places, Q&A door, end screen with the egg count. Question carrier, plant kick (now an egg), sea (now an egg via the toast), `visited`/`ended` and the presenter key all still work. `__game.goto(id)` and `__game.beatIdx` added.
+- Tests: helpers and both specs rewritten for the new flow; new offline test plays every place through every beat and featurette step with Right and fails on any console error. `npm test` passes (3 tests).
+- Decisions:
+  - Place state `st` is fresh on every visit and beats restart from the top. Phase 7 (fight keeps progress) will need to keep it.
+  - Right while the hero is still walking retargets straight to the next beat, so a fast double press skips the beat in between.
+  - Right on the last featurette step closes it and goes straight on to the next beat. Left on the first step closes it and replays the previous beat.
+  - Beats gained two optional fields: `who: 'host'` (host name tab on the caption) and `steps` (one caption per featurette step).
+  - Place defs gained `host` (x of the host NPC). Action near it calls `poke('host')`; with no answer the host says "Hi, I'm <name>!". `poke` returns a string to toast it, or `true` to suppress the default.
+  - The prompt moves to the top of the stage inside places and whenever a caption is showing, so it never covers the caption.
+  - `look(id)` also accepts a topic or place id (returns its host's look).
+  - There is no way out of a place mid-talk except stepping through to the end (Right repeatedly). Worth a look if Phil wants a bail-out.
+  - New icons: `brick` (why), `crab` (rewrites), `sign` (docs), `snake` (python). Colours: why pink, nf-core green, rewrites rust, agents blue, MultiQC orange, side purple, docs cyan, python yellow.
+  - Hosts named Sam the Session Chair, Mo the Maintainer, Ferris the Crab, Ada the Agent, Rita the Reporter, Sid the Barista, Dot the Docent, Pip the Photographer. Ferris is drawn as a crab by the courtyard, the others as people.
+- Known issues: in stage mode the sidebar strip now has eight bars and pushes the question and voter counts below the bottom edge (phase 8 drops the opener; it may still need tighter bars). Badge always says SPEAKER (hero variants are phase 3/7).
+

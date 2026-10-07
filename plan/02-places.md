@@ -85,7 +85,7 @@ Every place must have:
 - **Beats:**
   1. Messy posters: what MultiQC does. Ten different-looking posters, one per tool.
   2. Messy posters: press Right and they fly together into one MultiQC report poster.
-  3. Bin: works with any inputs. Random objects (a coffee cup, a shoe, the cat) go in and come out as report sections.
+  3. Bin: works with any inputs. Random objects (a coffee cup, a shoe, and the cat only if the hackathon room has been visited) go in and come out as report sections.
   4. Feature posters, one beat each: config builder, licences and DOIs, ECharts, Parquet and preprocessing. Each zooms in as a featurette `poster` step.
   5. Empty board: "YOUR MODULE HERE". The call to action: nice log outputs with filename suffixes, and more MultiQC modules please.
 - **Pokes:** a poster presenter (starts a long explanation; walk away and they follow), the coffee table (cups), an easel (wobbles, falls).
@@ -116,7 +116,7 @@ Every place must have:
   1. Booth: rich-click. A grey, plain CLI sprite goes in; flash; it comes out in full rich-click colours.
   2. Strip printer: starlight-pydocs. The photo strip that prints out is API docs made from the code.
 - **Pokes:** the booth (the hero goes in; flash; a photo strip of the hero pulling faces prints), the props (hero wears a hat for the rest of the talk).
-- **Secret:** take five photos and the strip prints the cat.
+- **Secret:** take five photos and the strip prints the cat (if the hackathon room has been visited; otherwise a pigeon).
 
 ## Foyer hub
 
