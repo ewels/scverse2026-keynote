@@ -80,9 +80,9 @@
     for (let i = 0; i < 4; i++) if (i < n - 1) { const x0 = slotX(i) + 30, x1 = slotX(i + 1); R(x0, PIPE_Y + 5, x1 - x0, 2, '#4a6a9a'); }
     for (let i = 0; i < n; i++) modBrick(i, slotX(i), PIPE_Y, lit && lit(i));
     (cracks || []).forEach(([i, found]) => { if (!found) return; const x = slotX(i) + 9 + (i * 7) % 12, glow = 0.6 + 0.4 * Math.sin(t * 4);
-      const c = mix('#7a0f0f', '#ff3030', glow);
-      for (const d of [0, 1]) { line(x + d, PIPE_Y, x + 2 + d, PIPE_Y + 4, c); line(x + 2 + d, PIPE_Y + 4, x + d, PIPE_Y + 7, c); line(x + d, PIPE_Y + 7, x + 3 + d, PIPE_Y + 11, c); }
-      for (let a = 0; a < 40; a++) { const ang = a / 40 * 6.283; R(Math.round(x + 1 + Math.cos(ang) * 11), Math.round(PIPE_Y + 6 + Math.sin(ang) * 10), 2, 2, c); } });
+      const c = mix('#7a0f0f', '#ff3030', glow), bx = slotX(i);
+      for (const d of [0, 1]) { line(x + d, PIPE_Y + 12, x + 2 + d, PIPE_Y + 15, c); line(x + 2 + d, PIPE_Y + 15, x + d, PIPE_Y + 18, c); line(x + d, PIPE_Y + 18, x + 3 + d, PIPE_Y + 21, c); }
+      R(bx - 2, PIPE_Y - 3, 34, 2, c); R(bx - 2, PIPE_Y + 13, 34, 2, c); R(bx - 2, PIPE_Y - 3, 2, 18, c); R(bx + 30, PIPE_Y - 3, 2, 18, c); });
   };
   const SCREENS = {
     idle(t) { R(SX, SY, SW, SH, '#1d1530'); for (let y = 0; y < SH; y += 2) R(SX, SY + y, SW, 1, mix('#2a1d45', '#151025', y / SH));
@@ -143,7 +143,7 @@
       if (s > THROW_T(THROWERS.length) + 1.2) { const k = 0.5 + 0.5 * Math.sin(t * 3); for (let i = 0; i < 6; i++) { const a = i + t * 0.5; R(Math.round(SX + 62 + Math.cos(a) * 64), Math.round(SY + 70 + Math.sin(a) * 26), 2, 2, mix('#ffd166', '#ffffff', k)); } } },
     review(t, s) { R(SX, SY, SW, SH, '#132544'); for (let x = 0; x < SW; x += 10) R(SX + x, SY, 1, SH, '#1a3058'); for (let y = 0; y < SH; y += 10) R(SX, SY + y, SW, 1, '#1a3058');
       R(SX, SY + 92, SW, 8, '#0d1b33');
-      const rx = SX - 10 + s * 22, cracks = [[0, rx > slotX(0) + 10], [2, rx > slotX(2) + 14], [3, rx > slotX(3) + 14]], found = cracks.filter(c => c[1]).length;
+      const rx = SX - 10 + s * 60, cracks = [[0, rx > slotX(0) + 10], [2, rx > slotX(2) + 14], [3, rx > slotX(3) + 14]], found = cracks.filter(c => c[1]).length;
       pipeline(5, cracks, t);
       const happy = found < 3; robot(SX + SW - 18, SY + 28 + Math.sin(t * 2) * 2, t, happy ? '' : 'oh');
       const bub = happy ? 'LGTM!' : 'oh.'; const bw = tw(bub, 5) + 6; R(SX + SW - 26 - bw, SY + 16, bw, 9, '#ffffff'); T(bub, SX + SW - 23 - bw, SY + 18, 5, happy ? '#2fb67c' : '#e85d5d');
@@ -345,7 +345,7 @@
     { x: 112, row: 1, w: 96, c: '#f7c51e', label: ['UNDERSTANDABLE'], ink: '#4a3a00' },
     { x: 64, row: 2, w: 96, c: '#2fb67c', label: ['COMPARABLE'] },
   ];
-  const FILL = [{ x: 64, row: 1, w: 48, c: '#f5a623' }, { x: 208, row: 1, w: 48, c: '#b28dff' }, { x: 160, row: 2, w: 96, c: '#ff6f91' }];
+  const FILL = [{ x: 64, row: 1, w: 48, c: '#f5a623', label: ['TESTED'] }, { x: 208, row: 1, w: 48, c: '#b28dff', label: ['SMALL'] }, { x: 160, row: 2, w: 96, c: '#ff6f91', label: ['COMPOSABLE'] }];
   const BH = 26, legoY = row => 108 - row * BH;
   const arm = (x, yb, open, t) => {
     x = Math.round(x); yb = Math.round(yb);

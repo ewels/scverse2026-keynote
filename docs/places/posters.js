@@ -148,14 +148,16 @@
     R(BX - 2, BY - 2, BW + 4, BH + 4, '#3b3f47'); R(BX, BY, BW, BH, '#5b6472');
     for (let k = 0; k < 20; k++) R(BX + Math.floor(hash(k + 70) * BW), BY + Math.floor(hash(k + 90) * BH), 1, 1, '#66707e');
     if (id === 'logs') {
-      const k = ev.stepT;
+      if (st.lkB !== ev.beatIdx) { st.lkB = ev.beatIdx; st.lk0 = null; }
+      if (ev.walking) st.lk0 = null; else if (st.lk0 == null) st.lk0 = t;
+      const k = st.lk0 == null ? 0 : t - st.lk0;
       R(BX + 4, BY + 4, BW - 8, BH - 8, PAPER);
-      if (k > 0.3) { T('out.txt', BOARD, BY + 7, 5, '#9aa0a6', 'center'); if (k > 0.8) { const w = tw('out.txt', 5); R(BOARD - w / 2 - 2, BY + 9, Math.min(w + 4, (k - 0.8) * 80), 1, '#e03131'); } }
-      ['S1', 'S2', 'S3'].forEach((s, i) => { if (k > 1.3 + i * 0.5) { const e = suffixLine(s, '.mytool.log', BOARD - 4, BY + 16 + i * 8, 5, INK); tick(e + 2, BY + 16 + i * 8, '#2fb67c'); } });
-      if (k > 2.6) {
-        R(BX + 6, BY + 42, BW - 12, 30, '#1b2332');
-        const L = ['MYTOOL V2.1', 'SAMPLE   S1', 'READS  1.2M', 'PASSED  98%'], n = Math.floor((k - 2.6) * 14);
-        let c = n; L.forEach((s, i) => { const vis = s.slice(0, Math.max(0, Math.min(s.length, c))); c -= s.length; T(vis, BX + 9, BY + 45 + i * 6.5, 4, i ? '#a9e34b' : '#ffd166'); });
+      T('OUT.TXT', BOARD, BY + 8, 6, '#9aa0a6', 'center'); if (k > 0.3) { const w = tw('OUT.TXT', 6); R(Math.round(BOARD - w / 2 - 2), BY + 11, Math.min(w + 4, (k - 0.3) * 120), 2, '#e03131'); }
+      ['S1', 'S2', 'S3'].forEach((s, i) => { if (k > 0.6 + i * 0.3) { const e = suffixLine(s, '.mytool.log', BOARD - 4, BY + 19 + i * 9, 5, INK); tick(e + 2, BY + 19 + i * 9, '#2fb67c'); } });
+      if (k > 1.6) {
+        R(BX + 6, BY + 46, BW - 12, 26, '#1b2332');
+        const L = ['MYTOOL V2.1', 'SAMPLE   S1', 'READS  1.2M', 'PASSED  98%'], n = Math.floor((k - 1.6) * 30);
+        let c = n; L.forEach((s, i) => { const vis = s.slice(0, Math.max(0, Math.min(s.length, c))); c -= s.length; T(vis, BX + 9, BY + 48 + i * 6, 5, i ? '#a9e34b' : '#ffd166'); });
       }
       return;
     }

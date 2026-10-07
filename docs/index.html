@@ -510,7 +510,7 @@ const Game = {
     // a following cat comes through one door with the hero; the next one closes on it
     const c=this.cat; if(c && c.follow>0 && --c.follow>0 && scene!=='outside'){ c.x=x-14; c.mode='sit'; c.t=this.time; } else { this.cat=null; this.catNext=this.time+6+Math.random()*10; }
     Caption.hide(); Big.hide(); Prompt.clear(); Title.hide(); this.camX=clamp(x-VW/2,0,this.width()-VW);
-    if(scene==='end'){ if(!this.ended){ this.ended=true; Live.send({t:'ended', on:true}); } this.endTitle(); } },
+    if(scene==='end'){ this.toasts=[]; if(!this.ended){ this.ended=true; Live.send({t:'ended', on:true}); } this.endTitle(); } },
   endTitle(){ Title.show(OUTRO[0],OUTRO[1],`Easter eggs found: ${this.eggs.size}/${new Set([...EGGS,...this.eggs.keys()]).size}  ·  R for the menu`); },
   // a place left by force (the fight) resumes at the beat it was on, with its state as it was
   enterPlace(key,now){ const f=()=>{ const d=place(key), sv=this.saved[key]; delete this.saved[key]; if(this.resume===key) this.resume=null;
@@ -608,7 +608,7 @@ const Game = {
     if(this.revoked){ this.revoked=false; $('#big').style.setProperty('--acc','#9aa0aa'); Big.show('VISITOR',h.name+' · scverse 2026','badge');
       return Caption.show('A visitor badge. Behave yourself this time.',GREETER.name,GREETER.colour); }
     $('#big').style.setProperty('--acc',h.accent); Big.show(h.name,(org?'ORGANISER':'SPEAKER')+' · scverse 2026','badge');
-    const vote=()=>Caption.show('Scan the QR code to rank the rooms and ask questions',GREETER.name,GREETER.colour);
+    const vote=()=>Caption.show(LIVE?'Vote for what comes next: scan the code or visit the link':'Vote on your phone during the talk',GREETER.name,GREETER.colour);
     if(!org) return vote();
     Caption.show('You’re not on the speaker list. Organiser badge, then.',GREETER.name,GREETER.colour); this.egg('organiser','Organiser badge, then');
     const tok=token; this.tm.after(3.5,()=>{ if(tok===token && this.scene==='desk') vote(); }); },

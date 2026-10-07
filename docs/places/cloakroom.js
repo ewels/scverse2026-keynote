@@ -60,12 +60,6 @@
       ctx.fillStyle = 'rgba(255,230,170,.07)'; for (let y = 23; y < 96; y += 2) { const w = 4 + (y - 23) * 0.45; ctx.fillRect(lx - w, y, w * 2, 2); } }
     R(0, 30, 30, 116, '#e7d8bc'); R(0, 30, 30, 2, '#c9b48a'); for (let y = 40; y < 146; y += 10) R(0, y, 30, 1, '#d8c7a6');
     R(28, 26, 6, 120, '#6b4a2f'); R(0, 24, 34, 4, '#6b4a2f');
-    const n = 41 + Math.floor(t / 6) % 58, fl = (t % 6) < 0.4;
-    R(32, 26, 40, 22, '#1b1b1b'); R(33, 27, 38, 20, '#2a1414'); T('SERVING', 52, 29, 5, '#ff9a7a', 'center');
-    T(String(n).padStart(3, '0'), 52, 36, 9, fl ? '#ffd166' : '#ff4d4d', 'center');
-    R(28, 56, 44, 30, '#f7f3ea'); R(28, 56, 44, 2, '#c8322c'); R(28, 84, 44, 2, '#c8322c');
-    T('PLEASE', 50, 60, 6, '#1b2332', 'center'); T('TAKE A', 50, 68, 6, '#1b2332', 'center'); T('TICKET', 50, 76, 6, '#c8322c', 'center');
-    R(49, 86, 2, 6, '#6f6a62');
   };
 
   const humanAlcove = (t, st) => {
@@ -91,8 +85,8 @@
     ctx.restore();
     for (const px of [258, 342]) { disc(px, 30, 4, '#3b3f47'); disc(px, 30, 2, '#9aa0a6'); const a = t * sp / 4; R(Math.round(px + Math.cos(a) * 3), Math.round(30 + Math.sin(a) * 3), 1, 1, '#ffd166'); }
     const sh = Math.abs(Math.cos(flipK * Math.PI)), h = Math.max(1, Math.round(14 * sh)), y0 = 7 + Math.round((14 - h) / 2), on = flipK > 0.5;
-    R(258, y0, 84, h, on ? '#14532d' : '#2a2014'); R(258, y0, 84, 1, on ? '#4be06f' : '#f5a623'); R(258, y0 + h - 1, 84, 1, on ? '#4be06f' : '#f5a623');
-    if (h > 10) T(on ? 'AGENT MODE' : 'HUMAN MODE', 300, y0 + 3, 7, on ? (Math.sin(t * 3) > -0.6 ? '#bfffd4' : '#4be06f') : '#f5a623', 'center');
+    R(258, y0, 70, h, on ? '#14532d' : '#2a2014'); R(258, y0, 70, 1, on ? '#4be06f' : '#f5a623'); R(258, y0 + h - 1, 70, 1, on ? '#4be06f' : '#f5a623');
+    if (h > 10) T(on ? 'AGENT MODE' : 'HUMAN MODE', 293, y0 + 3, 7, on ? (Math.sin(t * 3) > -0.6 ? '#bfffd4' : '#4be06f') : '#f5a623', 'center');
     R(ADA - 13, 84, 1, 4, '#9aa0a6'); R(ADA + 13, 84, 1, 4, '#9aa0a6');
     R(ADA - 18, 88, 37, 11, '#3b4b63'); R(ADA - 17, 89, 35, 9, '#0e1424'); T('ROBOTS', ADA, 90, 6, agent ? '#4be06f' : '#6c8cff', 'center');
   };
@@ -104,6 +98,12 @@
     const ring = t - st.bellT < 0.5 ? Math.round(Math.sin(t * 60)) : 0;
     R(BELL - 5, 119, 10, 2, '#6f6a62'); R(BELL - 4 + ring, 116, 8, 3, '#e2b52c'); R(BELL - 3 + ring, 115, 6, 1, '#e2b52c'); R(BELL - 1 + ring, 113, 2, 2, '#c99a1d'); R(BELL - 3 + ring, 116, 2, 1, '#ffe48a');
     if (t - st.bellT < 0.9) { const a = t - st.bellT; ctx.globalAlpha = k01(1.6 - a * 1.8); T('DING', BELL, 104 - Math.round(a * 10), 5, '#ffd166', 'center'); ctx.globalAlpha = 1; }
+    const n = 41 + Math.floor(t / 6) % 58, fl = (t % 6) < 0.4;
+    R(158, 128, 40, 21, '#1b1b1b'); R(159, 129, 38, 19, '#2a1414'); T('SERVING', 178, 131, 5, '#ff9a7a', 'center');
+    T(String(n).padStart(3, '0'), 178, 138, 9, fl ? '#ffd166' : '#ff4d4d', 'center');
+    R(158, 86, 44, 30, '#f7f3ea'); R(158, 86, 44, 2, '#c8322c'); R(158, 114, 44, 2, '#c8322c');
+    T('PLEASE', 180, 90, 6, '#1b2332', 'center'); T('TAKE A', 180, 98, 6, '#1b2332', 'center'); T('TICKET', 180, 106, 6, '#c8322c', 'center');
+    R(179, 116, 2, 5, '#6f6a62');
     R(150, 117, 12, 4, '#f7f3ea'); R(150, 117, 12, 1, '#e85d75'); R(170, 118, 14, 3, '#2b3445'); R(171, 118, 12, 1, '#c9a24a');
   };
 
@@ -242,7 +242,7 @@
   let cur = '', kNow = -1;
   return {
     width: W, floor: 154, spawn: 20, exit: EXIT, host: ADA,
-    focus: { counter: BELL, rail: 304, pile: 400, coats: 452 },
+    focus: { counter: BELL + 10, rail: 304, pile: 400, coats: 452 },
     props: [
       { id: 'tickets', x: DISP, label: 'Take a ticket' },
       { id: 'bell', x: BELL, r: 10, label: 'Ring the bell' },

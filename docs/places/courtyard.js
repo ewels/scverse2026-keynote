@@ -1,7 +1,7 @@
 // Outdoor courtyard: rewrites.bio. Park gates, a three-armed signpost and a race track.
 (window.KEYNOTE_PLACES = window.KEYNOTE_PLACES || {}).courtyard = g => {
   const { R, T, disc, line, map2d, tri, blob, cumulus, person, hash, time } = g;
-  const W = 820, EXIT = 798, GX = 114, POST = 244, S0 = 528, S1 = 752, DX = 592, DB = 104;
+  const W = 820, EXIT = 798, GX = 114, POST = 244, S0 = 620, S1 = 752, DX = 592, DB = 104;
   const RACES = ['rustqc', 'rustar', 'fastqc'], SIGNS = ['rewrite', 'upstream', 'combine'];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const ORANGE = '#e0602e';
@@ -157,16 +157,16 @@
   };
 
   const board = (rs, t) => {
-    R(682, 98, 3, 30, '#3b3f47'); R(744, 98, 3, 30, '#3b3f47');
-    R(666, 48, 96, 54, '#1b2332'); R(668, 50, 92, 50, '#0e1424'); R(666, 48, 96, 1, '#ffd166');
-    if (!rs) { T('RACE DAY', 714, 58, 7, '#ffd166', 'center'); crab(696, 92, 1, t, false); tortoise(732, 92, t, false); T('VS', 714, 80, 5, '#ffffff', 'center'); return; }
+    R(662, 98, 3, 30, '#3b3f47'); R(758, 98, 3, 30, '#3b3f47');
+    R(650, 48, 120, 54, '#1b2332'); R(652, 50, 116, 50, '#0e1424'); R(650, 48, 120, 1, '#ffd166');
+    if (!rs) { T('RACE DAY', 710, 58, 7, '#ffd166', 'center'); crab(676, 92, 1, t, false); tortoise(744, 92, t, false); T('VS', 710, 80, 5, '#ffffff', 'center'); return; }
     const L = rs.labels;
-    T(`RACE ${rs.n} OF 3`, 714, 52, 5, '#ffd166', 'center'); R(670, 60, 88, 1, '#2b3550');
-    if (rs.k < 1.5) { const n = rs.k < 0.5 ? '3' : rs.k < 1 ? '2' : '1'; T(n, 714, 66, 20, '#ffd166', 'center'); return; }
-    if (rs.k < 2.1) { T('GO!', 714, 70, 14, '#2fb67c', 'center'); return; }
-    crab(678, 74, 1, t, false); T(L[0], 688, 66, 5, '#ffffff'); T(rs.cDone ? L[2] : '...', 757, 66, 5, rs.cDone ? '#2fb67c' : '#7f8aab', 'right');
-    tortoise(678, 90, t, false, rs.kind); T(L[1], 688, 83, 5, '#ffffff'); T(rs.tShow ? L[3] : '...', 757, 83, 5, rs.tShow ? '#ff9a7a' : '#7f8aab', 'right');
-    if (rs.foot) T(rs.foot, 714, 92, 5, '#ffd166', 'center');
+    T(`RACE ${rs.n} OF 3`, 710, 52, 5, '#ffd166', 'center'); R(654, 60, 112, 1, '#2b3550');
+    if (rs.k < 1.5) { const n = rs.k < 0.5 ? '3' : rs.k < 1 ? '2' : '1'; T(n, 710, 66, 20, '#ffd166', 'center'); return; }
+    if (rs.k < 2.1) { T('GO!', 710, 70, 14, '#2fb67c', 'center'); return; }
+    crab(662, 74, 1, t, false); T(L[0], 676, 66, 5, '#ffffff'); T(rs.cDone ? L[2] : '...', 766, 66, 5, rs.cDone ? '#2fb67c' : '#7f8aab', 'right');
+    tortoise(662, 90, t, false, rs.kind); T(L[1], 676, 83, 5, '#ffffff'); T(rs.tShow ? L[3] : '...', 766, 83, 5, rs.tShow ? '#ff9a7a' : '#7f8aab', 'right');
+    if (rs.foot) T(rs.foot, 710, 92, 5, '#ffd166', 'center');
   };
 
   const track = t => {
@@ -190,7 +190,7 @@
     const tMove = !rs.tDone;
     if (tMove) { rs.tx += (rs.ride ? 90 : rs.tSpeed) * dt; if (rs.tx >= S1 + 4) { rs.tx = S1 + 4; rs.tDone = true; rs.tShow = true; if (rs.id === 'fastqc') { rs.tMedal = true; rs.foot = 'PR SENT UPSTREAM'; } } }
     if (rs.phase === 'run') { rs.cx += 150 * dt; if (rs.cx >= S1 + 8) { rs.cx = S1 + 8; rs.cDone = true; rs.phase = 'won'; rs.wonK = rs.k; if (rs.id === 'rustqc') rs.foot = 'SAME OUTPUT'; } }
-    else if (rs.phase === 'won') { if (rs.id === 'rustqc' && rs.k - rs.wonK > 1.2) rs.tShow = true; if (rs.id === 'fastqc' && rs.k - rs.wonK > 1.6) { rs.phase = 'back'; rs.cFace = -1; } }
+    else if (rs.phase === 'won') { if (rs.k - rs.wonK > 1.2) rs.tShow = true; if (rs.id === 'fastqc' && rs.k - rs.wonK > 1.6) { rs.phase = 'back'; rs.cFace = -1; } }
     else if (rs.phase === 'back') { rs.cx -= 140 * dt; if (rs.cx <= rs.tx + 2) { rs.phase = 'ride'; rs.ride = true; } }
     else if (rs.phase === 'ride') { rs.cx = rs.tx; }
   };
@@ -198,7 +198,7 @@
   return {
     width: W, floor: 154, spawn: 24, exit: EXIT,
     get host() { return fx; },
-    focus: { gates: GX, sign: 266, track: 640 },
+    focus: { gates: GX, sign: 266, track: 774 },
     props: [
       { id: 'palm', x: 36, label: 'Shake the palm tree' },
       { id: 'pond', x: 278, label: 'Look in the pond' },
@@ -216,7 +216,7 @@
       const open = rT < 8 ? 0 : ev.beatIdx > 0 || (ev.beatIdx === 0 && !ev.walking) ? 1 : 0;
       if (open) st.torch = true;
       st.gate += clamp(open - st.gate, -dt * (rT < 8 ? 2.5 : 0.7), dt * 0.7);
-      const ft = flee ? 900 : RACES.includes(id) ? 700 : SIGNS.includes(id) ? 300 : 122;
+      const ft = flee ? 900 : RACES.includes(id) ? 612 : SIGNS.includes(id) ? 300 : 122;
       const fdx = ft - fx; st.fMoving = Math.abs(fdx) > 0.5; fx += Math.sign(fdx) * Math.min(Math.abs(fdx), (flee ? 170 : 80) * dt);
       for (const n of st.npcs) {
         const tg = flee ? 900 + n.home(t) : n.home(t), dx = tg - n.x, sp = flee ? 120 : rT < 12 && n.x > n.home(t) + 2 ? 60 : 28;
@@ -284,8 +284,8 @@
         if (rs.cDone) medal(Math.round(rs.cx), cy - 14, '#ffd166');
         if (rs.phase === 'back') { const ex = Math.round(rs.cx) - 10; R(ex, 126, 8, 6, '#f7f3ea'); line(ex, 126, ex + 4, 129, '#7f8aab'); line(ex + 7, 126, ex + 4, 129, '#7f8aab'); T('PR', ex + 4, 118, 5, '#2f6fd6', 'center'); }
         if (rs.id === 'rustar' && rs.cDone) for (let i = 0; i < 5; i++) { const a = i * 1.257 + t, r = 9 + Math.sin(t * 2 + i) * 2; R(Math.round(S1 + 8 + Math.cos(a) * r), Math.round(126 + Math.sin(a) * r * 0.6), 2, 2, '#ffd166'); }
-        outlined(rs.tags[1], Math.round(Math.min(rs.tx, S1 + 4)), 124, 5, '#d8f0c0', '#1b2332', 'center');
-        outlined(rs.tags[0], Math.round(rs.cx), cy - 30, 5, '#ffffff', '#1b2332', 'center');
+        outlined(rs.tags[1], clamp(Math.round(Math.min(rs.tx, S1 + 4)), 632, 790), 124, 5, '#d8f0c0', '#1b2332', 'center');
+        outlined(rs.tags[0], clamp(Math.round(rs.cx), 632, 790), cy - 30, 5, '#ffffff', '#1b2332', 'center');
       }
       const clicking = st.clickT != null && t - st.clickT < 1.2, flag = !!rs && rs.k > 1.5 && !rs.cDone;
       crab(fx + (st.fMoving ? 0 : Math.round(Math.sin(t * 1.5) * 2)), 154, 2, t, st.fMoving || !flag && Math.sin(t * 1.5) > 0.9, clicking ? Math.floor(t * 8) % 2 : Math.sin(t * 0.8) > 0.97);

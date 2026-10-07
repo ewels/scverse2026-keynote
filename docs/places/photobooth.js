@@ -84,7 +84,7 @@
 
   return {
     width: 320, floor: 154, spawn: 14, exit: EXIT, host: 122,
-    focus: { booth: 100, printer: 150 },
+    focus: { booth: 136, printer: 190 },
     props: [
       { id: 'booth', x: BX + 24, label: 'Take a photo', r: 18 },
       { id: 'stand', x: STAND, label: 'Try on a hat', r: 16 },
@@ -106,7 +106,7 @@
       if (id === 'snake') { st.hiss = t; g.say('Sssss', SNAKE, 96, 1.4); return true; }
     },
     draw(st, ev) {
-      const t = time(), id = ev.beat && !ev.walking ? (ev.beat.id || ev.beat.at) : '', a = ev.beat && ev.beat.id === 'richclick' ? ev.stepT : -1;
+      const t = time(), id = ev.beat && !ev.walking ? (ev.beat.id || ev.beat.at) : '', a = ev.beat && ev.beat.id === 'richclick' ? ev.stepT * 2 : -1;
       // wall and floor
       R(0, 0, 320, 146, '#3a2a4a'); for (let x = 0; x < 320; x += 8) R(x, 0, 2, 146, '#43305a'); for (let y = 8; y < 146; y += 16) for (let x = (y / 16) % 2 * 8; x < 320; x += 16) R(x, y, 2, 2, '#52396e');
       R(0, 110, 320, 36, '#2e2040'); R(0, 108, 320, 2, '#6b4a8c');
@@ -132,7 +132,7 @@
       strip(st, ev, t);
       // docs strip printed in the second beat
       if (id === 'pydocs' && !st.strip) st.strip = { kind: 'api', t0: time(), label: '' };
-      if (a >= 0) { const col = a > 3.4; if (a > 0.6) helpCard(146, 40, col, 0); }
+      if (a >= 0) { const col = a > 3.4; if (a > 0.6) helpCard(146, 40, col, 0); if (a > 3.4 && a < 3.8) { ctx.fillStyle = `rgba(255,255,255,${0.6 * (1 - (a - 3.4) / 0.4)})`; ctx.fillRect(140, 36, 92, 56); } }
       // stand
       R(244, 58, 54, 64, '#6b4a2f'); R(246, 60, 50, 60, '#8b6a4a'); for (let y = 66; y < 118; y += 8) for (let x = 250; x < 294; x += 8) R(x, y, 1, 1, '#5a3f26');
       for (const [hx, k] of [[252, 1], [264, 2], [276, 3]]) { R(hx, 64, 2, 5, '#c8c8c8'); if (st.worn !== k) hat(HATS[k], hx + 1, 78, 1); }

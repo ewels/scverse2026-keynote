@@ -11,7 +11,7 @@
 
   // x positions
   const FOCUS = { door: 52, board: 204, screen: 360, start: 463, tables: 596, photos: 837, stamp: 912, clock: 1044 };
-  const SEATS = [516, 540, 564, 588, 644, 668, 692, 716], ENTER_X = 420, MO_X = 372;
+  const SEATS = [516, 540, 564, 588, 644, 668, 692, 716], ENTER_X = 486, MO_X = 372;
   const FOLK = [
     { skin: '#f1c9a5', hair: '#2b1d14', hairStyle: 'short', top: '#e85d5d', topStyle: 'tee', pants: '#2f3a55' },
     { skin: '#8d5a3b', hair: '#1b1b1b', hairStyle: 'long', top: '#6c8cff', topStyle: 'hoodie', pants: '#2f3a55' },
@@ -32,7 +32,7 @@
     { f: '#2a2a30', s: '#1a1a1e', w: '#2a2a30', e: '#e0c030' }, { f: '#efe8dc', s: '#d9cbb4', w: '#ffffff', e: '#5aa0e0' },
     { f: '#9a7a5a', s: '#5a4430', w: '#efe3d0', e: '#6aa040' },
   ];
-  const SLOTS = [0, 1, 2, 3, 4, 5, 6, 9, 10, 11, 14];
+  const SLOTS = [2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14];
   const cat = (x, y, c, s = 1) => map2d(CAT, x, y, { f: c.f, s: c.s, e: c.e, w: c.w, n: '#e88aa0' }, s);
 
   const CHAT = [
@@ -172,8 +172,8 @@
       if (ka >= 0) { const rug = c01(ka / 0.6); R(Math.round(596 - 118 * rug), 141, Math.round(236 * rug), 6, '#c86a5a'); for (let x = 480; x < 712; x += 8) if (Math.abs(x - 596) < 118 * rug) R(x, 143, 4, 2, '#e8c36a'); }
       for (const sx of SEATS) { R(sx - 4, 125, 9, 11, '#5a3a22'); R(sx - 3, 126, 7, 9, '#6b4a2f'); }
       const seated = [], walkers = [];
-      if (ha >= 0) FOLK.forEach((L, i) => { const si = 6 - i, sx = SEATS[si], s0 = 0.3 + i * 0.6, arrive = s0 + (sx - ENTER_X) / 80;
-        if (ha < s0) return; if (ha < arrive) walkers.push([L, ENTER_X + (ha - s0) * 80]); else seated.push([L, sx, si, ha - arrive]); });
+      if (ha >= 0) FOLK.forEach((L, i) => { const si = 6 - i, sx = SEATS[si], s0 = 0.1 + i * 0.5, arrive = s0 + (sx - ENTER_X) / 90;
+        if (ha < s0) return; if (ha < arrive) walkers.push([L, ENTER_X + (ha - s0) * 90]); else seated.push([L, sx, si, ha - arrive]); });
       // the newcomer: walks in along the front, gets the welcome, then goes round the end of the table to the last seat
       let nb = null;
       if (wa >= 0) { const w = wa;
@@ -220,10 +220,10 @@
       R(850, 64, 30, 14, '#bfe3ff'); T('WIFI: nfc', 865, 68, 4, INK, 'center');
       const pa = A('cats'), photo = (x, y, k, s) => { const c = CATS[k % CATS.length], bg = fade(['#9fc8e8', '#f3d27a', '#c8e6b0', '#e8b8c8', '#c8c0e8'][(k * 3) % 5]);
         R(x, y, 16 * s, 19 * s, fade('#f7f5ee')); R(x + s, y + s, 14 * s, 13 * s, bg); cat(x + 3 * s, y + 3 * s, c, s); R(x + 4 * s, y + 11 * s, 8 * s, 3 * s, c.f); R(x + 7 * s, y - 1, 2, 2, '#e85d5d'); };
-      if (pa >= 0) { const n = Math.min(SLOTS.length, Math.floor(pa / 0.3));
-        for (let k = 0; k < n; k++) { const slot = SLOTS[k], col = slot % 5, row = Math.floor(slot / 5), x = 785 + col * 21, y = 29 + row * 25 + Math.round(hash(k) * 2), drop = k === n - 1 ? Math.round(-3 * (1 - c01((pa - k * 0.3) / 0.15))) : 0;
+      if (pa >= 0) { const n = Math.min(SLOTS.length, Math.floor(pa / 0.15 + 1));
+        for (let k = 0; k < n; k++) { const slot = SLOTS[k], col = slot % 5, row = Math.floor(slot / 5), x = 785 + col * 21, y = 29 + row * 25 + Math.round(hash(k) * 2), drop = k === n - 1 ? Math.round(-3 * (1 - c01((pa - k * 0.15) / 0.1))) : 0;
           photo(x, y + drop, k === 4 || k === 9 ? 0 : k, 1); }
-        if (pa > 3.6) { photo(827, 52, 0, 2); T('#CATS', 843, 82, 5, INK, 'center'); } }
+        if (pa > 1.9) { photo(817, 52, 0, 2); T('#CATS', 833, 82, 5, INK, 'center'); } }
       for (let k = 0; k < st.extra; k++) photo(781 + Math.floor(hash(k * 31 + 3) * 96), 22 + Math.floor(hash(k * 17 + 5) * 66), k * 2 + 1, 1);
 
       /* bureaucracy: one tiny desk, one stamp */

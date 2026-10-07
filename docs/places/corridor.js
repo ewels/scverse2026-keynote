@@ -1,21 +1,21 @@
 // Corridor signage: docs sites. Wayfinding signs, a noticeboard of code, an API map and a quiz board.
 (window.KEYNOTE_PLACES = window.KEYNOTE_PLACES || {}).corridor = g => {
   const { R, T, disc, line, tri, person, look, time, hash, ctx } = g;
-  const EXIT = 306, SX = [28, 62, 96], QX = 262, DOT = [128, 222];
-  const WORDS = ['START', 'GUIDE', 'API'], OPTS = ['JEKYLL', 'STARLIGHT', 'SPHINX'], ROOMS = ['CLI', 'CORE', 'UTIL', 'API', 'DOCS', 'TEST'];
+  const EXIT = 306, SX = [22, 54, 86], QX = 262, DOT = [128, 222];
+  const WORDS = ['START', 'GUIDE', 'API'], OPTS = ['SIDEBAR', 'HOME PAGE', 'SEARCH BOX', 'CHANGELOG'], RIGHT = 2, ROOMS = ['CLI', 'CORE', 'UTIL', 'API', 'DOCS', 'TEST'];
   const ROOM_COL = ['#2ec4d6', '#6c8cff', '#3cc87a', '#f5a623', '#e85d5d', '#b28dff'];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const PASSER = { skin: '#efc6a3', hair: '#3a2a1f', hairStyle: 'short', top: '#3cc87a', topStyle: 'hoodie', pants: '#2b2f45' };
   const LOST = { skin: '#c98e62', hair: '#1f1f1f', hairStyle: 'messy', glasses: true, top: '#f5a623', topStyle: 'tee', pants: '#4a403a' };
   let lastX = 14, dotX = 150, dotFace = 1, dotMoving = false;
 
-  const sign = (st, i, t, lit) => {
+  const sign = (st, i, t, litF) => {
     const s = st.sd[i], x = SX[i], p = s.t0 == null ? 1 : clamp((t - s.t0) / 0.6, 0, 1), dir = p < 0.5 ? -s.dir : s.dir, w = Math.max(2, Math.round(30 * Math.abs(Math.cos(p * Math.PI))));
     R(x - 11, 14, 1, 13, '#6f7a80'); R(x + 10, 14, 1, 13, '#6f7a80');
-    const wrong = s.dir < 0, on = lit > i, c = !on ? '#7d8a99' : wrong ? '#e85d5d' : '#2ec4d6';
+    const wrong = s.dir < 0, on = litF >= i, la = (litF - i) * 0.8, c = !on ? '#7d8a99' : la < 0.3 ? '#ffffff' : wrong ? '#e85d5d' : '#2ec4d6';
     R(x - w / 2, 26, w, 20, '#1b2332'); R(x - w / 2 + 1, 27, w - 2, 18, c);
     if (w > 18) { T(WORDS[i], x, 38, 6, '#ffffff', 'center'); if (dir > 0) { R(x - 10, 31, 12, 2, '#ffffff'); tri(x + 8, 32, -1, '#ffffff'); } else { R(x - 2, 31, 12, 2, '#ffffff'); tri(x - 8, 32, 1, '#ffffff'); } }
-    if (on) { R(x - 11, 24, 3, 2, '#ffd166'); R(x + 8, 24, 3, 2, '#ffd166'); ctx.fillStyle = 'rgba(255,240,170,0.10)'; for (let y = 46; y < 100; y += 2) { const ww = 6 + (y - 46) * 0.3; ctx.fillRect(x - ww, y, ww * 2, 2); } }
+    if (on) { R(x - 11, 24, 3, 2, '#ffd166'); R(x + 8, 24, 3, 2, '#ffd166'); ctx.fillStyle = 'rgba(255,240,170,0.2)'; for (let y = 46; y < 100; y += 2) { const ww = 6 + (y - 46) * 0.3; ctx.fillRect(x - ww, y, ww * 2, 2); } }
   };
 
   const CARDS = [
@@ -55,17 +55,17 @@
     R(230, 28, 64, 92, '#3b4252'); R(232, 30, 60, 88, '#1b2332'); R(232, 30, 60, 1, '#2ec4d6');
     if (!on) { T('QUIZ', 262, 44, 10, '#3b4a66', 'center'); T('?', 262, 70, 20, '#2b3550', 'center'); return; }
     T('QUIZ', 262, 33, 6, '#2ec4d6', 'center');
-    const q1 = 'BEST DOCS', q2 = 'FRAMEWORK?', n = Math.floor(age * 14);
-    T(q1.slice(0, n), 262, 45, 7, '#ffffff', 'center'); if (n > q1.length) T(q2.slice(0, n - q1.length), 262, 56, 7, '#ffffff', 'center');
+    const QL = ['WHERE DO', 'READERS LOOK', 'FIRST?'];
+    let n = Math.floor(age * 16); QL.forEach((l, i) => { T(l.slice(0, Math.max(0, n)), 262, 41 + i * 7, 5, '#ffffff', 'center'); n -= l.length; });
     OPTS.forEach((o, i) => {
       const a = age - 1.2 - i * 0.3; if (a < 0) return;
-      const pk = st.pick[i], pt = pk != null ? t - pk : 99, right = i === 1, shake = pk != null && !right && pt < 0.4 ? Math.round(Math.sin(pt * 60) * 2) : 0;
-      const c = pk == null ? '#3b4a66' : right ? '#2fb67c' : '#d8402a', x = 234 + shake, y = 70 + i * 15;
-      R(x, y, 56, 12, c); R(x, y, 56, 1, 'rgba(255,255,255,.25)'); R(x, y + 11, 56, 1, 'rgba(0,0,0,.3)');
-      T(o, x + 28, y + 3, 6, '#ffffff', 'center');
-      if (pk != null) { if (right) { line(x + 4, y + 6, x + 6, y + 8, '#ffffff'); line(x + 6, y + 8, x + 10, y + 3, '#ffffff'); } else { line(x + 4, y + 3, x + 9, y + 8, '#ffffff'); line(x + 9, y + 3, x + 4, y + 8, '#ffffff'); } }
+      const pk = st.pick[i], pt = pk != null ? t - pk : 99, right = i === RIGHT, shake = pk != null && !right && pt < 0.4 ? Math.round(Math.sin(pt * 60) * 2) : 0;
+      const c = pk == null ? '#3b4a66' : right ? '#2fb67c' : '#d8402a', x = 234 + shake, y = 63 + i * 12;
+      R(x, y, 56, 10, c); R(x, y, 56, 1, 'rgba(255,255,255,.25)'); R(x, y + 9, 56, 1, 'rgba(0,0,0,.3)');
+      T(o, x + 28, y + 3, 5, '#ffffff', 'center');
+      if (pk != null) { if (right) { line(x + 3, y + 5, x + 5, y + 7, '#ffffff'); line(x + 5, y + 7, x + 8, y + 3, '#ffffff'); } else { line(x + 3, y + 3, x + 7, y + 7, '#ffffff'); line(x + 7, y + 3, x + 3, y + 7, '#ffffff'); } }
     });
-    if (st.pick.some(p => p != null)) { const ok = st.pick[1] != null; T(ok ? 'CORRECT!' : 'WRONG', 262, 112, 6, ok ? '#3cc87a' : '#ff8a7a', 'center'); }
+    if (st.pick.some(p => p != null)) { const ok = st.pick[RIGHT] != null; T(ok ? 'CORRECT!' : 'NOT QUITE', 262, 111, 5, ok ? '#3cc87a' : '#ff8a7a', 'center'); }
   };
 
   return {
@@ -93,19 +93,19 @@
       if (id === 'map') { st.hereT = t; lastX = g.heroX ? g.heroX() : 198; g.say('YOU ARE HERE', 198, 82, 1.8); return true; }
       if (id === 'quiz') {
         lastX = QX;
-        const i = st.qi; if (i === 0) st.pick = []; st.pick[i] = t; st.qi = (i + 1) % 3;
-        g.say(i === 1 ? 'Correct!' : 'BZZT', QX, 22, 1.2); return true;
+        const i = st.qi; if (i === 0) st.pick = []; st.pick[i] = t; st.qi = (i + 1) % OPTS.length;
+        g.say(i === RIGHT ? 'Correct!' : 'Not quite', QX, 22, 1.2); return true;
       }
     },
     draw(st, ev) {
-      const t = time(), hx = g.heroX ? g.heroX() : lastX, lit = ev.beatIdx > 0 ? 3 : ev.beatIdx === 0 ? Math.min(3, Math.floor(ev.stepT * 2) + 1) : 0;
+      const t = time(), hx = g.heroX ? g.heroX() : lastX, litF = ev.beatIdx > 0 ? 99 : ev.beatIdx === 0 && !ev.walking ? (st.lt0 = st.lt0 ?? t, (t - st.lt0 - 0.4) / 0.8) : -1;
       // walls
       R(0, 0, 320, 146, '#a9c5c9'); R(0, 100, 320, 46, '#3a5568'); R(0, 98, 320, 3, '#cfdde0'); for (let x = 0; x < 320; x += 24) R(x, 101, 1, 45, '#33495a');
       for (let x = 0; x < 320; x += 40) R(x, 0, 1, 98, '#9bb8bc');
       // ceiling lights
       R(0, 0, 320, 12, '#8aa5a9'); for (let x = 10; x < 320; x += 50) { const off = Math.sin(t * 3 + x * 7) > 0.97 && x === 160; R(x, 3, 30, 5, off ? '#9aa6b2' : '#fffbe6'); R(x - 1, 2, 32, 1, '#6f7a80'); }
       T('DOCS WING', 160, 18, 6, '#33495a', 'center');
-      for (let i = 0; i < 3; i++) sign(st, i, t, lit);
+      for (let i = 0; i < 3; i++) sign(st, i, t, litF);
       board(st, ev, t); map(st, ev, t, hx); quiz(st, ev, t);
       // fire door and extinguisher
       R(300, 60, 2, 30, '#d8402a'); R(299, 58, 4, 3, '#1b2332');
