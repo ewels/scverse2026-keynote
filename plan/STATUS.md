@@ -4,14 +4,14 @@
 
 - [x] Plan written
 - [x] Phase 1: engine
-- [ ] Phase 2: lecture theatre
-- [ ] Phase 3: registration desk and foyer hub
-- [ ] Phase 4: hackathon room, courtyard
-- [ ] Phase 5: cloakroom, poster hall
-- [ ] Phase 6: coffee queue, corridor, photo booth
+- [x] Phase 2: lecture theatre
+- [x] Phase 3: registration desk and foyer hub
+- [x] Phase 4: hackathon room, courtyard
+- [x] Phase 5: cloakroom, poster hall
+- [x] Phase 6: coffee queue, corridor, photo booth
 - [x] Phase 7: venue-wide play and easter eggs
-- [ ] Phase 8: live changes
-- [ ] Phase 9: final checks
+- [x] Phase 8: live changes
+- [ ] Phase 9: final checks (review done and fixed; playthrough done, polish round in progress; egg hunt running)
 
 ## Subagent models
 
@@ -37,7 +37,11 @@ To save usage, simpler phases go to Sonnet; anything with tricky engine logic, h
 
 ## Open questions for Phil
 
-(Added as they come up.)
+- **Phil's character card** (`content.js`) has stat bars at 96–100 and lore listing his projects. QA flagged it as a bit self-flattering. It is your original wording, so I left it. Want it toned down or made jokier?
+- **Ovation by one person:** a single person with three browser tabs counts as three phones, so they could trigger the standing ovation alone. Harmless, so I left it.
+- **Leaving a place early still marks it visited** (its ranking bar goes and it gets a tick), because `visited` is sent on entry. Say if you'd rather it only counted after the last beat.
+- **Thin places reuse a little content:** rich-click appears in the cloakroom featurette and the photo booth, as you said the overlap is intentional.
+- **Captions are first drafts.** Every place's captions were written by agents from your outline and website; worth a read-through.
 
 ## Outline (from Phil, verbatim)
 
@@ -137,3 +141,18 @@ MUST: start with this, audience doesn't get a choice
   - The fight cloud covers the hero only; the poked NPC stays visible beside it (places draw their own hosts).
 - Not done: phone reactions and the hidden phone egg (phase 8 wires `react`/`ovation`); victory jump for the golden star.
 - Known issues: the cleaner walks the whole hall to reach far plants (15 s or so). The dance and ovation move sprites drawn with `person()` only, so the crab, the theatre audience and other custom-drawn NPCs stay still. The hat and sticker are not drawn while dancing.
+
+### Phases 2–6: places
+
+- Theatre (640 wide, 70-seat raked audience, latecomer, brick featurette), registration desk and foyer hub, hackathon room (12 beats, fills up over the talk), courtyard (gates, Ferris, races), cloakroom (two queues, rich-click terminal featurette, real benchmark numbers), poster hall (posters merge into one report, any-inputs machine, features featurette), coffee queue, docs corridor and photo booth.
+- Engine additions on the way: Left on the first beat leaves a place early; Action with nothing in reach walks to the nearest prop on screen (so the clicker can reach everything); `drawFront` hook; prop prompts hidden mid-talk so they never cover the scene.
+
+### Phase 8: live
+
+- Opener left out of ranking end to end. Phones get reaction buttons (clap, heart, laugh, coffee) and a hidden seven-tap golden star. The worker batches reactions to the stage with the number of distinct phones in the last five seconds; the stage floats them up and gives a standing ovation when a third of connected phones (at least three) react together. Sidebar clock (amber at 30:00, red at 35:00) and a tighter sidebar that fits seven bars.
+
+### Phase 9: checks
+
+- Code review: no serious bugs. Fixed: idle NPC chatter firing mid-talk (would have happened on stage), ovation timing after a reset, the worker's reaction map growing forever, the dance code swallowing a B press on the menu, per-frame allocation.
+- Playthrough: no errors or stuck states. Polish round launched for the coffee queue (least finished), clipped signs in the stage crop (courtyard, cloakroom, corridor), slow-starting beats (hackathon, posters, photo booth) and the theatre review beat.
+
