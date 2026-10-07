@@ -28,6 +28,7 @@ One classic script per place (no modules: `index.html` must run from `file://`).
 - `look(id)`: a sprite look by character id (`phil`, `lukas`, `luca`), `greeter`, or a topic or place id (its host).
 - `hero()`: the current hero's look. `time()`: seconds since the game started.
 - `say(text, x, y, secs)`: a speech bubble whose tail points at `(x, y)` in world coordinates.
+- `storm(x, y, w, h)`: while the post-fight storm is on, darkens that rectangle and draws rain and lightning over it; otherwise does nothing.
 - `toast(text)`: a banner at the top. `egg(id, label)`: records an easter egg once and toasts `EASTER EGG: label`.
 - `heroX()`: the hero's x in world coordinates.
 - `visited(topic)`: true once that topic's place has been entered this game.

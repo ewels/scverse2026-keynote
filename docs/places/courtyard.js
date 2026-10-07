@@ -337,5 +337,6 @@
           gull(hx + Math.cos(a) * r + (1 - k) * (500 + hash(i + 3) * 300), 16 + hash(i + 11) * 120 + Math.sin(a * 1.7) * 10 - up - (1 - k) * 60, i); } }
       for (let i = 0; i < 10; i++) { const x = ((t * (18 + i * 2) + i * 97) % (W + 40)) - 20, y = 40 + i * 9 + Math.sin(t * 2 + i) * 5; R(Math.round(x), Math.round(y), 2, 1, i % 3 ? '#58a852' : '#d9b45a'); R(Math.round(x) + 1, Math.round(y) + 1, 1, 1, i % 3 ? '#3f8f45' : '#c9953f'); }
     },
+    drawFront() { g.storm(0, 0, W, 180); },
   };
 };
