@@ -642,7 +642,7 @@ const Game = {
   drawToast(){ const ts=this.toasts[0]; if(!ts) return; ctx.setTransform(S,0,0,S,-CX*S,0);
     ctx.globalAlpha=clamp(Math.min(ts.t*2,(3-ts.t)*4),0,1); const w=Math.ceil(tw(ts.s,5))+16, x=Math.round(CX+(VW-CROP)/2-w/2);
     R(x,22,w,13,'#1f2a44'); R(x,34,w,1,'#ffd166'); T(ts.s,x+w/2,26,5,'#ffd166','center'); ctx.globalAlpha=1; },
-  drawPlace(){ const pl=this.pl; this.world(); pl.d.draw(pl.st,this.ev()); ctx.globalAlpha=1; this.drawActors(pl.d.floor||154); },
+  drawPlace(){ const pl=this.pl; this.world(); pl.d.draw(pl.st,this.ev()); ctx.globalAlpha=1; this.drawActors(pl.d.floor||154); if(pl.d.drawFront){ this.world(); pl.d.drawFront(pl.st,this.ev()); ctx.globalAlpha=1; } },
   drawFeature(){ const pl=this.pl, ft=pl.feat; ctx.setTransform(S,0,0,S,-CX*S,0); R(0,0,VW,VH,'#0b0f1c');
     ft.f.draw(ft.step,pl.stepT,pl.st); ctx.setTransform(S,0,0,S,-CX*S,0); ctx.globalAlpha=1;
     const x=VW-CROP/2-32; R(x,5,28,12,'#1b2332'); R(x,16,28,1,'#ffd166'); T(`${ft.step+1}/${ft.f.steps}`,x+14,8,6,'#ffd166','center'); },

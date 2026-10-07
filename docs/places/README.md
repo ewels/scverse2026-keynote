@@ -13,6 +13,7 @@ One classic script per place (no modules: `index.html` must run from `file://`).
   enter(st) {},               // st: this visit's state object (fresh each visit)
   update(dt, st, ev) {},
   draw(st, ev) {},            // draw the whole place in world coordinates; the engine draws the hero after
+  drawFront(st, ev) {},       // optional: drawn over the hero and NPCs
   beat(id, st) {},            // a beat started (beat.id, or its at)
   poke(id, st) {},            // id is a prop id or 'host'; return a string to toast it,
                               // true if you handled it yourself, nothing for the default
