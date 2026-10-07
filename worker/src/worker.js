@@ -11,6 +11,11 @@ const MAX_OPEN_PER_PHONE = 3;    // unanswered questions per phone
 const MAX_STORED = 300;          // oldest finished questions are dropped past this
 const MAX_TOPICS = 16;
 const MAX_LISTED = 60;           // open questions sent to each phone
+const REACTIONS = ['clap', 'heart', 'laugh', 'coffee', 'star'];
+const REACT_COOLDOWN_MS = 1000;  // between reactions from one phone
+const REACT_BATCH_MS = 250;      // reactions reach the stage at most four times a second
+const REACT_WINDOW_MS = 5000;    // `recent` counts phones that reacted within this window
+const SIZES = ['thick', 'medium', 'thin'];
 
 const clean = (s, max) => String(s ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
 const cleanKey = s => clean(s, 24).replace(/[^\w-]/g, '');
@@ -35,6 +40,8 @@ export class Room extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env);
     this.timer = null;
+    this.reacts = null;
+    this.lastReact = new Map();
     this.buckets = new WeakMap();
     ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair('ping', 'pong'));
     ctx.blockConcurrencyWhile(async () => {
@@ -98,6 +105,8 @@ export class Room extends DurableObject {
           colour: /^#[0-9a-f]{6}$/i.test(t.colour) ? t.colour : '#ffd166',
           blurb: clean(t.blurb, 300),
           icon: Array.isArray(t.icon) ? t.icon.slice(0, 16).map(r => clean(r, 16)) : [],
+          size: SIZES.includes(t.size) ? t.size : 'medium',
+          opener: t.opener === true,
         })).filter(t => t.key),
       };
     } else if (m.t === 'visited') {
@@ -132,11 +141,12 @@ export class Room extends DurableObject {
 
   async fromAudience(ws, device, m) {
     const s = this.s;
+    if (m.t === 'react') return this.react(device, m.kind);
     const d = (s.devices[device] ||= { rank: null, lastAsk: 0 });
     let notice = '';
     if (m.t === 'rank') {
       if (!Array.isArray(m.order) || !s.config) return;
-      const known = new Set(s.config.topics.map(t => t.key));
+      const known = new Set(s.config.topics.filter(t => !t.opener).map(t => t.key));
       const order = [...new Set(m.order.slice(0, MAX_TOPICS).map(cleanKey))].filter(k => known.has(k));
       if (!order.length) return;
       d.rank = order;
@@ -167,15 +177,39 @@ export class Room extends DurableObject {
     this.broadcast();
   }
 
+  // Reactions are not stored: they are tallied and sent to the stage in batches.
+  react(device, kind) {
+    const now = Date.now();
+    if (!REACTIONS.includes(kind) || now - (this.lastReact.get(device) || 0) < REACT_COOLDOWN_MS) return;
+    this.lastReact.set(device, now);
+    const b = this.reacts ||= { counts: {}, devices: new Set() };
+    b.counts[kind] = (b.counts[kind] || 0) + 1;
+    b.devices.add(device);
+    if (b.timer) return;
+    b.timer = setTimeout(() => {
+      this.reacts = null;
+      const sockets = this.ctx.getWebSockets();
+      const connected = sockets.filter(ws => (ws.deserializeAttachment() || {}).role === 'audience').length;
+      const since = Date.now() - REACT_WINDOW_MS;
+      const recent = [...this.lastReact.values()].filter(t => t > since).length;
+      const msg = JSON.stringify({ t: 'react', counts: b.counts, phones: b.devices.size, recent, connected });
+      for (const ws of sockets) {
+        if ((ws.deserializeAttachment() || {}).role !== 'presenter') continue;
+        try { ws.send(msg); } catch {}
+      }
+    }, REACT_BATCH_MS);
+  }
+
   // Borda count over the rooms not yet visited: with n rooms left,
   // someone's first choice scores n points and their last scores 1.
   shared() {
     const s = this.s;
     const counts = {};
     let voters = 0;
+    const openers = new Set(((s.config && s.config.topics) || []).filter(t => t.opener).map(t => t.key));
     for (const d of Object.values(s.devices)) {
       if (!d.rank) continue;
-      const open = d.rank.filter(k => !s.visited.includes(k));
+      const open = d.rank.filter(k => !s.visited.includes(k) && !openers.has(k));
       if (!open.length) continue;
       voters++;
       open.forEach((k, i) => { counts[k] = (counts[k] || 0) + (open.length - i); });

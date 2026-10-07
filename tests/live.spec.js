@@ -21,11 +21,12 @@ test('stage, phones and moderator stay in sync', async ({ browser }) => {
     return s && s.voters === 0 && s.onScreen === 0 && !s.visited.length && !s.ended; });
   await pickPhil(stage);
 
-  // Rankings: Borda count over 8 open rooms, 8 points for first down to 1 for last.
+  // Rankings: Borda count over the rooms phones can rank, n points for first down to 1 for last.
+  const ranked = (await stageState(stage)).config.topics.filter(t => !t.opener).length;
   const ana = await open(browser, '/join/'), bea = await open(browser, '/join/');
   const orders = [];
   for (const phone of [ana, bea]) {
-    await expect(phone.locator('#topics .topic')).toHaveCount(8);
+    await expect(phone.locator('#topics .topic')).toHaveCount(ranked);
     await phone.locator('#topics .topic').first().locator('.down').click();
     orders.push(await phone.$$eval('#topics .topic', els => els.map(e => e.dataset.key)));
     await phone.locator('#submit').click();
@@ -68,9 +69,31 @@ test('stage, phones and moderator stay in sync', async ({ browser }) => {
   await pressUntil(stage, 'b', () => document.querySelector('#dialogue').classList.contains('hidden'));
   await expect(mod.locator('#done .card', { hasText: popular }).locator('.tag.answered')).toHaveText('Answered');
 
+  // Reactions reach the stage as a batch; a mod can't send them.
+  await stage.evaluate(() => {
+    window.__reacts = [];
+    const open = role => new Promise(done => {
+      const ws = new WebSocket(`${location.origin.replace(/^http/, 'ws')}/api/ws?role=${role}&key=dev`);
+      ws.onopen = () => done(ws);
+    });
+    window.__open = open;
+    return open('presenter').then(ws => { ws.onmessage = e => { const m = JSON.parse(e.data); if (m.t === 'react') window.__reacts.push(m); }; });
+  });
+  await stage.evaluate(async () => { const ws = await window.__open('mod'); ws.send(JSON.stringify({ t: 'react', kind: 'clap' })); });
+  await stage.waitForTimeout(600);
+  expect(await stage.evaluate(() => window.__reacts)).toEqual([]);
+  await ana.locator('#reacts [data-k=heart]').click();
+  await bea.locator('#reacts [data-k=heart]').click();
+  await bea.locator('#reacts [data-k=clap]').click();
+  await expect.poll(() => stage.evaluate(() => window.__reacts.reduce((n, m) => n + (m.counts.heart || 0), 0))).toBe(2);
+  const batches = await stage.evaluate(() => window.__reacts);
+  expect(batches.reduce((n, m) => n + (m.counts.clap || 0), 0)).toBe(0);
+  expect(batches[0].phones).toBeGreaterThanOrEqual(1);
+  expect(batches[0].connected).toBe(2);
+
   // Visiting a place removes its bar.
   await enterTheatre(stage);
-  await expect(stage.locator('#strip .tb')).toHaveCount(7);
+  await expect(stage.locator('#strip .tb')).toHaveCount(ranked - 1);
   await expect(stage.locator('#strip .tb .tt', { hasText: 'WHY' })).toHaveCount(0);
 
   // The Q&A door ends the talk and sends the phones to the game link.

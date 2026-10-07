@@ -69,6 +69,11 @@ textarea{ resize:vertical; min-height:92px; }
 .empty{ color:var(--muted); margin:0; }
 details summary{ font-family:var(--px); font-size:15px; color:var(--muted); padding:14px 0 8px; cursor:pointer; }
 
+.react{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px; }
+.react button{ font-size:26px; line-height:1; padding:6px 0; min-height:56px; border-color:var(--line); background:var(--panel); transition:transform .12s; }
+.react button.hit{ transform:scale(1.15); border-color:var(--hi); }
+.react button:disabled{ opacity:1; }
+.logo{ cursor:default; user-select:none; -webkit-user-select:none; }
 .end{ padding:18px; background:var(--panel); border:2px solid var(--hi); }
 .end a{ display:inline-block; margin-top:10px; background:var(--hi); color:#0f1424; font-weight:700; text-decoration:none; padding:12px 18px; font-family:var(--px); }
 footer{ margin-top:32px; color:var(--muted); font-size:14px; }
@@ -79,7 +84,7 @@ footer .dot{ color:#ff6b6b; } footer.on .dot{ color:var(--good); }
 <body>
 <div class="wrap">
   <header>
-    <h1>Choose your own keynote</h1>
+    <h1 class="logo" id="logo">Choose your own keynote</h1>
     <p>Phil Ewels at scverse 2026. Rank what you'd like him to talk about, then put your phone away and enjoy the talk.</p>
   </header>
 
@@ -102,6 +107,13 @@ footer .dot{ color:#ff6b6b; } footer.on .dot{ color:var(--good); }
       <ol id="mine"></ol>
       <button type="button" class="link" id="edit">Change my ranking</button>
     </div>
+  </section>
+
+  <section id="react" hidden>
+    <h2>React</h2>
+    <p class="hint">Tell the room how it's going. The reactions float up on the big screen.</p>
+    <div class="react" id="reacts"></div>
+    <p class="status" id="badge" role="status" aria-live="polite"></p>
   </section>
 
   <section id="ask">
@@ -232,18 +244,40 @@ $('#send').addEventListener('click', () => {
   if (send({ t:'ask', name, text })) $('#send').disabled = true;
 });
 
+// Reactions: one per second per phone, same as the server's cooldown.
+const REACTS = [['clap','👏','Clap'],['heart','❤️','Love it'],['laugh','😂','Laugh'],['coffee','☕','Coffee']];
+let lastReact = 0;
+function react(kind, btn){
+  const now = Date.now();
+  if (now - lastReact < 1000 || !send({ t:'react', kind })) return false;
+  lastReact = now;
+  if (btn) { btn.classList.add('hit'); setTimeout(() => btn.classList.remove('hit'), 180); }
+  return true;
+}
+$('#reacts').innerHTML = REACTS.map(([k, e, l]) => `<button type="button" data-k="${k}" aria-label="${l}">${e}</button>`).join('');
+$('#reacts').addEventListener('click', e => { const b = e.target.closest('button'); if (b) react(b.dataset.k, b); });
+// Seven taps on the title send the hidden golden star.
+let taps = 0, tapTimer = null;
+$('#logo').addEventListener('click', () => {
+  clearTimeout(tapTimer); tapTimer = setTimeout(() => { taps = 0; }, 1500);
+  if (++taps < 7) return;
+  taps = 0; lastReact = 0;
+  if (react('star')) { $('#badge').textContent = '★ Golden badge unlocked'; setTimeout(() => { $('#badge').textContent = ''; }, 4000); }
+});
+
 // With no backend (before or after the talk), point people at the game instead.
 let failures = 0;
-function closed(){ $('#end').hidden = false; $('#end h2').textContent = 'Live voting is closed'; $('#vote').hidden = true; $('#ask').hidden = true; $('#connText').textContent = 'Offline'; }
+function closed(){ $('#end').hidden = false; $('#end h2').textContent = 'Live voting is closed'; $('#vote').hidden = true; $('#ask').hidden = true; $('#react').hidden = true; $('#connText').textContent = 'Offline'; }
 function connect(){
   if (!/^https?:\/\//.test(API)) { closed(); return; }
   ws = new WebSocket(`${API.replace(/^http/, 'ws')}/api/ws?role=audience&device=${encodeURIComponent(device)}`);
-  ws.onopen = () => { retry = 1000; failures = 0; $('#ask').hidden = false; $('#conn').classList.add('on'); $('#connText').textContent = 'Live'; };
+  ws.onopen = () => { retry = 1000; failures = 0; $('#ask').hidden = false; $('#react').hidden = false; $('#conn').classList.add('on'); $('#connText').textContent = 'Live'; };
   ws.onmessage = e => {
     if (e.data === 'pong') return;
     let m; try { m = JSON.parse(e.data); } catch (err) { return; }
     if (m.t !== 'state') return;
     state = m;
+    if (m.config) m.config.topics = m.config.topics.filter(t => !t.opener);
     if (m.mine && m.mine.notice) {
       status(m.mine.notice); $('#send').disabled = false;
       if (m.mine.notice.startsWith('Sent')) { $('#q').value = ''; $('#qc').textContent = '0 / 140'; }
