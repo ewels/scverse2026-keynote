@@ -153,15 +153,14 @@
     bigCoat(STAND + Math.round(Math.sin(t * 0.8) * 0.6), 93);
   };
 
-  // drawn behind the hero: places can't draw over it
   const wornCoat = (t, st) => {
     const a = t - st.coatT; if (a >= 4.5) return;
-    const x = STAND, c = '#9a7a4a', d = '#7a5c34', l = '#b8966a';
-    for (let y = 141; y < 152; y++) { const h = Math.round(8 + (y - 141) * 0.7); R(x - h, y, 2 * h + 1, 1, c); }
-    R(x - 17, 151, 35, 4, c); R(x - 18, 154, 37, 1, d); for (const fx of [-14, -9, 9, 14]) R(x + fx, 150, 1, 4, d);
-    R(x - 9, 139, 19, 3, c); R(x - 9, 139, 19, 1, l); R(x - 7, 134, 3, 6, l); R(x + 5, 134, 3, 6, l);
-    R(x - 13, 142, 4, 12, c); R(x - 13, 142, 1, 12, d); R(x + 10, 142, 4, 12, c); R(x + 13, 142, 1, 12, d); R(x - 14, 153, 6, 2, l); R(x + 9, 153, 6, 2, l);
-    R(x - 11, 147, 3, 1, '#5a4026'); R(x - 11, 148, 1, 5, '#5a4026'); R(x + 9, 147, 3, 1, '#5a4026'); R(x + 11, 148, 1, 5, '#5a4026');
+    const x = Math.round(g.heroX()), c = '#9a7a4a', d = '#7a5c34', l = '#b8966a';
+    for (let y = 142; y < 152; y++) { const h = Math.round(7 + (y - 142) * 0.8); R(x - h, y, 2 * h + 1, 1, c); }
+    R(x - 17, 151, 35, 4, c); R(x - 18, 154, 37, 1, d); for (const fx of [-13, -7, 6, 12]) R(x + fx, 150, 1, 4, d);
+    R(x - 8, 135, 3, 8, l); R(x + 6, 135, 3, 8, l); line(x - 5, 142, x, 150, d); line(x + 5, 142, x, 150, d);
+    R(x - 1, 151, 1, 1, '#3a2a1a'); R(x - 10, 146, 21, 2, '#5a4026'); R(x - 1, 145, 3, 4, '#c9a24a');
+    R(x - 13, 143, 4, 12, c); R(x - 13, 143, 1, 12, d); R(x + 10, 143, 4, 12, c); R(x + 13, 143, 1, 12, d); R(x - 14, 153, 6, 2, l); R(x + 9, 153, 6, 2, l);
   };
 
   const humanTicket = (cx, y, a, t) => {
@@ -284,7 +283,7 @@
         return true;
       }
       if (id === 'bell') { st.bellT = t; st.bellSaid = 0; g.say('Yes? How can I help?', ADA, 104, 2.2); return true; }
-      if (id === 'coat') { if (t - st.coatT > 4.5) { st.coatT = t; g.say('Far too big', STAND, 124, 2.5); } return true; }
+      if (id === 'coat') { if (t - st.coatT > 4.5) { st.coatT = t; g.say('Far too big', Math.round(g.heroX()), 128, 2.5); } return true; }
       if (id === 'host') {
         const H = g.hero(), org = H === look('lukas') || H === look('luca');
         const lines = ['Ticket, please.', 'Do you have that in markdown?', 'I read llms.txt for fun.', 'My context window is full of coats.', 'Beep. Sorry, habit.'];
@@ -338,8 +337,8 @@
       if (on('skills')) { if (s > 0.6) welcomePack(s - 0.6, k01((s - 0.6) / 0.3)); if (s > 2.4) readme(124, k01((s - 2.4) / 0.3)); }
       if (on('context')) digger(t, st, s);
       if (on('tokens')) tokens(t, s);
-      wornCoat(t, st);
     },
+    drawFront(st) { wornCoat(time(), st); },
     features: {
       richclick: { steps: 3, draw(step, t) {
         const H = 11, X = 22, Y = 24;
