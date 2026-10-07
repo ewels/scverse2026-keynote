@@ -218,7 +218,7 @@ const Input = { held:{left:false,right:false}, queue:[], hist:[], moon:false, re
   press(k){ const now=performance.now(); if(k==='left') this.moon=this.held.right||now-this.relR<350;
     if(k!=='action') this.held[k]=true; this.hist=[...this.hist,[k,now]].slice(-5);
     // the dance code swallows its Action, so it never pokes anything
-    if(this.hist.map(h=>h[0]).join()==='left,right,left,right,action' && now-this.hist[0][1]<2000){ this.hist=[]; this.code=true; return; }
+    if(this.hist.map(h=>h[0]).join()==='left,right,left,right,action' && now-this.hist[0][1]<2000 && !['menu','select'].includes(Game.scene)){ this.hist=[]; this.code=true; return; }
     this.queue.push(k); },
   release(k){ if(k==='action') return; this.held[k]=false; if(k==='right') this.relR=performance.now(); else this.moon=false; } };
 const KEYMAP = { ArrowLeft:'left', KeyA:'left', PageUp:'left', ArrowRight:'right', KeyD:'right', PageDown:'right', Space:'action', Enter:'action', NumpadEnter:'action', KeyB:'action', F5:'action' };
@@ -317,7 +317,7 @@ const Live = { ws:null, state:null, questions:[], answered:new Set(), outbox:[],
       while(this.outbox.length) ws.send(JSON.stringify(this.outbox.shift())); };
     ws.onmessage=e=>{ if(e.data==='pong') return; let m; try{ m=JSON.parse(e.data); }catch(err){ return; }
       if(m.t==='react'){ for(const [k,n] of Object.entries(m.counts||{})){ Game.react(k,n); if(k==='star') Game.victory(); }
-        if(m.recent>=Math.max(3,Math.ceil((m.connected||0)/3)) && Game.time-this.ovAt>20){ this.ovAt=Game.time; Game.ovation(); } return; }
+        if(m.recent>=Math.max(3,Math.ceil((m.connected||0)/3)) && performance.now()/1000-this.ovAt>20){ this.ovAt=performance.now()/1000; Game.ovation(); } return; }
       if(m.t==='state'){ this.state=m; this.questions=(m.questions||[]).filter(q=>!this.answered.has(q.id)); this.render(); } };
     ws.onclose=()=>{ $('#conn').classList.remove('on'); $('#conn').textContent=KEY?'Reconnecting':'Add ?key= to the URL';
       setTimeout(()=>this.connect(),this.retry); this.retry=Math.min(10000,this.retry*1.6); };
@@ -476,6 +476,7 @@ const REACT={ heart:{ rows:['.rr.rr.','rrrrrrr','rrrrrrr','.rrrrr.','..rrr..','.
 const NOT_PHIL=["You're not Phil.","Wait, where's Phil?","Organiser badge, then?","Did Phil get lost?","You'll do, I suppose."];
 const flip=m=>m.map(r=>[...r].reverse().join(''));
 const shadow=m=>m.map(r=>r.replace(/[^.]/g,'k'));
+for(const m of Object.values(REACT)) m.shadow=shadow(m.rows);
 const Game = {
   reset(){
     token++; this.tm=timers(); this.time=0; this.scene='menu'; this.sel=0; this.chosen=null; this.flash=0;
@@ -547,7 +548,9 @@ const Game = {
     if(Big.open && this.scene!=='place'){ if(Input.take('action','left','right')) Big.hide(); return; }
     // Right in a place snaps the fight back, so the talk is never stuck behind it
     if(this.fight){ if(this.scene==='place' && Input.queue.includes('right')) this.fight=null; else return this.updFight(dt); }
-    if(this.idleT>25){ this.idleT=-15; this.idleChat(); }
+    // never mid-talk: Phil often talks for longer than this on one beat
+    const talking=this.scene==='place' && this.pl && this.pl.idx>=0 && this.pl.idx<this.pl.t.beats.length;
+    if(this.idleT>25 && !talking){ this.idleT=-15; this.idleChat(); }
 
     const p=this.p, W=this.width();
     if(this.scene==='place') this.walkTo(dt);
@@ -806,7 +809,7 @@ const Game = {
       else { R(x,y-1,1,3,f.t%0.3<0.15?'#ffd166':'#ffffff'); R(x-1,y,3,1,'#ffd166'); } } ctx.globalAlpha=1; },
   drawReacts(){ if(!this.reacts.length) return; ctx.setTransform(S,0,0,S,-CX*S,0);
     for(const r of this.reacts){ if(r.t<0) continue; const m=REACT[r.k]||REACT.star, x=Math.round(CX+r.x+Math.sin(r.t*3+r.x)*4), y=Math.round(VH-16-r.t*38);
-      ctx.globalAlpha=clamp((3-r.t)*2,0,1); map2d(shadow(m.rows),x+1,y+1,{k:'#1b2332'}); map2d(m.rows,x,y,m.pal); } ctx.globalAlpha=1; },
+      ctx.globalAlpha=clamp((3-r.t)*2,0,1); map2d(m.shadow,x+1,y+1,{k:'#1b2332'}); map2d(m.rows,x,y,m.pal); } ctx.globalAlpha=1; },
   drawToast(){ const ts=this.toasts[0]; if(!ts) return; ctx.setTransform(S,0,0,S,-CX*S,0);
     ctx.globalAlpha=clamp(Math.min(ts.t*2,(3-ts.t)*4),0,1); const w=Math.ceil(tw(ts.s,5))+16, x=Math.round(CX+(VW-CROP)/2-w/2);
     R(x,22,w,13,'#1f2a44'); R(x,34,w,1,'#ffd166'); T(ts.s,x+w/2,26,5,'#ffd166','center'); ctx.globalAlpha=1; },

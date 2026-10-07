@@ -191,7 +191,8 @@ export class Room extends DurableObject {
       const sockets = this.ctx.getWebSockets();
       const connected = sockets.filter(ws => (ws.deserializeAttachment() || {}).role === 'audience').length;
       const since = Date.now() - REACT_WINDOW_MS;
-      const recent = [...this.lastReact.values()].filter(t => t > since).length;
+      let recent = 0;
+      for (const [d, t] of this.lastReact) if (t > since) recent++; else this.lastReact.delete(d);
       const msg = JSON.stringify({ t: 'react', counts: b.counts, phones: b.devices.size, recent, connected });
       for (const ws of sockets) {
         if ((ws.deserializeAttachment() || {}).role !== 'presenter') continue;
