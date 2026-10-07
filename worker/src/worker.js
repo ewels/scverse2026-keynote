@@ -215,8 +215,8 @@ export class Room extends DurableObject {
       voters++;
       open.forEach((k, i) => { counts[k] = (counts[k] || 0) + (open.length - i); });
     }
-    const onScreen = s.questions.filter(q => q.status === 'promoted').length;
-    return { t: 'state', config: s.config, counts, voters, visited: s.visited, onScreen, ended: s.ended };
+    const open = s.questions.filter(isOpen).length;
+    return { t: 'state', config: s.config, counts, voters, visited: s.visited, open, ended: s.ended };
   }
 
   messageFor(who, base, notice = '') {

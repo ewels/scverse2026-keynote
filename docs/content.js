@@ -80,7 +80,7 @@ const TOPICS = {
                 { at:'front', id:'commons', say:'Spend AI effort on the commons' },
                 { at:'screen', id:'review', say:'Someone else always finds more' },
               ] },
-  nfcore:   { title:'Community building with nf-core', short:'NF-CORE', colour:'#3cc87a', icon:'people', place:'hackathon', size:'thick',
+  nfcore:   { title:'Community building with nf-core', short:'NF-CORE', colour:'#3cc87a', icon:'core', place:'hackathon', size:'thick',
               blurb:'What building nf-core taught us about growing an open-source community: a shared problem, real welcomes, and patience.',
               host:{ name:'Mo the Maintainer', look:{ skin:'#f2c9a0', hair:'#d9a441', hairStyle:'swept', top:'#3cc87a', topStyle:'tee', pants:'#3b4a3f' } },
               beats:[
@@ -167,7 +167,7 @@ const GREETER = { name:'Greeter', colour:'#ff8fa3', look:{ skin:'#c98e62', hair:
 const OUTRO = ['THANKS!','Questions?'];
 const ICONS = {
   robot:['....aa....','....aa....','.oooooooo.','.owwoowwo.','.owkoowko.','.oooooooo.','.oowwwwoo.','.oooooooo.','...o..o...','..oo..oo..'],
-  people:['.w...w...w.','www.www.www','.w...w...w.','...........','ooo.ooo.ooo','ooo.ooo.ooo','ooo.ooo.ooo','o.o.o.o.o.o','o.o.o.o.o.o'],
+  core:['.....k.....','.....kaa...','..ooooooo..','.ooooooooo.','..wwwwwww..','...wwkww...','....www....','...wwkww...','..wwwwwww..','.ooooooooo.','..ooooooo..','....ooo....'],
   bars:['.......aa.','.......aa.','....oo.aa.','....oo.aa.','.ww.oo.aa.','.ww.oo.aa.','.ww.oo.aa.','.ww.oo.aa.','kkkkkkkkkk'],
   pad:['..oooooooo..','.oooooooooo.','ooowooooaooo','oowwwooakaoo','ooowooooaooo','oooooooooooo','oooo....oooo','ooo......ooo'],
   brick:['.aa..aa..aa.','.oo..oo..oo.','oooooooooooo','oaaaaaaaaaao','oooooooooooo','oooooooooooo','oooooooooooo'],

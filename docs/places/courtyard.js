@@ -1,6 +1,6 @@
 // Outdoor courtyard: rewrites.bio. Park gates, a three-armed signpost and a race track.
 (window.KEYNOTE_PLACES = window.KEYNOTE_PLACES || {}).courtyard = g => {
-  const { R, T, disc, line, map2d, tri, blob, cumulus, person, hash, time } = g;
+  const { R, T, disc, line, map2d, tri, blob, cumulus, person, hash, time, ctx } = g;
   const W = 820, EXIT = 798, GX = 114, POST = 244, S0 = 620, S1 = 752, DX = 592, DB = 104;
   const RACES = ['rustqc', 'rustar', 'fastqc'], SIGNS = ['rewrite', 'upstream', 'combine'];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -205,7 +205,7 @@
       { id: 'dino', x: 628, label: 'Poke the dinosaur' },
     ],
     enter(st) {
-      fx = 122; st.gate = 0; st.torch = false; st.cocos = []; st.dinoN = 0; st.clicks = 0; st.npcs = [
+      fx = 122; st.gate = 0; st.torch = false; st.cocos = []; st.shakes = 0; st.palmFall = null; st.dinoN = 0; st.clicks = 0; st.npcs = [
         { L: LOOKS.walker, x: 420, face: 1, home: t => 390 + (Math.sin(t * 0.13) * 0.5 + 0.5) * 100, coffee: true },
         { L: LOOKS.feeder, x: 358, face: -1, face0: -1, home: () => 358 },
         { L: LOOKS.snapper, x: 470, face: 1, face0: 1, home: () => 470, camera: true },
@@ -232,7 +232,13 @@
     },
     poke(id, st) {
       const t = time();
-      if (id === 'palm') { st.palmT = t; if (st.cocos.length < 6) st.cocos.push({ x: 40 + (st.cocos.length % 3) * 3, y: 68, vy: 0, vx: (st.cocos.length % 2 ? 1 : -1) * 30 }); if (st.cocos.length === 6) g.say('No more coconuts', 36, 128); return true; }
+      if (id === 'palm') {
+        if (st.palmFall != null) return 'It has had enough';
+        st.palmT = t; if (st.cocos.length < 6) st.cocos.push({ x: 40 + (st.cocos.length % 3) * 3, y: 68, vy: 0, vx: (st.cocos.length % 2 ? 1 : -1) * 30 });
+        const n = ++st.shakes;
+        if (n === 6) g.say('No more coconuts', 36, 128); else if (n === 8) g.say('*creak*', 36, 128);
+        else if (n === 10) { st.palmFall = t; g.say('TIMBER!', 36, 128); g.egg('palm', 'You felled the palm tree'); }
+        return true; }
       if (id === 'pond') { st.ripple = t; return true; }
       if (id === 'dino') {
         st.dinoT = t; st.dinoN++;
@@ -265,7 +271,11 @@
       arm(196, POST - 3, 56, 13, -1, id === 'rewrite', ['REWRITE'], t);
       arm(POST + 3, 330, 74, 21, 1, id === 'upstream', ['CONTRIBUTE', 'UPSTREAM'], t);
       arm(200, POST - 3, 96, 13, -1, id === 'combine', ['COMBINE'], t);
-      palm(40, t, st.palmT != null && t - st.palmT < 1 ? Math.sin((t - st.palmT) * 18) * 3 * (1 - (t - st.palmT)) : 0);
+      // shaken too often, it tips over on the pot's right edge
+      const pf = st.palmFall != null ? Math.min(1, (t - st.palmFall) / 0.8) : 0;
+      if (pf) { ctx.save(); ctx.translate(48, 150); ctx.rotate(pf * pf * 1.45); ctx.translate(-48, -150); }
+      palm(40, t, pf ? 0 : st.palmT != null && t - st.palmT < 1 ? Math.sin((t - st.palmT) * 18) * 3 * (1 - (t - st.palmT)) : 0);
+      if (pf) ctx.restore();
       palm(500, t, 0);
       st.cocos.forEach(c => disc(Math.round(c.x), Math.round(c.y), 2, '#6b4a2f'));
       for (const n of st.npcs) {

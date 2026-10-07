@@ -18,7 +18,7 @@ test('stage, phones and moderator stay in sync', async ({ browser }) => {
   await stage.waitForFunction(() => window.__live.ws && window.__live.ws.readyState === 1);
   await stage.evaluate(() => window.__live.ws.send(JSON.stringify({ t: 'reset' })));
   await stage.waitForFunction(() => { const s = window.__live.state;
-    return s && s.voters === 0 && s.onScreen === 0 && !s.visited.length && !s.ended; });
+    return s && s.voters === 0 && s.open === 0 && !s.visited.length && !s.ended; });
   await pickPhil(stage);
 
   // Rankings: Borda count over the rooms phones can rank, n points for first down to 1 for last.
@@ -34,11 +34,14 @@ test('stage, phones and moderator stay in sync', async ({ browser }) => {
   }
   const expected = {};
   for (const order of orders) order.forEach((k, i) => { expected[k] = (expected[k] || 0) + order.length - i; });
+  await expect.poll(() => stage.evaluate(() => window.__live.state.counts)).toEqual(expected);
+  // The sidebar shows no points, only the rooms in vote order (ties keep the content order).
+  const keys = await stage.evaluate(() => { const T = window.KEYNOTE_CONTENT.TOPICS; return Object.keys(T).filter(k => !T[k].opener); });
   const strip = () => stage.$$eval('#strip .tb', els => {
     const byShort = Object.fromEntries(Object.entries(window.KEYNOTE_CONTENT.TOPICS).map(([k, t]) => [t.short, k]));
-    return Object.fromEntries(els.map(e => [byShort[e.querySelector('.tt').textContent], Number(e.querySelector('.n').textContent)]));
+    return els.map(e => byShort[e.querySelector('.tt').textContent]);
   });
-  await expect.poll(strip).toEqual(expected);
+  await expect.poll(strip).toEqual([...keys].sort((a, b) => (expected[b] || 0) - (expected[a] || 0)));
   await expect(stage.locator('#voterCount')).toHaveText('2');
 
   // Questions: Bea asks first, Ana asks second and gets Bea's vote, so votes beat age.

@@ -149,18 +149,8 @@
   };
   const coatStand = (t, st) => {
     R(STAND - 1, 90, 3, 62, '#6b4a2f'); R(STAND - 8, 151, 17, 3, '#4a3424'); R(STAND - 7, 91, 15, 2, '#6b4a2f'); R(STAND - 8, 88, 2, 4, '#6b4a2f'); R(STAND + 7, 88, 2, 4, '#6b4a2f'); disc(STAND, 89, 2, '#8a6a4a');
-    if (t - st.coatT < 4.5) return;
+    if (g.carry('coat')) return;
     bigCoat(STAND + Math.round(Math.sin(t * 0.8) * 0.6), 93);
-  };
-
-  const wornCoat = (t, st) => {
-    const a = t - st.coatT; if (a >= 4.5) return;
-    const x = Math.round(g.heroX()), c = '#9a7a4a', d = '#7a5c34', l = '#b8966a';
-    for (let y = 142; y < 152; y++) { const h = Math.round(7 + (y - 142) * 0.8); R(x - h, y, 2 * h + 1, 1, c); }
-    R(x - 17, 151, 35, 4, c); R(x - 18, 154, 37, 1, d); for (const fx of [-13, -7, 6, 12]) R(x + fx, 150, 1, 4, d);
-    R(x - 8, 135, 3, 8, l); R(x + 6, 135, 3, 8, l); line(x - 5, 142, x, 150, d); line(x + 5, 142, x, 150, d);
-    R(x - 1, 151, 1, 1, '#3a2a1a'); R(x - 10, 146, 21, 2, '#5a4026'); R(x - 1, 145, 3, 4, '#c9a24a');
-    R(x - 13, 143, 4, 12, c); R(x - 13, 143, 1, 12, d); R(x + 10, 143, 4, 12, c); R(x + 13, 143, 1, 12, d); R(x - 14, 153, 6, 2, l); R(x + 9, 153, 6, 2, l);
   };
 
   const humanTicket = (cx, y, a, t) => {
@@ -248,7 +238,7 @@
       { id: 'bell', x: BELL, r: 10, label: 'Ring the bell' },
       { id: 'coat', x: STAND, r: 6, label: 'Try on the big coat' },
     ],
-    enter(st) { Object.assign(st, { tix: 0, tixT: -99, bellT: -99, bellSaid: 0, ax: HH, coatT: -99, eggT: -99, eggSaid: false, hostN: 0, checked: 0, fly: [], floorTix: [], saidBoa: false }); },
+    enter(st) { Object.assign(st, { tix: 0, tixT: -99, bellT: -99, bellSaid: 0, ax: HH, eggT: -99, eggSaid: false, hostN: 0, checked: 0, fly: [], floorTix: [], saidBoa: false }); },
     beat(id, st) { if (id === 'context') { st.checked = 0; st.saidBoa = false; } },
     update(dt, st, ev) {
       const t = time(); cur = ev.beat ? ev.beat.id || ev.beat.at : ''; kNow = ev.beat ? ORDER.indexOf(cur) : ev.beatIdx >= 0 ? ORDER.length : -1;
@@ -283,7 +273,7 @@
         return true;
       }
       if (id === 'bell') { st.bellT = t; st.bellSaid = 0; g.say('Yes? How can I help?', ADA, 104, 2.2); return true; }
-      if (id === 'coat') { if (t - st.coatT > 4.5) { st.coatT = t; g.say('Far too big', Math.round(g.heroX()), 128, 2.5); } return true; }
+      if (id === 'coat') { const on = !g.carry('coat'); g.carry('coat', on || null); g.say(on ? 'Far too big' : 'Back on the stand', Math.round(g.heroX()), 128, 2.5); return true; }
       if (id === 'host') {
         const H = g.hero(), org = H === look('lukas') || H === look('luca');
         const lines = ['Ticket, please.', 'Do you have that in markdown?', 'I read llms.txt for fun.', 'My context window is full of coats.', 'Beep. Sorry, habit.'];
@@ -338,7 +328,6 @@
       if (on('context')) digger(t, st, s);
       if (on('tokens')) tokens(t, s);
     },
-    drawFront(st) { wornCoat(time(), st); },
     features: {
       richclick: { steps: 3, draw(step, t) {
         const H = 11, X = 22, Y = 24;

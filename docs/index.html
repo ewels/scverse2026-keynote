@@ -61,7 +61,6 @@ header p{ margin:4px 0 0; color:var(--muted); max-width:60ch; }
 #strip .tb .br{ display:flex; align-items:center; gap:calc(var(--sw,2px)*2); }
 #strip .tb .bar{ flex:1; height:calc(var(--sw,2px)*5); background:#0b0f1c; position:relative; }
 #strip .tb .bar i{ position:absolute; top:0; bottom:0; left:0; width:0; background:repeating-linear-gradient(90deg, var(--c) 0 calc(var(--sw,2px)*1.5), transparent calc(var(--sw,2px)*1.5) calc(var(--sw,2px)*2)); transition:width .6s steps(8); }
-#strip .tb .n{ font-family:Silkscreen, SilkscreenLocal, "Courier New", monospace; font-size:calc(var(--sw,2px)*5.5); color:#fff; min-width:2ch; text-align:right; }
 #strip .none{ margin:auto; font-family:VT323, VT323Local, monospace; font-size:calc(var(--sw,2px)*8); color:#8e99b8; }
 #shell:fullscreen{ display:flex; align-items:center; justify-content:center; background:#000; }
 #shell:fullscreen .stage{ width:min(100vw, 177.78vh); border-radius:0; }
@@ -168,7 +167,7 @@ kbd{ font-family:inherit; font-weight:700; border:1px solid var(--line); border-
       <p class="url" id="joinUrl"></p>
       <div id="strip" aria-label="Topic rankings"></div>
       <p class="stat clock hidden" id="clock"><b id="clockT">00:00</b> <span>elapsed</span></p>
-      <p class="stat"><b id="qCount">0</b> <span id="qLabel">questions up next</span></p>
+      <p class="stat"><b id="qCount">0</b> <span id="qLabel">questions</span></p>
       <p class="stat"><b id="voterCount">0</b> <span id="voterLabel">people ranking</span></p>
       <p class="conn" id="conn">Connecting</p>
     </aside>
@@ -328,15 +327,16 @@ const Live = { ws:null, state:null, questions:[], answered:new Set(), outbox:[],
   render(){ const st=this.state; if(!st) return; const strip=$('#strip');
     const open=Object.keys(TOPICS).filter(k=>!TOPICS[k].opener && !st.visited.includes(k));
     for(const [k,el] of this.bars) if(!open.includes(k)){ el.remove(); this.bars.delete(k); }
-    const max=Math.max(5,...open.map(k=>st.counts[k]||0));
+    // Borda points mean nothing to the room, so only the order and relative bar lengths show
+    const n=k=>st.counts[k]||0; open.sort((a,b)=>n(b)-n(a)); const max=Math.max(1,...open.map(n));
     open.forEach(k=>{ const t=TOPICS[k]; let el=this.bars.get(k);
       if(!el){ el=document.createElement('div'); el.className='tb'; el.style.setProperty('--c',t.colour);
-        el.innerHTML=`<div class="body"><div class="tt">${esc(t.short)}</div><div class="br"><span class="bar"><i></i></span><span class="n">0</span></div></div>`;
-        el.prepend(this.icon(t)); strip.appendChild(el); this.bars.set(k,el); }
-      const n=st.counts[k]||0; el.querySelector('.bar i').style.width=(n/max*100)+'%'; el.querySelector('.n').textContent=n; });
+        el.innerHTML=`<div class="body"><div class="tt">${esc(t.short)}</div><div class="br"><span class="bar"><i></i></span></div></div>`;
+        el.prepend(this.icon(t)); this.bars.set(k,el); }
+      strip.appendChild(el); el.querySelector('.bar i').style.width=(n(k)/max*100)+'%'; });
     let none=strip.querySelector('.none'); if(!open.length && !none){ none=document.createElement('p'); none.className='none'; none.textContent='Every room visited'; strip.appendChild(none); } else if(open.length && none) none.remove();
-    $('#qCount').textContent=st.onScreen; $('#qLabel').textContent=st.onScreen===1?'question up next':'questions up next';
-    $('#qCount').parentElement.classList.toggle('hot',st.onScreen>0);
+    $('#qCount').textContent=st.open; $('#qLabel').textContent=st.open===1?'question':'questions';
+    $('#qCount').parentElement.classList.toggle('hot',st.open>0);
     $('#voterCount').textContent=st.voters; $('#voterLabel').textContent=st.voters===1?'person ranking':'people ranking'; }
 };
 $('#resetLive').addEventListener('click',()=>{ $('#resetLive').blur(); if(!confirm('Clear every ranking, question and visited room?')) return;
@@ -470,7 +470,7 @@ const GUARDS=[{ skin:'#c98e62', hair:'#1b1b1b', hairStyle:'bald', top:'#d6dc3c',
   { skin:'#f2c9a0', hair:'#5a3d2b', hairStyle:'short', top:'#d6dc3c', topStyle:'tee', pants:'#1b1f2a' }];
 // Every egg in the venue, engine and places; the end screen counts against this, so add new ids here.
 const EGGS=['sea','plant','organiser','bell','printer','cow','cat','fight','moonwalk','dance','sweep','rain','coffee',
-  'star','theatre-title','triplicate','dino','hoodie','poster','arcade','lost','photobooth'];
+  'star','theatre-title','triplicate','dino','hoodie','poster','arcade','lost','photobooth','palm'];
 // the venue cat from the hackathon's photos (ginger, white chest), side on, facing right
 const CAT_PAL={ f:'#e8913a', s:'#c06a22', w:'#f6efe2', e:'#3d8a3a', n:'#e88aa0' };
 const CAT_BODY=['..........f..f','f.........ffff','f.........ffef','.f.fsfsfsffwwn','..ffffffffffw.','..fffffffffww.'];
@@ -480,9 +480,9 @@ const CAT_WASH=['.....f..f','.....ffff','.....ffff','.....ffww','....ffwww','...
 const HEART=['.r.r.','rrrrr','.rrr.','..r..'];
 const REACT={ heart:{ rows:['.rr.rr.','rrrrrrr','rrrrrrr','.rrrrr.','..rrr..','...r...'], pal:{r:'#ff6b81'} },
   star:{ rows:['...y...','..yyy..','yyyyyyy','.yyyyy.','.yy.yy.','y.....y'], pal:{y:'#ffd166'} },
-  clap:{ rows:['.s...s.','ss...ss','sss.sss','.sssss.','..sss..'], pal:{s:'#f2c9a0'} },
-  laugh:{ rows:['..yyy..','.yyyyy.','yykykyy','yyyyyyy','ykkkkky','.ykkky.','..yyy..'], pal:{y:'#ffd166',k:'#1b2332'} },
-  coffee:{ rows:['.w.w...','..w.w..','ccccc..','cbbbcc.','cbbbc.c','cbbbcc.','.ccc...'], pal:{c:'#ffffff',b:'#6b4423',w:'#dfe7f1'} } };
+  clap:{ rows:['y.....y.....y','..y...y...y..','.............','.....d.d.....','....dsdsd....','...dssdssd...','..dsssdsssd..','.dsssd.dsssd.','dssssd.dssssd','.dssd...dssd.','..bb.....bb..'], pal:{s:'#f2c9a0',d:'#b9805a',y:'#ffd166',b:'#6c8cff'} },
+  laugh:{ rows:['....yyyyy....','..yyyyyyyyy..','.yyykyyykyyy.','tyykykykykyyt','ttyyyyyyyyytt','t.ykkkkkkky.t','..ykrrrrrky..','...ykkkkky...','....yyyyy....'], pal:{y:'#ffd166',k:'#1b2332',r:'#e85d75',t:'#7ec8ff'} },
+  coffee:{ rows:['..w...w....','.w...w.....','..w...w....','ccccccccc..','cbbbbbbbc..','cmmmmmmmccc','cmmmmmmmc.c','cmmmmmmmc.c','cmmmmmmmccc','.cmmmmmc...','ppppppppppp'], pal:{c:'#5a3a22',m:'#ffffff',b:'#6b4423',w:'#ffffff',p:'#c8ccd2'} } };
 const NOT_PHIL=["You're not Phil.","Wait, where's Phil?","Organiser badge, then?","Did Phil get lost?","You'll do, I suppose."];
 const flip=m=>m.map(r=>[...r].reverse().join(''));
 const shadow=m=>m.map(r=>r.replace(/[^.]/g,'k'));
@@ -577,7 +577,8 @@ const Game = {
     if(this.kickT>0) return;
     const it=this.near(this.items());
     if(asking) return;
-    if(it){ Prompt.set(`<b>●</b> ${it.label}`); if(Input.take('action')) it.act(); return; }
+    // the cat is left for people to find by pressing Action
+    if(it){ if(it.low) Prompt.clear(); else Prompt.set(`<b>●</b> ${it.label}`); if(Input.take('action')) it.act(); return; }
     if(this.scene==='outside'){
       if(p.x>OUT_W-84){ this.egg('sea','You found the sea'); Prompt.set('You found the sea! <b>◀</b> Back to Building 101'); }
       else Prompt.clear();
@@ -639,7 +640,7 @@ const Game = {
     else if(pl.target==null && Input.take('action') && vis.length){ pl.target=vis[0].x; pl.pokeAfter=vis[0].id; }
     if(asking||Fade.busy) return;
     // props stay unlabelled mid-talk so the pill never covers the scene; Action still finds them
-    if(it && (pl.idx<0 || pl.idx>=pl.t.beats.length)) Prompt.set(`<b>●</b> ${esc(it.label)}`);
+    if(it && it.id!=='cat' && (pl.idx<0 || pl.idx>=pl.t.beats.length)) Prompt.set(`<b>●</b> ${esc(it.label)}`);
     else if(pl.out) Prompt.clear();
     else if(pl.idx<0) Prompt.set('<b>◀</b> Leave<span class="or">|</span><b>▶</b> Start');
     else if(pl.idx>=pl.t.beats.length && pl.target==null) Prompt.set('<b>▶</b> Back to the foyer');
@@ -678,7 +679,7 @@ const Game = {
     const a=this.asker; if(!a) return;
     if(a.phase==='leave'){ a.moving=true; a.face=a.side; a.x+=a.side*80*dt; if(a.x<this.camX-30||a.x>this.camX+VW+30) this.asker=null; return; }
     if(a.phase==='talk') { a.moving=false; a.face=p.x<a.x?-1:1; return; }
-    let tx=p.x+a.side*18; if(tx<16||tx>W-16){ a.side=-a.side; tx=p.x+a.side*18; }
+    const lo=this.minX()+16; let tx=p.x+a.side*18; if(tx<lo||tx>W-16){ a.side=-a.side; tx=p.x+a.side*18; }
     const dx=tx-a.x;
     if(Math.abs(dx)>1.5){ a.x+=Math.sign(dx)*Math.min(Math.abs(dx),78*dt); a.moving=true; a.face=Math.sign(dx); }
     else { a.moving=false; a.face=p.x<a.x?-1:1; if(a.phase==='come') a.phase='wait'; }
@@ -686,7 +687,7 @@ const Game = {
     if(!Live.questions.length && !Dlg.open) a.phase='leave';
   },
   askQuestions(){
-    const a=this.asker; a.phase='talk'; const endTitle=this.scene==='end'; Title.hide(); Prompt.clear();
+    const a=this.asker; a.phase='talk'; a.moving=false; a.face=this.p.x<a.x?-1:1; const endTitle=this.scene==='end'; Title.hide(); Prompt.clear();
     const next=()=>{ const q=Live.questions[0];
       if(!q){ a.phase='leave'; if(endTitle) this.endTitle(); return; }
       Dlg.show(`${q.name} asks`, a.who.accent, [q.text], ()=>{ Live.answered.add(q.id); Live.questions=Live.questions.filter(x=>x.id!==q.id); Live.send({t:'asked', id:q.id}); next(); }); };
@@ -748,14 +749,17 @@ const Game = {
     this.egg('cat','You stroked the cat'); },
   updCleaner(dt){ const c=this.cl, job=c.jobs[0];
     if(!job){ c.x+=c.face*9*dt; if(c.x>SWEEP[1]) c.face=-1; if(c.x<SWEEP[0]) c.face=1; return; }
-    const dx=job.x-c.x; if(Math.abs(dx)>1){ c.face=Math.sign(dx); c.x+=c.face*Math.min(Math.abs(dx),45*dt); return; }
+    const dx=job.x-c.x; if(Math.abs(dx)>1){ c.face=Math.sign(dx); c.x+=c.face*Math.min(Math.abs(dx),160*dt); return; }
     if(job.t0==null){ job.t0=this.time; job.start&&job.start(); }
     if(this.time-job.t0>job.dur){ c.jobs.shift(); job.done&&job.done(); } },
-  sweepPlants(){ this.sweeping=true; const n=this.plants.length;
-    this.plants.forEach((pl,i)=>this.cl.jobs.push({ x:pl.x+pl.dir*16, dur:1.6,
+  sweepPlants(){ this.sweeping=true; const n=this.plants.length, px=this.p.x, c=this.cl;
+    const order=[...this.plants].sort((a,b)=>Math.abs(a.x-px)-Math.abs(b.x-px)), first=order[0].x;
+    // an off-screen cleaner comes in from the nearest edge, so the sigh lands while the plant is still in view
+    if(this.scene==='foyer' && Math.abs(c.x-px)>VW/2) c.x=c.x<first?this.camX-10:this.camX+VW+10;
+    order.forEach((pl,i)=>this.cl.jobs.push({ x:pl.x+pl.dir*16, dur:1.6,
       start:()=>{ if(i===0 && this.scene==='foyer') this.say('*sigh*',this.cl.x,124,2); },
       done:()=>{ pl.state='up'; pl.ang=0; if(i===n-1){ this.sweeping=false; this.egg('sweep','The cleaner swept up after you'); } } })); },
-  // the foyer urn: one cup per Action; the stack wobbles at 10 and falls at 15
+  // the foyer urn: one cup per Action, until the stack falls at COFFEE_MAX
   pour(){ const c=this.cof; if(c.fallT!=null) return this.say('Mind the floor',URN_X,104);
     if(this.time-this.drinkT<1.2) return;
     c.cups++; this.drinkT=this.time; this.p.face=1; this.fx.push({ k:'steam', x:URN_X, y:108, vx:0, vy:-6, t:0, life:1 });
@@ -763,7 +767,7 @@ const Game = {
     if(c.cups===4) this.tm.after(0.9,()=>{ this.gold=true; });
     const said=COFFEE_SAYS[c.cups]; if(said) this.tm.after(0.9,()=>{ if(this.scene==='foyer') this.say(said,this.p.x,124,1.8); });
     if(c.cups<COFFEE_MAX) return; c.fallT=this.time; this.egg('coffee','Too much coffee');
-    this.cl.jobs.push({ x:STACK_X+14, dur:5, start:()=>{ c.mopT=this.time; if(this.scene==='foyer') this.say('Really?',this.cl.x,124,2.5); }, done:()=>{ c.cups=0; c.fallT=c.mopT=null; } }); },
+    this.tm.after(1.6,()=>this.cl.jobs.push({ x:STACK_X+14, dur:5, start:()=>{ c.mopT=this.time; if(this.scene==='foyer') this.say('Really?',this.cl.x,124,2.5); }, done:()=>{ c.cups=0; c.fallT=c.mopT=null; } })); },
   /* phase 8 hooks: phone reactions float up from the bottom; enough at once and the crowd stands */
   react(kind,n=1){ for(let i=0;i<Math.min(n,12) && this.reacts.length<40;i++) this.reacts.push({ k:kind, x:24+Math.random()*(VW-CROP-48), t:-i*0.18 }); },
   victory(){ this.jumpT=0.6; this.egg('star','Golden badge');
@@ -776,11 +780,11 @@ const Game = {
     ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,c2d.width,c2d.height); ctx.imageSmoothingEnabled=false; ctx.globalAlpha=1;
     const feat=this.scene==='place'&&this.pl.feat;
     // Walkable scenes pan the cropped view to keep the hero centred; the rest crop evenly.
-    CX=this.scene==='menu'||this.scene==='select'||feat?Math.round(CROP/2):clamp(Math.round(this.p.x-(VW-CROP)/2)-this.camX,0,CROP);
+    CX=this.scene==='menu'||this.scene==='select'||feat?Math.round(CROP/2):Math.round(clamp(Math.round(this.p.x-(VW-CROP)/2)-this.camX,0,CROP)*S)/S;
     Prompt.el.classList.toggle('top',this.scene==='place'||!!Caption.s);
     if(feat) this.drawFeature();
     else ({menu:this.drawMenu, select:this.drawSelect, outside:this.drawOutside, foyer:this.drawFoyer, place:this.drawPlace, end:this.drawEnd})[this.scene].call(this);
-    ctx.globalAlpha=1; this.drawToast(); this.drawReacts();
+    ctx.globalAlpha=1; this.drawEggCount(); this.drawToast(); this.drawReacts();
   },
   world(){ ctx.setTransform(S,0,0,S,-Math.round((this.camX+CX)*S),0); },
   drawActors(feet){ this.drawAsker(feet); this.drawCat(feet);
@@ -801,6 +805,13 @@ const Game = {
     if(this.badge){ const bx=Math.round(x), by=top+8; line(bx-2,by,bx-1,by+2,'#e85d75'); line(bx+1,by,bx,by+2,'#e85d75'); R(bx-1,by+3,3,3,this.visitor?'#c9ccd2':'#ffffff'); }
     // hackathon sticker on the hoodie
     if(this.visited.has('nfcore')) [[3,12,'#ffffff'],[4,12,'#3cc87a'],[3,13,'#3cc87a'],[4,13,'#24b064']].forEach(([c,r,col])=>R(px(c),top+r,1,1,col));
+    // the cloakroom's oversized coat, dragging on the floor
+    if(this.carried.coat){ const x=Math.round(p.x), f=Math.round(feet), c='#9a7a4a', d='#7a5c34', l='#b8966a';
+      for(let y=f-12;y<f-2;y++){ const h=Math.round(7+(y-f+12)*0.8); R(x-h,y,2*h+1,1,c); }
+      R(x-17,f-3,35,4,c); R(x-18,f,37,1,d); for(const fx of [-13,-7,6,12]) R(x+fx,f-4,1,4,d);
+      R(x-8,f-19,3,8,l); R(x+6,f-19,3,8,l); line(x-5,f-12,x,f-4,d); line(x+5,f-12,x,f-4,d);
+      R(x-1,f-3,1,1,'#3a2a1a'); R(x-10,f-8,21,2,'#5a4026'); R(x-1,f-9,3,4,'#c9a24a');
+      R(x-13,f-11,4,12,c); R(x-13,f-11,1,12,d); R(x+10,f-11,4,12,c); R(x+13,f-11,1,12,d); R(x-14,f-1,6,2,l); R(x+9,f-1,6,2,l); }
     const h=this.carried.hat, hx=x0+6;
     if(h==='tophat'){ R(hx-4,top-6,8,7,'#1b1b1b'); R(hx-6,top+1,12,2,'#1b1b1b'); R(hx-4,top-1,8,1,'#d8402a'); }
     else if(h==='beret'){ R(hx-5,top-2,10,3,'#c0392b'); R(hx-3,top-3,6,1,'#c0392b'); R(hx-1,top-4,2,1,'#c0392b'); }
@@ -822,11 +833,17 @@ const Game = {
   drawReacts(){ if(!this.reacts.length) return; ctx.setTransform(S,0,0,S,-CX*S,0);
     for(const r of this.reacts){ if(r.t<0) continue; const m=REACT[r.k]||REACT.star, x=Math.round(CX+r.x+Math.sin(r.t*3+r.x)*4), y=Math.round(VH-16-r.t*38);
       ctx.globalAlpha=clamp((3-r.t)*2,0,1); map2d(m.shadow,x+1,y+1,{k:'#1b2332'}); map2d(m.rows,x,y,m.pal); } ctx.globalAlpha=1; },
+  drawEggCount(){ if(['menu','select'].includes(this.scene)) return; ctx.setTransform(S,0,0,S,-CX*S,0);
+    const x=CX+4, s=`${this.eggs.size}/${new Set([...EGGS,...this.eggs.keys()]).size}`, w=Math.ceil(tw(s,5));
+    R(x,4,w+15,11,'rgba(27,35,50,.75)'); map2d(['.ww.','wwww','wwww','wwww','.ww.'],x+3,7,{w:'#fff6dc'}); R(x+4,8,1,1,'#ffffff');
+    T(s,x+10,6.5,5,'#ffd166'); },
   drawToast(){ const ts=this.toasts[0]; if(!ts) return; ctx.setTransform(S,0,0,S,-CX*S,0);
     ctx.globalAlpha=clamp(Math.min(ts.t*2,(3-ts.t)*4),0,1); const w=Math.ceil(tw(ts.s,5))+16, x=Math.round(CX+(VW-CROP)/2-w/2);
     R(x,22,w,13,'#1f2a44'); R(x,34,w,1,'#ffd166'); T(ts.s,x+w/2,26,5,'#ffd166','center'); ctx.globalAlpha=1; },
   drawPlace(){ const pl=this.pl; this.world(); pl.d.draw(pl.st,this.ev()); ctx.globalAlpha=1; this.drawActors(pl.d.floor||154); if(pl.d.drawFront){ this.world(); pl.d.drawFront(pl.st,this.ev()); ctx.globalAlpha=1; } },
+  // featurettes are drawn for the full 320 width, so a cropped stage shrinks them (by whole device pixels, trimming only their margins) to fit
   drawFeature(){ const pl=this.pl, ft=pl.feat; ctx.setTransform(S,0,0,S,-CX*S,0); R(0,0,VW,VH,'#0b0f1c');
+    const k=Math.min(1,Math.round(S*(VW-CROP)/VW)/S); ctx.setTransform(S*k,0,0,S*k,Math.round(((VW-CROP)-VW*k)*S/2),Math.round(VH*(1-k)*S/2));
     ft.f.draw(ft.step,pl.stepT,pl.st); ctx.setTransform(S,0,0,S,-CX*S,0); ctx.globalAlpha=1;
     const x=VW-CROP/2-32; R(x,5,28,12,'#1b2332'); R(x,16,28,1,'#ffd166'); T(`${ft.step+1}/${ft.f.steps}`,x+14,8,6,'#ffd166','center'); },
 
@@ -1188,11 +1205,18 @@ const Game = {
     for(const f of spills) f();
     // the urn's cup stack, and the flood when it falls
     const cof=this.cof;
-    if(cof.fallT==null) for(let i=0;i<cof.cups;i++){ const w=cof.cups>=6?Math.round(Math.sin(t*5)*(i/7)*(cof.cups-4)*0.8):0, y=122-i*6;
-      R(STACK_X-2+w,y,6,6,'#ffffff'); R(STACK_X-2+w,y,6,1,'#e8e8e8'); R(STACK_X-2+w,y+3,6,1,'#c8322c'); R(STACK_X-2+w,y+5,6,1,'#d8d8d8'); if(i===cof.cups-1) R(STACK_X-1+w,y,4,1,'#6b4423'); }
-    else { const e=clamp((t-cof.fallT)/1.5,0,1), m=cof.mopT!=null?clamp((t-cof.mopT)/5,0,1):0, hw=Math.round(36*e*(1-m)), cx=STACK_X+14;
+    const cup=(x,y,top)=>{ R(x,y,6,6,'#ffffff'); R(x,y,6,1,'#e8e8e8'); R(x,y+3,6,1,'#c8322c'); R(x,y+5,6,1,'#d8d8d8'); if(top) R(x+1,y,4,1,'#6b4423'); };
+    const f=cof.fallT==null?-1:t-cof.fallT;
+    if(f<0) for(let i=0;i<cof.cups;i++){ const w=cof.cups>=6?Math.round(Math.sin(t*5)*(i/7)*(cof.cups-4)*0.8):0; cup(STACK_X-2+w,122-i*6,i===cof.cups-1); }
+    // the stack tips off the table, pivoting on its base as it drops to the floor
+    else if(f<0.7){ const k=f/0.7, py=128+20*k*k; ctx.save(); ctx.translate(STACK_X+4,py); ctx.rotate(k*k*1.65);
+      for(let i=0;i<COFFEE_MAX;i++) cup(-6+(i>3?Math.round((i-3)*k*1.5):0),-6-i*6,i===COFFEE_MAX-1); ctx.restore(); }
+    else { const e=clamp((f-0.7)/0.6,0,1), m=cof.mopT!=null?clamp((t-cof.mopT)/5,0,1):0, hw=Math.round(36*e*(1-m)), cx=STACK_X+14;
       for(let y=150;y<157;y++){ const k=1-Math.abs(y-153)/4, w=Math.round(hw*k); if(w>0) R(cx-w,y,2*w,1,y===151?'#8a5a32':'#6b4423'); }
-      if(m<0.9) for(let i=0;i<15;i++){ const d=hash(i*13)*2-1, x=Math.round(STACK_X+d*e*30+i%3), y=147+Math.floor(hash(i*7)*8); R(x,y,4,3,'#ffffff'); R(x,y,4,1,'#d8d8d8'); } }
+      if(m<0.9) for(let i=0;i<COFFEE_MAX;i++){ const d=hash(i*13), x=Math.round(STACK_X+8+d*e*40+i*3), bounce=Math.round(Math.abs(Math.sin(e*Math.PI*2+i))*(1-e)*8), y=145+Math.floor(hash(i*7)*6)-bounce; cup(x,y,false); }
+      // the crash: a splash of coffee and a CRASH as it hits the floor
+      if(f<1.3){ const q=(f-0.7)/0.6; for(let i=0;i<9;i++){ const a=Math.PI*(0.1+0.8*i/8), r=6+q*22; R(Math.round(STACK_X+30-Math.cos(a)*r),Math.round(150-Math.sin(a)*r+q*q*18),2,2,'#6b4423'); }
+        ctx.globalAlpha=1-q; T('CRASH!',STACK_X+26,118-q*6,6,'#c8322c','center'); ctx.globalAlpha=1; } }
     // cleaner and their wet trail
     const cl=this.cl, cf=cl.face;
     ctx.fillStyle='rgba(255,255,255,.16)'; for(let i=0;i<36;i+=2){ const a=1-i/36; ctx.globalAlpha=a; ctx.fillRect(Math.round(cl.x-cf*(8+i)),151+(i%4?1:2),2,1); } ctx.globalAlpha=1;
