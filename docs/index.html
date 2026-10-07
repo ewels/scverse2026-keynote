@@ -542,14 +542,19 @@ const Game = {
   walkTo(dt){ const pl=this.pl, p=this.p; if(pl.target==null){ p.moving=false; return; }
     const dx=pl.target-p.x; p.moving=Math.abs(dx)>0.5;
     if(p.moving){ p.face=Math.sign(dx); p.x+=Math.sign(dx)*Math.min(Math.abs(dx),130*dt); p.t+=dt; }
-    else { p.x=pl.target; pl.target=null; if(pl.out) return this.leavePlace(true); this.startBeat(); } },
+    else { p.x=pl.target; pl.target=null; if(pl.out) return this.leavePlace(true);
+      if(pl.pokeAfter){ const id=pl.pokeAfter; pl.pokeAfter=null; return this.poke(id); } this.startBeat(); } },
   updatePlace(dt,asking){
     const pl=this.pl, d=pl.d; pl.stepT+=dt; if(pl.poked) pl.poked.t+=dt;
     d.update&&d.update(dt,pl.st,this.ev());
     if(pl.feat){ if(Input.take('right')) this.featStep(1); else if(Input.take('left')) this.featStep(-1); if(!asking) Prompt.clear(); return; }
     if(Input.take('right')) this.step(1); else if(Input.take('left')) this.step(-1);
-    const it=pl.target==null && this.near([...(d.props||[]), ...(d.host!=null?[{ id:'host', x:d.host, label:`Talk to ${pl.t.host.name}` }]:[])]);
+    const pokeable=[...(d.props||[]), ...(d.host!=null?[{ id:'host', x:d.host, label:`Talk to ${pl.t.host.name}` }]:[])];
+    const it=pl.target==null && this.near(pokeable);
     if(it && Input.take('action')) this.poke(it.id);
+    // nothing in reach: walk over to the nearest thing on screen, so the clicker can reach every prop
+    else if(pl.target==null && Input.take('action')){ const p=this.p, vis=pokeable.filter(o=>o.x>this.camX+8 && o.x<this.camX+VW-8).sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x));
+      if(vis.length){ pl.target=vis[0].x; pl.pokeAfter=vis[0].id; } }
     if(asking||Fade.busy) return;
     if(it) Prompt.set(`<b>●</b> ${esc(it.label)}`);
     else if(pl.out) Prompt.clear();
@@ -560,7 +565,7 @@ const Game = {
   step(dir){ const pl=this.pl, n=pl.t.beats.length;
     if(dir>0 && pl.idx>=n) return this.leavePlace();
     if(dir<0 && pl.idx<=0){ pl.idx=-1; pl.out=true; Big.hide(); Caption.hide(); pl.target=pl.d.spawn??24; return; }
-    pl.out=false; pl.idx+=dir; Big.hide(); Caption.hide();
+    pl.out=false; pl.pokeAfter=null; pl.idx+=dir; Big.hide(); Caption.hide();
     const at=pl.idx<n&&pl.t.beats[pl.idx].at, fx=at&&pl.d.focus&&pl.d.focus[at];
     pl.target=pl.idx<n?(fx??this.p.x):(pl.d.exit??this.width()-20); },
   startBeat(){ const pl=this.pl, b=pl.t.beats[pl.idx]; if(!b) return; pl.stepT=0;

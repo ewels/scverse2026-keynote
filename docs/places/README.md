@@ -29,6 +29,6 @@ One classic script per place (no modules: `index.html` must run from `file://`).
 - `say(text, x, y, secs)`: a speech bubble whose tail points at `(x, y)` in world coordinates.
 - `toast(text)`: a banner at the top. `egg(id, label)`: records an easter egg once and toasts `EASTER EGG: label`.
 
-Controls inside a place: Right goes to the next beat (or featurette step), Left replays the previous one, Action pokes the nearest prop or the host and never moves the talk on. Left before the first beat, or on it, walks the hero back to `spawn` and out to the foyer (the opener goes back to the registration desk); Right during that walk cancels it.
+Controls inside a place: Right goes to the next beat (or featurette step), Left replays the previous one, Action pokes the prop or host in reach; with nothing in reach the hero walks to the nearest one on screen and pokes it. Action never moves the talk on. Left before the first beat, or on it, walks the hero back to `spawn` and out to the foyer (the opener goes back to the registration desk); Right during that walk cancels it.
 
 Debug: open `index.html?debug` and run `__game.goto('theatre')` (a place, topic or scene id). `__game.beatIdx` is the current beat.
