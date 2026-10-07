@@ -87,7 +87,7 @@
       { id: 'plant', x: 1052, label: 'Water the plants' },
     ],
     enter(st) { Object.assign(st, { cur: -1, t0: 0, slices: 8, lint: 0, lintT: -9, doodles: 0, extra: 0, stamps: 0, stampT: -9, trip: -9, water: 0, mo: 0, docs: 0, papers: [] }); this._mo = MO_X; },
-    beat(id, st) { st.cur = IDS.indexOf(id); st.t0 = time(); },
+    beat(id, st) { st.cur = IDS.indexOf(id); st.t0 = time(); if (id === 'cats') g.carry('cat', true); },
     poke(id, st) {
       const t = time();
       if (id === 'host') { g.say(MO[st.mo++ % MO.length], this.host, 128); return true; }

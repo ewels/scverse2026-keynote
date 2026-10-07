@@ -2,6 +2,7 @@
 (window.KEYNOTE_PLACES = window.KEYNOTE_PLACES || {}).theatre = g => {
   const { R, T, disc, line, map2d, mix, hash, person, look, time, ctx } = g;
   const W = 640, STAGE = 276, SX = 300, SY = 14, SW = 200, SH = 100, PODIUM = 556, HOST = 316, EXIT = 626;
+  const NEXT = { skin: '#e8b894', hair: '#6b4a2f', hairStyle: 'long', glasses: true, top: '#3a5a8c', topStyle: 'sweat', pants: '#2b2b36' };
   const F = { podium: 532, screen: 400, edge: 330, table: 330, front: 292 };
   const ease = k => k <= 0 ? 0 : k >= 1 ? 1 : 1 - Math.pow(1 - k, 3);
   const clamp01 = k => Math.max(0, Math.min(1, k));
@@ -228,6 +229,13 @@
     if (Math.sin(t * 3) > 0) R(x + 9, by - 21, 2, 2, '#ff3030');
   };
 
+  // after the opener: the next speaker's slide on the screen and them at the podium
+  const nextTalk = t => {
+    R(SX, SY, SW, SH, '#f7f3ea'); R(SX, SY, SW, 14, '#3a5a8c'); T('SESSION 2', SX + SW / 2, SY + 4, 6, '#ffffff', 'center');
+    T('SPATIAL DATA,', SX + SW / 2, SY + 32, 8, '#1b2332', 'center'); T('AT SCALE', SX + SW / 2, SY + 46, 8, '#1b2332', 'center');
+    for (let i = 0; i < 3; i++) R(SX + 50, SY + 66 + i * 9, 100 - i * 24, 3, '#c8c0b0');
+    const b = Math.floor(t * 3) % 4 === 0 ? -1 : 0; person(NEXT, F.podium, 151 + b, t, -1, false);
+  };
   const stageBack = (st, t, ev) => {
     R(STAGE, 0, W - STAGE, 146, '#2b1a14'); for (let x = STAGE; x < W; x += 16) { R(x, 8, 1, 138, '#22140f'); R(x + 1, 8, 7, 138, '#2f1d16'); }
     R(STAGE, 118, W - STAGE, 2, '#3a241b'); R(STAGE, 120, W - STAGE, 26, '#24150f');
@@ -386,8 +394,7 @@
     else FILL.forEach((b, i) => { if (t > i * 0.45) list.push({ b, f: () => dropIn(b, t, i * 0.45, 0.35, i === FILL.length - 1 || t < (i + 1) * 0.45) }); });
     list.sort((p, q) => p.b.row - q.b.row).forEach(e => e.f());
     if (step === 4 && t > 2.0) { const k = clamp01((t - 2.0) / 0.4), y = Math.round(legoY(2) - 6 - Math.sin(k * 3.14) * 24), H = g.hero();
-      person(H, 160, y, t, 1, false, 2);
-      if (t > 2.4 && Math.sin(t * 7) > 0) { R(160 + 8, y - 38, 4, 12, H.skin); } else if (t > 2.4) { R(160 + 10, y - 34, 4, 10, H.skin); }
+      person(H, 160, y, t, 1, false, 2, t > 2.4 ? (Math.sin(t * 7) > 0 ? 'cheerA' : 'cheerB') : null);
       if (t > 2.4) for (let i = 0; i < 10; i++) { const a = i * 0.628 + t * 0.5;
         if (Math.sin(t * 3 + i * 1.7) > 0) R(Math.round(160 + Math.cos(a) * 118), Math.round(56 + Math.sin(a) * 34), 2, 2, i % 2 ? '#ffd166' : '#ffffff'); } }
     ctx.restore();
@@ -401,13 +408,13 @@
       { id: 'cable', x: F.screen + 4, label: 'Wiggle the HDMI cable' },
       { id: 'glass', x: PODIUM - 14, label: 'Drink some water' },
     ],
-    enter(st) { Object.assign(st, { t: 0, scr: 'idle', scrT: 0, dim: 0, spot: 0, sips: 0, spilt: false, spillT: 0, cable: 0, nosig: 0, title: 0, wake: 0, wiggle: 0, lateT: -4, late: 'out', hostN: 0, cardT: 0 }); },
+    enter(st) { Object.assign(st, { t: 0, scr: 'idle', scrT: 0, dim: 0, spot: 0, sips: 0, spilt: false, spillT: 0, cable: 0, nosig: 0, title: 0, wake: 0, wiggle: 0, lateT: -4, late: 'out', hostN: 0, cardT: 0 }); if (st.next) st.dim = st.spot = 1; },
     update(dt, st, ev) {
       st.t += dt; st.scrT += dt; st.spillT += dt;
       for (const k of ['nosig', 'title', 'wake', 'wiggle', 'cardT']) if (st[k] > 0) st[k] = Math.max(0, st[k] - dt);
-      const on = ev.beatIdx >= 0 ? 1 : 0; st.dim += (on - st.dim) * Math.min(1, dt * 1.5); st.spot += (on - st.spot) * Math.min(1, dt * 2.5);
+      const on = ev.beatIdx >= 0 || st.next ? 1 : 0; st.dim += (on - st.dim) * Math.min(1, dt * 1.5); st.spot += (on - st.spot) * Math.min(1, dt * 2.5);
       if (ev.beatIdx >= 0) st.talkT = (st.talkT || 0) + dt;
-      if (st.late !== 'sat') { st.lateT += dt; if (st.lateT > 7.2) { st.late = 'sat'; st.lateT = 0; } else if (st.lateT > 3.9 && !st.saidSorry) { st.saidSorry = true; g.say('Sorry! Sorry!', 60, rowY(3) - 22, 2.5); } }
+      if (st.late !== 'sat') { st.lateT += dt; if (st.lateT > 7.2) { st.late = 'sat'; st.lateT = 0; } }
       else st.lateT += dt;
     },
     draw(st, ev) {
@@ -422,11 +429,12 @@
       truss(t, st);
       floor(t);
       lecternClock(st, t); cableBox(st, t); podium(st, t, ev); hostAt(st, t); exitDoor(t); demoTable(st, t);
+      if (st.next) nextTalk(t);
       spotlight(st.spot);
       flyers(st, t);
       heads(t);
     },
-    beat(id, st) { st.scr = id; st.scrT = 0; },
+    beat(id, st) { if (id === 'next') return g.say('Do you mind? I’m presenting.', F.podium, 124, 3); st.scr = id; st.scrT = 0; },
     poke(id, st) {
       if (id === 'glass') {
         if (st.spilt) return 'The glass is empty';

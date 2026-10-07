@@ -13,7 +13,7 @@
   const shadowT = (s, x, y, size, col, align = 'center', sh = '#1b1016') => { T(s, x + 1, y + 1, size, sh, align); T(s, x, y, size, col, align); };
   const cur = ev => (ev.beat && !ev.walking ? ev.beat.id || ev.beat.at : '');
   // the hackathon cat may only turn up once that room has been visited; the engine has to expose that
-  const catOK = () => { try { return typeof g.visited === 'function' && !!g.visited('nfcore'); } catch (e) { return false; } };
+  const catOK = () => { try { return typeof g.visited === 'function' && !!g.carry('cat'); } catch (e) { return false; } };
 
   const LOOKS = {
     reader: { skin: '#f2c9a0', hair: '#5a3d2b', hairStyle: 'swept', glasses: true, top: '#4a7a9a', topStyle: 'sweat', pants: '#2b3445' },

@@ -5,7 +5,7 @@ export async function stubFonts(context) {
   await context.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
 }
 
-export const ENTRANCE = 420, DESK_GREETER = 150, DESK_DOOR = 292, QA_DOOR = 600;
+export const ENTRANCE = 420, DESK_GREETER = -170, DESK_DOOR = -28, QA_DOOR = 784;
 
 // Keys pressed during a fade are dropped, so keep pressing until the game reacts.
 export async function pressUntil(page, key, cond, arg) {
@@ -28,10 +28,10 @@ export async function pickPhil(page) {
   await page.waitForFunction(() => window.__game.scene === 'outside');
 }
 
-// Outside → registration desk → badge → lecture theatre.
+// Outside → registration desk (left end of the foyer) → badge → lecture theatre.
 export async function enterTheatre(page) {
   await setX(page, ENTRANCE);
-  await pressUntil(page, 'b', () => window.__game.scene === 'desk');
+  await pressUntil(page, 'b', () => window.__game.scene === 'foyer');
   await setX(page, DESK_GREETER);
   await pressUntil(page, 'b', () => window.__game.badge);
   await pressUntil(page, 'b', () => document.querySelector('#big').classList.contains('hidden'));
@@ -65,6 +65,6 @@ export async function playPlace(page) {
 }
 
 export async function enterPlace(page, key) {
-  await setX(page, await page.evaluate(k => { const T = window.KEYNOTE_CONTENT.TOPICS; return 120 + 64 * Object.keys(T).filter(t => !T[t].opener).indexOf(k); }, key));
+  await setX(page, await page.evaluate(k => { const T = window.KEYNOTE_CONTENT.TOPICS; return 112 + 96 * Object.keys(T).filter(t => !T[t].opener).indexOf(k); }, key));
   await pressUntil(page, 'b', k => window.__game.scene === 'place' && window.__game.topic === k, key);
 }

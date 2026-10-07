@@ -47,10 +47,10 @@ test('every place steps through every beat and featurette step', async ({ page, 
   expect(errors).toEqual([]);
 });
 
-test('a fight throws you out and the place resumes; the cat waits for the hackathon', async ({ page, context }) => {
+test('a fight throws you out and the place resumes; the cat follows from the cat photos', async ({ page, context }) => {
   const errors = await openGame(page, context);
   await pickPhil(page);
-  await page.evaluate(() => { const g = window.__game; g.goto('foyer'); g.catNext = 0; });
+  await page.evaluate(() => { const g = window.__game; g.goto('foyer'); });
   await page.waitForTimeout(500);
   expect(await page.evaluate(() => window.__game.cat)).toBeNull();
 
@@ -63,7 +63,7 @@ test('a fight throws you out and the place resumes; the cat waits for the hackat
   expect(await page.evaluate(() => [window.__game.eggs.has('fight'), window.__game.badge, window.__game.resume])).toEqual([true, false, 'agents']);
 
   await setX(page, ENTRANCE);
-  await pressUntil(page, 'b', () => window.__game.scene === 'desk');
+  await pressUntil(page, 'b', () => window.__game.scene === 'foyer');
   await setX(page, DESK_GREETER);
   await pressUntil(page, 'b', () => window.__game.badge);
   await expect(page.locator('#big p')).toHaveText('VISITOR');
@@ -73,7 +73,10 @@ test('a fight throws you out and the place resumes; the cat waits for the hackat
   await settle(page);
   expect(await page.evaluate(() => [window.__game.topic, window.__game.beatIdx, window.__game.pl.st.mark])).toEqual(['agents', idx, 7]);
 
-  await page.evaluate(() => { const g = window.__game; g.visited.add('nfcore'); g.goto('foyer'); g.catNext = 0; });
-  await page.waitForFunction(() => window.__game.cat);
+  await page.evaluate(() => { const g = window.__game; g.goto('nfcore'); });
+  for (let i = 0; i < 20; i++) { await settle(page); await page.waitForTimeout(100); if (await page.evaluate(() => window.__game.cat)) break; await page.keyboard.press('ArrowRight'); await page.waitForTimeout(200); }
+  expect(await page.evaluate(() => window.__game.pl.t.beats[window.__game.beatIdx].id)).toBe('cats');
+  await page.evaluate(() => window.__game.goto('foyer'));
+  await page.waitForFunction(() => { const g = window.__game; return g.cat && Math.abs(g.cat.x - g.p.x) < 20; });
   expect(errors).toEqual([]);
 });

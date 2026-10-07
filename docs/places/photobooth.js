@@ -97,7 +97,7 @@
       if (id === 'host') { g.say(['Say cheese', 'Look at the lens', 'One more, please'][st.said++ % 3], 122, 126); return true; }
       if (id === 'booth') {
         st.photos++; st.flash = t; lastX = BX + 24;
-        const five = st.photos === 5, kind = five ? ((g.visited && g.visited('nfcore')) ? 'cat' : 'pigeon') : 'hero';
+        const five = st.photos === 5, kind = five ? (g.carry('cat') ? 'cat' : 'pigeon') : 'hero';
         st.strip = { kind, t0: t + 0.9, label: five ? (kind === 'cat' ? 'A CAT?' : 'A PIGEON?') : `PHOTO ${st.photos}` };
         if (five) { g.say('That is not you', 100, 100, 3); g.egg('photobooth', kind === 'cat' ? 'The booth photographed a cat' : 'The booth photographed a pigeon'); }
         return true;
@@ -137,7 +137,7 @@
       R(244, 58, 54, 64, '#6b4a2f'); R(246, 60, 50, 60, '#8b6a4a'); for (let y = 66; y < 118; y += 8) for (let x = 250; x < 294; x += 8) R(x, y, 1, 1, '#5a3f26');
       for (const [hx, k] of [[252, 1], [264, 2], [276, 3]]) { R(hx, 64, 2, 5, '#c8c8c8'); if (st.worn !== k) hat(HATS[k], hx + 1, 78, 1); }
       R(282, 64, 2, 5, '#c8c8c8'); if (st.worn !== 4) { R(280, 72, 3, 2, '#1b1b1b'); R(285, 72, 3, 2, '#1b1b1b'); R(283, 72, 2, 1, '#1b1b1b'); }
-      const mx = 270; R(mx - 1, 104, 3, 14, '#6f7a80'); disc(mx, 98, 7, '#d8b890'); hat(HATS[st.worn], mx, 93, 1); if (st.worn === 4) hat('shades', mx, 97, 1);
+      const mx = 270; R(mx - 1, 104, 3, 14, '#6f7a80'); disc(mx, 98, 7, '#d8b890'); if (st.worn === 4) hat('shades', mx, 97, 1); else hat(HATS[st.worn], mx, 93, 1);
       R(244, 122, 54, 5, '#8b6a4a'); R(244, 127, 3, 19, '#6b4a2f'); R(295, 127, 3, 19, '#6b4a2f');
       // snake plushie
       const hiss = t - st.hiss < 1, wg = Math.round(Math.sin(t * (hiss ? 14 : 2)) * (hiss ? 2 : 1));
