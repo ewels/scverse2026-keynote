@@ -16,14 +16,14 @@
   const catOK = () => { try { return typeof g.visited === 'function' && !!g.carry('cat'); } catch (e) { return false; } };
 
   const LOOKS = {
-    reader: { skin: '#f2c9a0', hair: '#5a3d2b', hairStyle: 'swept', glasses: true, top: '#4a7a9a', topStyle: 'sweat', pants: '#2b3445' },
+    reader: { skin: '#f2c9a0', hair: '#5a3d2b', hairStyle: 'swept', top: '#4a7a9a', topStyle: 'sweat', pants: '#2b3445' },
     wander: { skin: '#a86f4c', hair: '#1f1f1f', hairStyle: 'long', top: '#3cc87a', topStyle: 'tee', pants: '#3b3b46' },
     sipA: { skin: '#e8b894', hair: '#d9a441', hairStyle: 'messy', top: '#b28dff', topStyle: 'hoodie', pants: '#2f3a55' },
     sipB: { skin: '#8a5a3c', hair: '#2a1f18', hairStyle: 'bald', beard: true, top: '#e9e9e9', topStyle: 'tee', pants: '#394257' },
-    pres: { skin: '#f6d3bd', hair: '#8b5a2b', hairStyle: 'short', glasses: true, top: '#2e8b57', topStyle: 'sweat', pants: '#2b2b36' },
+    pres: { skin: '#f6d3bd', hair: '#8b5a2b', hairStyle: 'short', top: '#2e8b57', topStyle: 'sweat', pants: '#2b2b36' },
     c1: { skin: '#d9a27c', hair: '#c86a3a', hairStyle: 'long', top: '#6c8cff', topStyle: 'hoodie', pants: '#2b3445' },
     c2: { skin: '#efc6a3', hair: '#1f1f1f', hairStyle: 'short', top: '#e85d5d', topStyle: 'tee', pants: '#3a3f4b' },
-    c3: { skin: '#5a3a28', hair: '#111111', hairStyle: 'messy', glasses: true, top: '#2ec4b6', topStyle: 'sweat', pants: '#2b2b36' },
+    c3: { skin: '#5a3a28', hair: '#111111', hairStyle: 'messy', top: '#2ec4b6', topStyle: 'sweat', pants: '#2b2b36' },
   };
 
   /* ---------- the ten messy tool posters ---------- */

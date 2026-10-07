@@ -6,7 +6,7 @@
   const ROOM_COL = ['#2ec4d6', '#6c8cff', '#3cc87a', '#f5a623', '#e85d5d', '#b28dff'];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const PASSER = { skin: '#efc6a3', hair: '#3a2a1f', hairStyle: 'short', top: '#3cc87a', topStyle: 'hoodie', pants: '#2b2f45' };
-  const LOST = { skin: '#c98e62', hair: '#1f1f1f', hairStyle: 'messy', glasses: true, top: '#f5a623', topStyle: 'tee', pants: '#4a403a' };
+  const LOST = { skin: '#c98e62', hair: '#1f1f1f', hairStyle: 'messy', top: '#f5a623', topStyle: 'tee', pants: '#4a403a' };
   let lastX = 14, dotX = 150, dotFace = 1, dotMoving = false, dotEnd = 1, dotRest = 0;
 
   const sign = (st, i, t, litF) => {

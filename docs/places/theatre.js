@@ -2,7 +2,7 @@
 (window.KEYNOTE_PLACES = window.KEYNOTE_PLACES || {}).theatre = g => {
   const { R, T, disc, line, map2d, mix, hash, person, look, time, ctx } = g;
   const W = 640, STAGE = 276, SX = 300, SY = 14, SW = 200, SH = 100, PODIUM = 556, HOST = 316, EXIT = 626;
-  const NEXT = { skin: '#e8b894', hair: '#6b4a2f', hairStyle: 'long', glasses: true, top: '#3a5a8c', topStyle: 'sweat', pants: '#2b2b36' };
+  const NEXT = { skin: '#e8b894', hair: '#6b4a2f', hairStyle: 'long', top: '#3a5a8c', topStyle: 'sweat', pants: '#2b2b36' };
   const F = { podium: 532, screen: 400, edge: 330, table: 330, front: 292 };
   const ease = k => k <= 0 ? 0 : k >= 1 ? 1 : 1 - Math.pow(1 - k, 3);
   const clamp01 = k => Math.max(0, Math.min(1, k));
@@ -21,7 +21,7 @@
     const n = r * 31 + i * 7 + 3, h = k => hash(n * 13 + k);
     seats.push({ r, x, by: rowY(r), ph: h(1) * 6.28, empty: h(2) > 0.9 && r > 0, laptop: h(3) > 0.72,
       look: { skin: SKIN[Math.floor(h(4) * SKIN.length)], hair: HAIR[Math.floor(h(5) * HAIR.length)], hairStyle: STYLES[Math.floor(h(6) * STYLES.length)],
-        glasses: h(7) > 0.7, beard: h(8) > 0.82, top: TOPS[Math.floor(h(9) * TOPS.length)], topStyle: ['tee', 'sweat', 'hoodie'][Math.floor(h(10) * 3)], pants: '#2b3445' } });
+        beard: h(8) > 0.82, top: TOPS[Math.floor(h(9) * TOPS.length)], topStyle: ['tee', 'sweat', 'hoodie'][Math.floor(h(10) * 3)], pants: '#2b3445' } });
   }
   const seatAt = (r, x) => seats.filter(s => s.r === r).sort((a, b) => Math.abs(a.x - x) - Math.abs(b.x - x))[0];
   const SLEEPER = seatAt(0, 258), CRASH = seatAt(0, 242), YAWNER = seatAt(2, 134), LATE = seatAt(3, 118);
@@ -164,7 +164,7 @@
       T('scverse 2026 at DTU Lyngby', SX + SW / 2, SY + 56, 5, '#ffd166', 'center');
       if (Math.sin(t * 4) > 0) g.tri(SX + 72, SY + 85, 1, '#ffd166'); T('NEW GAME', SX + 80, SY + 82, 6, '#ffffff'); },
   };
-  const REVIEWER = { skin: '#a86f4c', hair: '#1f1f1f', hairStyle: 'long', glasses: true, top: '#f5a623', topStyle: 'sweat', pants: '#2b3445' };
+  const REVIEWER = { skin: '#a86f4c', hair: '#1f1f1f', hairStyle: 'long', top: '#f5a623', topStyle: 'sweat', pants: '#2b3445' };
   const WALL = []; for (let r = 0; r < 4; r++) for (let i = 0; i < 6 - (r % 2); i++) if (WALL.length < 17) WALL.push({ x: SX + 8 + i * 18 + (r % 2) * 9, y: SY + 86 - r * 10 });
   const THROW_T = i => i < 5 ? 0.3 + i * 0.6 : 3.3 + (i - 5) * 0.3;
 
@@ -338,6 +338,7 @@
       const tx = CRASH.x + 2, ty = CRASH.by - 20;
       const path = v => [lerp(SX + 50, tx, v), lerp(SY + 60, ty, v * v) - Math.sin(v * 3.14) * 18 + Math.sin(v * 12) * 2];
       if (s > 1.2 && s < 2.4) { const k = (s - 1.2) / 1.2, [x, y] = path(k), [x2, y2] = path(k + 0.01); rot(PLANE, PLANE_PAL, x, y, Math.atan2(y2 - y, x2 - x)); }
+      if (s < 2.4) st.ow = false; else if (!st.ow) { st.ow = true; g.say('Ow!', tx, ty - 10, 1.6); }
       if (s >= 2.4) { rot(PLANE, PLANE_PAL, tx + 1, ty - 2, 2.2); R(tx - 1, ty + 1, 3, 1, '#8f9ab0');
         if (s < 3.2) { const k = (s - 2.4) / 0.8; ctx.globalAlpha = 1 - k; for (let i = 0; i < 5; i++) { const a = i * 1.26; disc(tx + Math.cos(a) * (3 + k * 8), ty + Math.sin(a) * (2 + k * 5), 1, '#e8dcc8'); } ctx.globalAlpha = 1; } }
     }

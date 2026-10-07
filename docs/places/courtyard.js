@@ -30,8 +30,8 @@
   const LOOKS = {
     walker: { skin: '#f1c7a5', hair: '#d9b36a', hairStyle: 'long', top: '#4f9c6b', topStyle: 'tee', pants: '#2f3a55' },
     feeder: { skin: '#8d5a3b', hair: '#1f1f1f', hairStyle: 'short', top: '#e8c547', topStyle: 'sweat', pants: '#3b4a6b' },
-    snapper: { skin: '#e8b894', hair: '#6b3f22', hairStyle: 'messy', glasses: true, top: '#3b6fb6', topStyle: 'hoodie', pants: '#2b2f36' },
-    chaos: { skin: '#e8b894', hair: '#1b1b1b', hairStyle: 'messy', glasses: true, top: '#232323', topStyle: 'sweat', pants: '#1b1b1b', shoes: '#111111' },
+    snapper: { skin: '#e8b894', hair: '#6b3f22', hairStyle: 'messy', top: '#3b6fb6', topStyle: 'hoodie', pants: '#2b2f36' },
+    chaos: { skin: '#e8b894', hair: '#1b1b1b', hairStyle: 'messy', shades: true, top: '#232323', topStyle: 'sweat', pants: '#1b1b1b', shoes: '#111111' },
     founder: { skin: '#f2c8a8', hair: '#f4f4f4', hairStyle: 'short', beard: true, top: '#f2efe6', topStyle: 'sweat', pants: '#e8e4d8', shoes: '#8a6a4a' },
   };
   const MAL = 172, HAM = 154;
@@ -108,6 +108,7 @@
     } else { crab(214, 136, 1, t, false); T('?', 228, 117, 7, '#586274'); }
   };
 
+  const bread = (x, y, n) => { const xx = Math.round(x) - 1, yy = Math.round(y); R(xx, yy, n, 2, '#efd08e'); R(xx, yy, n, 1, '#b5793a'); if (n > 2) R(xx + n - 1, yy, 1, 2, '#b5793a'); };
   const pond = (st, id, t) => {
     R(272, 130, 74, 16, '#a9a497'); R(272, 130, 74, 2, '#c4bfb1'); for (let x = 276; x < 346; x += 9) R(x, 134 + (x % 2), 6, 1, '#918c80');
     R(275, 126, 68, 5, '#4f8cc0'); R(275, 126, 68, 1, '#78b6ea');
@@ -124,10 +125,12 @@
       R(bx - 3, by + 2, 7, 1, '#ffffff'); R(bx - 2, by + 3, 5, 1, '#dfe7f1'); line(bx, by + 1, bx, by - 3, '#ffffff'); R(bx + 1, by - 2, 2, 2, ORANGE);
       outlined('UPSTREAM >', 306, 112, 5, '#ffffff', '#2f6fd6', 'center');
     }
-    if (st.ripple != null) {
-      const r = t - st.ripple;
-      if (r < 2) { for (let i = 0; i < 3; i++) { const w = Math.round((r * 14 + i * 5) % 28); if (w > 2) { R(306 - w, 127 + (i % 2), 4, 1, '#cfe4f2'); R(306 + w - 4, 127 + (i % 2), 4, 1, '#cfe4f2'); } }
-        if (r < 1) { const fx2 = 300 + r * 14, fy = 125 - Math.sin(r * Math.PI) * 12; R(Math.round(fx2), Math.round(fy), 4, 2, '#f5a623'); R(Math.round(fx2) - 1, Math.round(fy) + (r < 0.5 ? 1 : -1), 1, 2, '#f7f3ea'); } }
+    for (const c of st.crumbs) {
+      const f = (t - c.t) / 0.7;
+      if (f < 1) { const x = c.from + (c.x - c.from) * f, y = 136 + (126 - 136) * f - Math.sin(f * Math.PI) * 16; bread(x, y, 3); continue; }
+      const r = t - c.t - 0.7;
+      if (r < 1.4) for (let i = 0; i < 2; i++) { const w = Math.round(r * 10 + i * 5); if (w > 2) { R(Math.round(c.x) - w - 2, 128 + i, 3, 1, '#cfe4f2'); R(Math.round(c.x) + w, 128 + i, 3, 1, '#cfe4f2'); } }
+      if (!c.gone) bread(c.x, 126 + Math.round(Math.sin(t * 2 + c.x)), c.bite ? 2 : 3);
     }
   };
 
@@ -210,7 +213,7 @@
       { id: 'dino', x: 628, label: 'Poke the dinosaur' },
     ],
     enter(st) {
-      fx = 122; st.quote = null; st.said = 0; st.bread = 0; st.gulls = []; st.flock = null; st.gate = 0; st.torch = false; st.cocos = []; st.shakes = 0; st.palmFall = null; st.dinoN = 0; st.clicks = 0; st.npcs = [
+      fx = 122; st.quote = null; st.said = 0; st.bread = 0; st.gulls = []; st.crumbs = []; st.flock = null; st.gate = 0; st.torch = false; st.cocos = []; st.shakes = 0; st.palmFall = null; st.dinoN = 0; st.clicks = 0; st.npcs = [
         { L: LOOKS.walker, x: 420, face: 1, home: t => 390 + (Math.sin(t * 0.13) * 0.5 + 0.5) * 100, coffee: true },
         { L: LOOKS.feeder, x: 358, face: -1, face0: -1, home: () => 358 },
         { L: LOOKS.snapper, x: 470, face: 1, face0: 1, home: () => 470, camera: true },
@@ -231,7 +234,11 @@
       if (rT > 7) st.yelled = false;
       if (st.quote == null && g.heroX() > 90) st.quote = t;
       while (st.quote != null && st.said < QUOTE.length && t - st.quote >= QUOTE[st.said][0]) { const [, x, s] = QUOTE[st.said++]; g.say(s, x, 128, 2.6); }
-      if (st.flock != null && t - st.flock > 14) { st.flock = null; st.bread = 0; st.gulls = []; }
+      if (st.flock != null && t - st.flock > 14) { st.flock = null; st.bread = 0; st.gulls = []; st.crumbs = []; }
+      // the first few gulls drop to the water, eat a floating chunk and fly off again
+      for (const c of st.crumbs) if (!c.claimed && t - c.t > 0.7) { const q = st.gulls.find((q, i) => i < 4 && !q.c && t - q.at > 1.6); if (q) { c.claimed = true; q.c = c; q.dive = t; } }
+      for (const q of st.gulls) if (q.c) { const ph = t - q.dive; if (ph > 1.8) q.c.bite = true; if (ph > 2.4) q.c.gone = true; if (ph > 3.6) q.c = null; }
+      st.crumbs = st.crumbs.filter(c => !c.gone);
       st.cocos.forEach(c => { if (c.y < 148) { c.vy += 300 * dt; c.y = Math.min(148, c.y + c.vy * dt); } else if (Math.abs(c.vx) > 1) { c.x += c.vx * dt; c.vx *= 1 - dt * 2; } });
       const race = RACES.includes(id) && !ev.walking;
       if (!race) st.race = null;
@@ -247,8 +254,8 @@
         if (n === 6) g.say('No more coconuts', 36, 128); else if (n === 8) g.say('*creak*', 36, 128);
         else if (n === 10) { st.palmFall = t; g.say('TIMBER!', 36, 128); g.egg('palm', 'You felled the palm tree'); }
         return true; }
-      if (id === 'pond') { st.ripple = t; if (st.flock != null) return true;
-        const n = ++st.bread; if (n >= 2) while (st.gulls.length < Math.min(10, (n - 1) * 2)) st.gulls.push(t + st.gulls.length % 2 * 0.4);
+      if (id === 'pond') { st.crumbs.push({ x: 288 + hash(st.bread * 7 + 1) * 46, from: g.heroX() + 4, t }); if (st.flock != null) return true;
+        const n = ++st.bread; if (n >= 2) while (st.gulls.length < Math.min(10, (n - 1) * 2)) st.gulls.push({ at: t + st.gulls.length % 2 * 0.4 });
         if (n === 10) { st.flock = t; g.egg('gulls', 'You summoned the gulls'); st.npcs.forEach((p, i) => g.say(['My sandwich!', 'Not the gulls!', 'Run!'][i], p.x, 128, 2)); }
         return true; }
       if (id === 'pair') { if (st.said >= QUOTE.length) { st.quote = t; st.said = 0; } return true; }
@@ -317,8 +324,14 @@
       R(EXIT - 12, 100, 24, 50, '#f7f3ea'); R(EXIT - 9, 103, 18, 47, '#1b2030'); R(EXIT - 12, 88, 24, 9, '#2fb67c'); T('EXIT', EXIT, 89.5, 5, '#ffffff', 'center');
       R(812, 24, 8, 126, '#c2b393');
       const gull = (x, y, i) => { const f = Math.sin(t * 9 + i * 1.3) > 0 ? 1 : 0, xx = Math.round(x), yy = Math.round(y); line(xx - 3, yy - f, xx, yy + 1, '#f7f7f7'); line(xx, yy + 1, xx + 3, yy - f, '#f7f7f7'); };
-      st.gulls.forEach((at, i) => { const k = clamp((t - at) / 1.6, 0, 1), e = 1 - k;
-        gull(306 + Math.sin(t * 0.9 + i * 2.1) * (30 + i * 3) + e * 260, 64 + (i % 5) * 9 + Math.sin(t * 1.7 + i) * 5 - e * 70, i); });
+      st.gulls.forEach((q, i) => { const k = clamp((t - q.at) / 1.6, 0, 1), e = 1 - k;
+        const bx = 306 + Math.sin(t * 0.9 + i * 2.1) * (30 + i * 3) + e * 260, by = 64 + (i % 5) * 9 + Math.sin(t * 1.7 + i) * 5 - e * 70;
+        if (!q.c) return gull(bx, by, i);
+        const ph = t - q.dive, sx = q.c.x - 4, sy = 124, ease = v => v * v * (3 - 2 * v);
+        if (ph < 1.2) { const a = ease(ph / 1.2); return gull(bx + (sx - bx) * a, by + (sy - 2 - by) * a, i); }
+        if (ph > 2.4) { const a = ease(Math.min(1, (ph - 2.4) / 1.2)); return gull(sx + (bx - sx) * a, sy - 2 + (by - sy + 2) * a, i); }
+        const pk = Math.floor(ph * 6) % 2, x = Math.round(sx);
+        R(x - 3, sy, 6, 2, '#f7f7f7'); R(x - 3, sy + 1, 6, 1, '#d8d8d8'); R(x - 3, sy, 2, 1, '#9aa0a6'); R(x + 2, sy - 2 + pk, 2, 2, '#f7f7f7'); R(x + 4, sy - 1 + pk, 1, 1, '#f5a623'); });
       if (st.flock != null) { const ft = t - st.flock, k = clamp(ft / 2.5, 0, 1), up = Math.max(0, ft - 11) * 90, hx = g.heroX();
         for (let i = 0; i < 320; i++) { const r = 40 + hash(i) * 170, a = t * (0.5 + hash(i + 7) * 0.6) + i * 2.4;
           gull(hx + Math.cos(a) * r + (1 - k) * (500 + hash(i + 3) * 300), 16 + hash(i + 11) * 120 + Math.sin(a * 1.7) * 10 - up - (1 - k) * 60, i); } }

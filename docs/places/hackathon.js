@@ -15,10 +15,10 @@
   const FOLK = [
     { skin: '#f1c9a5', hair: '#2b1d14', hairStyle: 'short', top: '#e85d5d', topStyle: 'tee', pants: '#2f3a55' },
     { skin: '#8d5a3b', hair: '#1b1b1b', hairStyle: 'long', top: '#6c8cff', topStyle: 'hoodie', pants: '#2f3a55' },
-    { skin: '#e8b894', hair: '#c96a2b', hairStyle: 'messy', glasses: true, top: '#ffd166', topStyle: 'tee', pants: '#3b3b3b' },
+    { skin: '#e8b894', hair: '#c96a2b', hairStyle: 'messy', top: '#ffd166', topStyle: 'tee', pants: '#3b3b3b' },
     { skin: '#c68a5e', hair: '#3a2a20', hairStyle: 'swept', beard: true, top: '#2d3a4a', topStyle: 'hoodie', logo: 'nfcore', logoColour: LIGHT, pants: '#2f3a55' },
     { skin: '#f6d3bd', hair: '#d9c27a', hairStyle: 'long', top: '#9b59b6', topStyle: 'sweat', pants: '#2f3a55' },
-    { skin: '#5a3a28', hair: '#111111', hairStyle: 'bald', glasses: true, top: '#3cc8b4', topStyle: 'tee', pants: '#333a44' },
+    { skin: '#5a3a28', hair: '#111111', hairStyle: 'bald', top: '#3cc8b4', topStyle: 'tee', pants: '#333a44' },
     { skin: '#f2d0b5', hair: '#6b4a2f', hairStyle: 'short', top: '#f5a623', topStyle: 'hoodie', pants: '#2f3a55' },
   ];
   const NEWBIE = { skin: '#d9a37c', hair: '#2b2b2b', hairStyle: 'messy', top: '#e0602e', topStyle: 'sweat', pants: '#2f3a55' };
@@ -86,7 +86,7 @@
       { id: 'stamp', x: 922, label: 'Stamp the paperwork' },
       { id: 'plant', x: 1052, label: 'Water the plants' },
     ],
-    enter(st) { Object.assign(st, { cur: -1, t0: 0, slices: 8, lint: 0, lintT: -9, doodles: 0, extra: 0, stamps: 0, stampT: -9, trip: -9, water: 0, mo: 0, docs: 0, papers: [] }); this._mo = MO_X; },
+    enter(st) { Object.assign(st, { cur: -1, t0: 0, slices: 8, lint: 0, lintT: -9, doodles: 0, extra: 0, stamps: 0, stampT: -9, trip: -9, water: 0, mo: 0, docs: 0, papers: [], fly: [] }); this._mo = MO_X; },
     beat(id, st) { st.cur = IDS.indexOf(id); st.t0 = time(); if (id === 'cats') g.carry('cat', true); },
     poke(id, st) {
       const t = time();
@@ -94,8 +94,8 @@
       if (id === 'laptop') { st.lint++; st.lintT = t; g.say(st.lint % 2 ? 'nf-core lint: all passed' : 'nf-core lint: 1 FAILED', 78, 112); return true; }
       if (id === 'board') { st.doodles++; return true; }
       if (id === 'docs') { g.say(['Step 1: read the docs', 'Step 2: say hi on Slack', 'Step 3: pick an issue'][st.docs++ % 3], 463, 108); return true; }
-      if (id === 'pizza') { if (st.slices > 0) st.slices--; g.say(st.slices ? `Nom. ${st.slices} slices left` : 'No pizza left. Classic.', 619, 128); return true; }
-      if (id === 'photo') { if (st.extra < 14) st.extra++; g.say(['Another cat photo', 'And another', 'Cats all the way down'][Math.min(2, Math.floor(st.extra / 4))], 842, 128); return true; }
+      if (id === 'pizza') { if (st.slices > 0) { st.slices--; st.fly.push(time()); if (!st.slices) { const t = time(); st.grumps = [[t + 0.8, 'Who ate all the pizza?!'], [t + 2, 'I only had one slice!'], [t + 3.2, 'That was the vegan one!']]; } } g.say(st.slices ? `Nom. ${st.slices} slices left` : 'No pizza left. Classic.', 619, 128); return true; }
+      if (id === 'photo') { if (st.extra < 14 && ++st.extra === 14 && !g.carry('cats')) { g.carry('cat', true); g.carry('cats', true); g.egg('cats', 'Cats all the way down'); g.say('Mrrrow?', g.heroX(), 120, 2.4); return true; } g.say(['Another cat photo', 'And another', 'Cats all the way down'][Math.min(2, Math.floor(st.extra / 4))], 842, 128); return true; }
       if (id === 'stamp') {
         st.stamps++; st.stampT = t; if (st.papers.length < 14) st.papers.push({ t0: t, d: hash(st.stamps * 17) < 0.5 ? -1 : 1, k: st.stamps });
         g.say(['APPROVED', 'APPROVED AGAIN', 'DOUBLY APPROVED', 'VERY APPROVED', 'IN TRIPLICATE?'][Math.min(4, st.stamps - 1)], 928, 116);
@@ -184,6 +184,9 @@
         else if (w < 8.2) nb = { x: 736 - (w - 7.9) * 66, f: 141, face: -1, mv: true, back: true };
         else seated.push([NEWBIE, SEATS[7], 7, w - 8.2]); }
       const waving = wa > 2.2 && wa < 6.5;
+      // the last slice gone: whoever is at the tables complains, or Mo if nobody has arrived yet
+      if (st.grumps && st.grumps.length && t >= st.grumps[0][0]) { const [, line] = st.grumps.shift(), xs = seated.length ? seated.map(q => q[1]) : [this._mo || MO_X];
+        g.say(line, xs[(2 - st.grumps.length) * 3 % xs.length], 118, 2.4); }
       for (const [L, sx, si] of seated) { const bob = Math.sin(t * 3 + si * 1.3) > 0.9 ? 1 : 0, face = si < 4 ? (si % 2 ? -1 : 1) : (si % 2 ? 1 : -1);
         person(L, sx, 141 + bob, t, face, false); if (waving && L !== NEWBIE) wave(L, sx, 141, t + si, face); if (L === NEWBIE) R(sx - 1, 132, 3, 3, LIGHT); }
       for (const [L, x] of walkers) person(L, x, 138, t, 1, true);
@@ -292,6 +295,11 @@
         if (te > 0.9) { const x = cx - 58, y = 66; R(x, y, 116, 34, '#c02a2a'); R(x + 2, y + 2, 112, 30, '#efe9d8'); R(x + 3, y + 3, 110, 28, '#c02a2a'); R(x + 4, y + 4, 108, 26, '#efe9d8');
           T('APPROVED', cx, y + 6, 10, '#c02a2a', 'center'); T('IN TRIPLICATE', cx, y + 19, 6, '#c02a2a', 'center'); }
         ctx.globalAlpha = 1; }
+      // a grabbed slice spins through the air into the hero's mouth
+      st.fly = st.fly.filter(f0 => time() - f0 < 0.6);
+      for (const f0 of st.fly) { const k = (time() - f0) / 0.6, hx = g.heroX() + 3, x = 619 + (hx - 619) * k, y = 113 + (137 - 113) * k - Math.sin(k * Math.PI) * 22;
+        ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.rotate(k * 9);
+        map2d(['ccccc', '.yry.', '.yyy.', '..y..'], -2, -2, { c: '#c98a3a', y: '#f2c14e', r: '#c8322c' }); ctx.restore(); }
     },
   };
 };

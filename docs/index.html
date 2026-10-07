@@ -370,6 +370,9 @@ const LEG_FRAMES = {
   idle:['...pppppp...','...pp..pp...','...pp..pp...','...pp..pp...','...kkk.kkk..'],
   a:   ['...pppppp...','..ppp..ppp..','..pp....pp..','.pp......pp.','.kkk.....kkk'],
   b:   ['...pppppp...','....pppp....','....pppp....','....pppp....','....kkkkk...'],
+  // moonwalk: one foot slides back flat while the other rests on its toes, knee bent
+  mwA: ['...pppppp...','...pp..pp...','...pp...pp..','...pp..pp...','..kkk...k...'],
+  mwB: ['...pppppp...','...pp..pp...','....pp.pp...','...pp..pp...','...k...kkk..'],
   kick:['...pppppp...','...pp.pppppk','...pp.....kk','...pp.......','...kkk......'],
 };
 function buildSprite(L,frame){
@@ -386,7 +389,7 @@ function buildSprite(L,frame){
     if(hs==='swept'){ fill(0,4,9,'h'); set(1,9,'h'); set(2,7,'h'); set(2,8,'h'); }
   }
   set(4,6,'e'); set(4,8,'e');
-  if(L.glasses){ set(4,5,'g'); set(4,7,'g'); set(3,6,'g'); set(3,8,'g'); }
+  if(L.shades){ set(4,5,'q'); set(4,7,'q'); set(3,6,'q'); set(3,8,'q'); }
   if(L.beard){ fill(6,3,8,'b'); fill(7,4,7,'b'); set(5,3,'b'); set(5,8,'b'); set(6,7,'m'); } else set(6,7,'m');
   fill(8,5,6,'s');
   fill(9,2,9,'t'); for(let r=10;r<=14;r++) fill(r,3,8,'t');
@@ -397,10 +400,12 @@ function buildSprite(L,frame){
   if(L.topStyle==='sweat'){ fill(14,3,8,'T'); set(9,5,'T'); set(9,6,'T'); }
   if(L.topStyle==='hoodie'){ set(8,3,'T'); set(8,4,'T'); set(8,7,'T'); set(8,8,'T'); if(!L.logo){ set(10,5,'w'); set(11,5,'w'); set(10,7,'w'); set(11,7,'w'); fill(13,4,7,'T'); } }
   const lg=L.logo&&LOGOS[L.logo]; if(lg) lg.rows.forEach((row,r)=>[...row].forEach((ch,c)=>{ if(ch!=='.') set(lg.r+r,lg.c+c,ch); }));
+  // on the phone: the back arm bends up to hold it to the ear
+  if(frame.startsWith('phone')){ for(let r=10;r<=14;r++) set(r,2,'.'); set(10,2,'T'); set(9,1,'T'); set(8,1,'T'); set(7,2,'s'); set(6,2,'s'); fill(3,2,2,'f'); set(4,2,'f'); set(5,2,'f'); }
   if(frame==='drink'){ for(let r=10;r<=14;r++) set(r,9,'.'); set(10,9,'T'); set(9,10,'T'); set(8,10,'T'); set(7,10,'s'); }
   if(frame.startsWith('cheer')){ const w=frame==='cheerB'?1:0; for(let r=10;r<=14;r++) set(r,9,'.');
     set(8,9,'T'); for(let r=4;r<=7;r++) set(r,10+(r<6?w:0),'T'); set(3,10+w,'s'); set(2,10+w,'s'); }
-  (LEG_FRAMES[frame]||LEG_FRAMES.idle).forEach((row,i)=>[...row].forEach((ch,c)=>{ if(ch!=='.') set(15+i,c,ch); }));
+  ((frame.startsWith('phone')?LEG_FRAMES[frame.slice(5)]:LEG_FRAMES[frame])||LEG_FRAMES.idle).forEach((row,i)=>[...row].forEach((ch,c)=>{ if(ch!=='.') set(15+i,c,ch); }));
   // crouching: drop the body three rows, fold the legs and reach a hand down and forward
   if(frame.startsWith('stroke')){ const up=g.slice(0,15).map(r=>[...r]); for(let r=0;r<20;r++) g[r].fill('.');
     up.forEach((row,r)=>{ g[r+3]=row; }); for(let r=13;r<=17;r++) g[r][9]='.';
@@ -409,15 +414,15 @@ function buildSprite(L,frame){
   return g.map(r=>r.join(''));
 }
 function spritePal(L){ const t=L.top, dark=lum(t)<0.22;
-  return { s:L.skin, h:L.hair, e:L.eye||'#1b1b1b', g:'#1b1b1b', b:L.beardColour||L.hair, m:mix(L.skin,'#5a2a1a',0.45),
-           t, T:dark?mix(t,'#ffffff',0.09):mix(t,'#000000',0.22), l:L.logoColour||'#3dbfa6', n:'#7a4a2a', w:'#eeeeee', p:L.pants||'#2f3a55', k:L.shoes||'#1b1b1b' }; }
+  return { s:L.skin, h:L.hair, e:L.eye||'#1b1b1b', b:L.beardColour||L.hair, m:mix(L.skin,'#5a2a1a',0.45),
+           t, T:dark?mix(t,'#ffffff',0.09):mix(t,'#000000',0.22), l:L.logoColour||'#3dbfa6', n:'#7a4a2a', w:'#eeeeee', q:'#1b1b1b', f:'#1b2332', p:L.pants||'#2f3a55', k:L.shoes||'#1b1b1b' }; }
 const spriteCache=new Map();
 function sprite(L,frame){ let c=spriteCache.get(L); if(!c){ c={pal:spritePal(L)}; spriteCache.set(L,c); } if(!c[frame]) c[frame]=buildSprite(L,frame); return [c[frame],c.pal]; }
 function person(L,x,feet,t,face,moving,s=1,force){
   if(Game.danceT>0){ const ph=Math.floor(Game.time*4+x/9)&3; face=ph<2?1:-1; moving=false; force=force||(ph&1?'a':'b'); feet-=(ph&1)*s; }
   else if(Game.ovT>0) feet-=Math.round(Math.abs(Math.sin(Game.time*7+x)))*3*s;
   const fr=force||(moving?['a','idle','b','idle'][Math.floor(t*8)%4]:'idle');
-  const [rows,pal]=sprite(L,fr); const bob=moving&&fr!=='idle'?-1:0;
+  const [rows,pal]=sprite(L,fr); const bob=moving&&fr!=='idle'&&fr!=='phone'?-1:0;
   const x0=Math.round(x)-6*s, top=Math.round(feet)-20*s;
   // the waistband row is drawn at both heights so a bob doesn't open a gap at the hips
   for(let r=0;r<20;r++){ const row=rows[r], offs=r<15?[bob]:r===15&&bob?[bob,0]:[0];
@@ -463,9 +468,9 @@ const OUT_W=1320, OUT_FEET=151, ENTRANCE=420;
 const CROWD=[
   { skin:'#f2c9a0', hair:'#b5651d', hairStyle:'long', top:'#4a7fb5', topStyle:'sweat', pants:'#2b3445' },
   { skin:'#8d5a3b', hair:'#1b1b1b', hairStyle:'short', top:'#d98c3a', topStyle:'tee', pants:'#3b3b46' },
-  { skin:'#e8b894', hair:'#e0c068', hairStyle:'swept', glasses:true, top:'#6a4c93', topStyle:'sweat', pants:'#2f3a55' },
+  { skin:'#e8b894', hair:'#e0c068', hairStyle:'swept', top:'#6a4c93', topStyle:'sweat', pants:'#2f3a55' },
   { skin:'#c98e62', hair:'#3a2a1f', hairStyle:'messy', beard:true, top:'#2e8b57', topStyle:'tee', pants:'#3a3f4b' },
-  { skin:'#f6d3bd', hair:'#8b8b8b', hairStyle:'bald', glasses:true, top:'#8a2f3c', topStyle:'sweat', pants:'#2b2b36' },
+  { skin:'#f6d3bd', hair:'#8b8b8b', hairStyle:'bald', top:'#8a2f3c', topStyle:'sweat', pants:'#2b2b36' },
   { skin:'#a86f4c', hair:'#2b1b12', hairStyle:'long', top:'#e8d8b0', topStyle:'tee', pants:'#4a3b2f' },
 ];
 const CLEANER={ skin:'#d9a27c', hair:'#3a3a3a', hairStyle:'short', top:'#3d6f8e', topStyle:'tee', pants:'#3d6f8e', shoes:'#2b2b2b' };
@@ -474,9 +479,11 @@ const GUARDS=[{ skin:'#c98e62', hair:'#1b1b1b', hairStyle:'bald', top:'#d6dc3c',
   { skin:'#f2c9a0', hair:'#5a3d2b', hairStyle:'short', top:'#d6dc3c', topStyle:'tee', pants:'#1b1f2a' }];
 // Every egg in the venue, engine and places; the end screen counts against this, so add new ids here.
 const EGGS=['sea','plant','organiser','bell','printer','cow','cat','fight','moonwalk','dance','sweep','rain','coffee',
-  'star','theatre-title','triplicate','dino','hoodie','poster','arcade','lost','photobooth','palm','toilet','mirror','dryer','knock','gulls'];
+  'star','theatre-title','triplicate','dino','hoodie','poster','arcade','lost','photobooth','palm','toilet','mirror','dryer','knock','gulls','cats'];
 // the venue cat from the hackathon's photos (ginger, white chest), side on, facing right
 const CAT_PAL={ f:'#e8913a', s:'#c06a22', w:'#f6efe2', e:'#3d8a3a', n:'#e88aa0' };
+const CAT_PALS=[{ f:'#2b2b2b', s:'#1b1b1b', w:'#f6efe2', e:'#e8c547', n:'#e88aa0' }, { f:'#9aa0a6', s:'#6d737a', w:'#e8e8e8', e:'#3d8a3a', n:'#e88aa0' },
+  { f:'#f4f0e8', s:'#d8cfc0', w:'#ffffff', e:'#5aa0e0', n:'#e88aa0' }, { f:'#8a5a3a', s:'#5a3a22', w:'#e8d8c0', e:'#e8c547', n:'#c86a7a' }, CAT_PAL];
 const CAT_BODY=['..........f..f','f.........ffff','f.........ffef','.f.fsfsfsffwwn','..ffffffffffw.','..fffffffffww.'];
 const CAT_WALK=[[...CAT_BODY,'..f.f.....f.f.','..w.w.....w.w.'],[...CAT_BODY,'...f.f...f.f..','...w.w...w.w..']];
 const CAT_SIT=['.....f..f','.....ffff','.....ffef','.....ffwn','....ffww.','...fsfww.','..ffsfww.','..fffffw.','..ffsffw.','fffffffww'];
@@ -498,7 +505,7 @@ const Game = {
     this.plants=[{x:72,ang:0,state:'up',dir:1},{x:QA_DOOR-48,ang:0,state:'up',dir:1}]; this.kickT=0; this.asker=null;
     this.loo={ knocks:0, tries:0, mirrorT:-9, dryT:-9, tapT:-9 }; this.dk={ door:0, fdoor:0, rings:0, ringT:-9, glareT:-9, jamT:-9, totesT:-9, totesDown:false }; this.fy={ waves:0, wave:null }; this.askerScene=null; this.pl=null; this.topic=null;
     this.p={x:40,face:1,t:0,moving:false}; this.camX=0;
-    Object.assign(this,{ cat:null, fx:[], reacts:[], annoy:{who:null,n:0,t:0}, fight:null, saved:{}, resume:null, revoked:false, visitor:false,
+    Object.assign(this,{ cat:null, herd:null, fx:[], reacts:[], annoy:{who:null,n:0,t:0}, fight:null, saved:{}, resume:null, revoked:false, visitor:false,
       jit:0, gold:false, drinkT:-9, strokeT:-9, strokeFace:1, danceT:0, ovT:0, jumpT:0, openAt:0, idleT:0, idleRun:0, moonT:0, sweeping:false, cl:{x:SWEEP[0],face:1,jobs:[]}, cof:{cups:0,fallT:null,mopT:null,side:[true,true,true]}, hostSeen:new Set(), carried:{} });
     Fade.busy=false; $('#fade').style.opacity='0'; Input.queue.length=0;
     Dlg.close(); Prompt.clear(); Title.hide(); Card.hide(); Caption.hide(); Big.hide(); Menu.show();
@@ -553,7 +560,7 @@ const Game = {
     const live=!['menu','select'].includes(this.scene);
     if(Input.code){ Input.code=false; if(live){ this.danceT=3; this.egg('dance','Everybody dance'); } }
     if(Input.queue.length||Input.dir()){ if(this.idleT<0) this.idleRun++; this.idleT=0; } else this.idleT+=dt;
-    this.updCleaner(dt); if(live) this.updCat(dt);
+    this.updCleaner(dt); if(live){ this.updCat(dt); this.updHerd(dt); }
     if(this.scene==='foyer') this.updateDesk(dt);
     if(Fade.busy) return;
     if(Dlg.open){ if(Input.take('action','right')) Dlg.next(); return; }
@@ -757,6 +764,11 @@ const Game = {
     if(Math.abs(dx)>3){ c.mode='walk'; c.face=Math.sign(dx); c.x+=c.face*Math.min(Math.abs(dx),Math.max(80,Math.abs(dx)*8)*dt); return; }
     if(c.mode==='walk'){ c.mode='sit'; c.t=t; c.face=p.face; }
     const a=t-c.t; if(c.mode==='sit'&&a>5){ c.mode='wash'; c.t=t; } else if(c.mode==='wash'&&a>3){ c.mode='sit'; c.t=t; } },
+  // every cat photo pinned up: fifteen more cats join the one that follows you
+  updHerd(dt){ const p=this.p; if(!this.carried.cats || !this.cat || this.fight) return;
+    if(!this.herd) this.herd=[...Array(15)].map((_,i)=>({ x:this.cat.x-p.face*12*(i+1), face:p.face, moving:false, pal:CAT_PALS[i%CAT_PALS.length] }));
+    let lead=this.cat.x; for(const c of this.herd){ const dx=lead-p.face*12-c.x; c.moving=Math.abs(dx)>2;
+      if(c.moving){ c.face=Math.sign(dx); c.x+=c.face*Math.min(Math.abs(dx),Math.max(80,Math.abs(dx)*6)*dt); } else c.face=p.face; lead=c.x; } },
   stroke(){ const c=this.cat, y=this.feet()-10; if(!c || this.time-this.strokeT<1.2) return; c.mode='sit'; c.t=this.time;
     this.strokeT=this.time; this.strokeFace=this.p.face; this.p.face=Math.sign(c.x-this.p.x)||1;
     c.strokes++; this.say('prrr',c.x,y,1.6);
@@ -814,9 +826,9 @@ const Game = {
     for(const b of this.bubbles){ const w=Math.ceil(tw(b.s,5))+6, vx=this.camX+CX, x=Math.round(clamp(b.x-w/2,vx+2,vx+VW-CROP-w-2)), y=Math.round(b.y)-12, bx=Math.round(b.x);
       R(x-1,y-1,w+2,11,'#1b2332'); R(x,y,w,9,'#ffffff'); R(bx-2,y+9,5,1,'#ffffff'); R(bx-1,y+10,3,1,'#ffffff'); R(bx,y+11,1,1,'#ffffff'); T(b.s,x+3,y+2,5,'#1b2332'); } },
   drawHero(feet){ if(this.jumpT>0) feet-=Math.round(Math.sin(Math.PI*(1-this.jumpT/0.6))*9); const p=this.p,
-      x=p.x+(this.jit?(Math.floor(this.time*12)%2?1:-1)*0.6:0), drink=!p.moving&&this.time-this.drinkT<1.2, crouch=!p.moving&&this.time-this.strokeT<1.2;
-    person(this.hero().look,x,feet,p.t,p.face,p.moving,1,this.kickT>0.12&&this.kickT<0.42?'kick':drink?'drink':crouch?(Math.floor(this.time*6)%2?'strokeA':'strokeB'):null);
-    const bob=p.moving&&Math.floor(p.t*8)%2===0?-1:0, top=Math.round(feet)-20+bob, x0=Math.round(x)-6, px=c=>x0+(p.face<0?11-c:c);
+      x=p.x+(this.jit?(Math.floor(this.time*12)%2?1:-1)*0.6:0), drink=!p.moving&&this.time-this.drinkT<1.2, crouch=!p.moving&&this.time-this.strokeT<1.2, moon=p.moving&&this.moonT>0;
+    person(this.hero().look,x,feet,p.t,p.face,p.moving&&!moon,1,this.kickT>0.12&&this.kickT<0.42?'kick':drink?'drink':crouch?(Math.floor(this.time*6)%2?'strokeA':'strokeB'):moon?(Math.floor(p.t*3)%2?'mwA':'mwB'):null);
+    const bob=p.moving&&!moon&&Math.floor(p.t*8)%2===0?-1:0, top=Math.round(feet)-20+bob, x0=Math.round(x)-6, px=c=>x0+(p.face<0?11-c:c);
     if(this.gold){ const g=Math.sin(this.time*5)>0?'#ffe680':'#ffc21a'; const ey=top+4+(crouch?3:0); R(px(6),ey,1,1,g); R(px(8),ey,1,1,g); }
     if(this.danceT>0||this.ovT>0||crouch) return;
     // the cup travels from the side to the hero's mouth, then is held there: a small version of cupArt
@@ -839,6 +851,8 @@ const Game = {
     else if(h==='party') for(let i=0;i<8;i++) R(hx-4+(i>>1),top+1-i,8-i,1,i%2?'#ffd166':'#b28dff');
     else if(h==='shades'){ R(hx-5,top+4,3,2,'#1b1b1b'); R(hx,top+4,3,2,'#1b1b1b'); R(hx-2,top+4,2,1,'#1b1b1b'); } },
   drawCat(feet){ const c=this.cat; if(!c) return;
+    if(this.herd&&this.carried.cats) this.herd.forEach((h,i)=>{ const m=h.moving?CAT_WALK[Math.floor(this.time*7+i)%2]:CAT_SIT, r=h.face<0?flip(m):m;
+      map2d(r,Math.round(h.x)-(r[0].length>>1),Math.round(feet)-r.length,h.pal); });
     const m=c.mode==='walk'||c.mode==='leave'?CAT_WALK[Math.floor(this.time*7)%2]:c.mode==='wash'&&Math.floor(this.time*2.5)%2?CAT_WASH:CAT_SIT, r=c.face<0?flip(m):m;
     map2d(r,Math.round(c.x)-(r[0].length>>1),Math.round(feet)-r.length,CAT_PAL); },
   drawCloud(cx,feet,a){ const y=feet-11, t=this.time;
@@ -1076,7 +1090,7 @@ const Game = {
     return out; },
   updateDesk(dt){ const dk=this.dk, hx=this.p.x-DESK_X, near=hx<46||this.deskWalkers().some(w=>w.x<46);
     dk.door+=((near?1:0)-dk.door)*(1-Math.exp(-dt*5));
-    dk.fdoor+=((Math.abs(hx-DESK_DOOR)<44?1:0)-dk.fdoor)*(1-Math.exp(-dt*5)); },
+    dk.fdoor+=((Math.abs(hx-DESK_DOOR)<44||this.deskWalkers().some(w=>w.x>DESK_DOOR-40)?1:0)-dk.fdoor)*(1-Math.exp(-dt*5)); },
   ringBell(){ const dk=this.dk; dk.rings++; dk.ringT=this.time;
     if(dk.rings<3) return;
     dk.glareT=this.time; this.say(['...','Yes?','Still here.','Please stop.'][Math.min(dk.rings-3,3)],DESK_X+DESK_GREETER,106);
@@ -1268,7 +1282,7 @@ const Game = {
       if(i>=2){ const cx=f>0?x+3:x-5; R(cx,feet-9,3,3,'#ffffff'); R(cx,feet-9,3,1,'#c98a4a'); }
       if(sp && i%2===Math.floor(t/2.4)%2) talk(x,feet,i); });
     const px=PHONE_X+Math.sin(t*0.35)*12, pc=Math.cos(t*0.35), pf=pc>0?1:-1;
-    person(CROWD[4],px,153,t,pf,Math.abs(pc)>0.2); R(Math.round(px)+(pf>0?-3:1),136,2,4,'#1b2332');
+    { const mv=Math.abs(pc)>0.2, leg=mv?['a','','b',''][Math.floor(t*8)%4]:''; person(CROWD[4],px,153,t,pf,mv,1,'phone'+leg); }
     if(Math.floor(t/3)%3===1) talk(px,153,7);
     person(CLEANER,cl.x,153,t,cf,true);
     { const hx=Math.round(cl.x)+cf*3, mx=Math.round(cl.x)+cf*11+Math.round(Math.sin(t*5)*2); line(hx,140,mx,151,'#8a6a4a'); R(mx-3,151,7,3,'#d9d4c4'); R(mx-3,153,7,1,'#b3ad9c'); }

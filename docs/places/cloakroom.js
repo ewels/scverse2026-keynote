@@ -12,9 +12,9 @@
   const tick = (x, y, c) => { line(x, y + 2, x + 2, y + 4, c); line(x + 2, y + 4, x + 6, y - 2, c); line(x + 1, y + 2, x + 2, y + 3, c); line(x + 2, y + 3, x + 6, y - 3, c); };
 
   const LOOKS = {
-    att: { skin: '#efc6a3', hair: '#dcdcdc', hairStyle: 'swept', glasses: true, top: '#6b1f2a', topStyle: 'sweat', pants: '#2b2b36' },
+    att: { skin: '#efc6a3', hair: '#dcdcdc', hairStyle: 'swept', top: '#6b1f2a', topStyle: 'sweat', pants: '#2b2b36' },
     q1: { skin: '#f1c7a5', hair: '#d9b36a', hairStyle: 'long', top: '#c8322c', topStyle: 'sweat', pants: '#2f3a55' },
-    q2: { skin: '#8d5a3b', hair: '#1f1f1f', hairStyle: 'short', glasses: true, top: '#3b6fb6', topStyle: 'hoodie', pants: '#2b2f36' },
+    q2: { skin: '#8d5a3b', hair: '#1f1f1f', hairStyle: 'short', top: '#3b6fb6', topStyle: 'hoodie', pants: '#2b2f36' },
     q3: { skin: '#e8b894', hair: '#6b3f22', hairStyle: 'messy', top: '#e8c547', topStyle: 'tee', pants: '#3b4a6b' },
   };
   const HUMANS = [LOOKS.q1, LOOKS.q2, LOOKS.q3];
@@ -188,9 +188,21 @@
     if (t > 1.6) T('skills/', x + 65, y + 48, 5, '#1b4a32', 'center');
     ctx.globalAlpha = 1;
   };
-  const readme = (cx, a) => {
-    const x = callout(cx, 70, 50, 18, '#f6ead0', '#7a2a1a', cx, 70, a);
-    T('README.md', cx, 76, 5, '#7a2a1a', 'center'); ctx.globalAlpha = 1; return x;
+  const humanPack = (t, a) => {
+    const cx = 124, y = 46, x = callout(cx, y, 92, 58, '#f6ead0', '#7a2a1a', 120, y, a);
+    R(x, y, 92, 11, '#7a2a1a'); T('WELCOME PACK', cx, y + 3, 6, '#ffd166', 'center');
+    if (t > 0.5) { const bx = x + 5, by = y + 15;
+      R(bx, by, 38, 30, '#1b2332'); R(bx + 1, by + 1, 36, 28, '#ffffff'); R(bx + 1, by + 1, 36, 4, '#d9dee6');
+      ['#ff5f56', '#ffbd2e', '#27c93f'].forEach((c, i) => R(bx + 3 + i * 3, by + 2, 2, 2, c));
+      R(bx + 1, by + 5, 9, 24, '#eef2f8'); for (let i = 0; i < 5; i++) R(bx + 3, by + 8 + i * 4, 5, 1, i === 1 ? '#6c8cff' : '#9aa0aa');
+      R(bx + 13, by + 8, 16, 2, '#1b2332'); for (let i = 0; i < 4; i++) R(bx + 13, by + 13 + i * 3, 21 - (i * 5) % 9, 1, '#9aa0aa'); R(bx + 13, by + 25, 14, 2, '#2b3445');
+      T('docs site', bx + 19, y + 48, 5, '#7a2a1a', 'center'); }
+    if (t > 0.9) { const bx = x + 49, by = y + 15, k = k01((t - 0.9) / 0.6);
+      R(bx, by, 38, 30, '#1b2332'); R(bx + 1, by + 1, 36, 28, '#ffffff');
+      ['#6c8cff', '#f5a623', '#3cc87a', '#e85d75'].forEach((c, i) => { const h = Math.round([14, 20, 10, 24][i] * k); R(bx + 5 + i * 8, by + 26 - h, 6, h, c); });
+      R(bx + 3, by + 26, 32, 1, '#1b2332');
+      T('visuals', bx + 19, y + 48, 5, '#7a2a1a', 'center'); }
+    ctx.globalAlpha = 1;
   };
 
   const digger = (t, st, s) => {
@@ -324,7 +336,7 @@
       }
       if (on('llms')) { const a = k01(s / 0.4), r = Math.round((1 - a) * 12); humanTicket(124, 58 + r, a, t); if (s > 0.6) robotTicket(294, 58 + Math.round((1 - k01((s - 0.6) / 0.4)) * 12), k01((s - 0.6) / 0.4)); }
       if (on('env')) envPanel(s, k01((s - 0.6) / 0.3));
-      if (on('skills')) { if (s > 0.6) welcomePack(s - 0.6, k01((s - 0.6) / 0.3)); if (s > 2.4) readme(124, k01((s - 2.4) / 0.3)); }
+      if (on('skills')) { if (s > 0.6) welcomePack(s - 0.6, k01((s - 0.6) / 0.3)); if (s > 1.4) humanPack(s - 1.4, k01((s - 1.4) / 0.3)); }
       if (on('context')) digger(t, st, s);
       if (on('tokens')) tokens(t, s);
     },

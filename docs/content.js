@@ -6,7 +6,7 @@
 //             cameo when poked, and the first of them carries audience questions.
 //   id, name, handle, accent (hex colour)
 //   look      sprite: skin, hair, hairStyle (short | messy | long | swept | bald | antenna),
-//             eye, beard, beardColour, glasses, top, topStyle (tee | sweat | hoodie),
+//             eye, beard, beardColour, top, topStyle (tee | sweat | hoodie),
 //             logo (a LOGOS key), logoColour, pants, shoes
 //   facts     [label, value] rows on the character card
 //   bars      [label, 0-100] stat bars on the card
@@ -44,21 +44,21 @@
 
 const CHARACTERS = [
   { id:'lukas', name:'Lukas', handle:'@zethson', accent:'#76b900',
-    look:{ skin:'#efc6a3', hair:'#3a2a1f', hairStyle:'short', beard:false, glasses:false, top:'#151515', topStyle:'tee', logo:'chip', logoColour:'#76b900', pants:'#2b3445', shoes:'#e9e9e9' },
+    look:{ skin:'#efc6a3', hair:'#3a2a1f', hairStyle:'short', beard:false, top:'#151515', topStyle:'tee', logo:'chip', logoColour:'#76b900', pants:'#2b3445', shoes:'#e9e9e9' },
     facts:[['Name','Lukas Heumos'],['Class','GPU enthusiast'],['Guild','scverse'],['Quests','pertpy, operations'],['Status','Not presenting today']],
     bars:[['Organising',99],['Green-ness',100],['Keynote slot',0]],
     lore:['Co-organises this conference','Would happily give this talk','Is not giving this talk'],
     special:'Accelerate everything',
     cameo:'Bold choice. I would have picked me.' },
   { id:'luca', name:'Luca', handle:'@LucaMarconato', accent:'#ef5a4f',
-    look:{ skin:'#eec39d', hair:'#2a1f18', hairStyle:'messy', beard:false, glasses:false, top:'#c8322c', topStyle:'sweat', pants:'#2f3a4f', shoes:'#1b1b1b' },
+    look:{ skin:'#eec39d', hair:'#2a1f18', hairStyle:'messy', beard:false, top:'#c8322c', topStyle:'sweat', pants:'#2f3a4f', shoes:'#1b1b1b' },
     facts:[['Name','Luca Marconato'],['Class','Spatial explorer'],['Guild','scverse'],['Quest','spatialdata'],['Status','Not presenting today']],
     bars:[['Spatial awareness',99],['Jumper redness',100],['Keynote slot',0]],
     lore:['Co-organises this conference','Knows where everything is','Still not on stage'],
     special:'Map the room',
     cameo:'Good luck up there!' },
   { id:'phil', name:'Phil', handle:'@ewels', accent:'#2ec4b6',
-    look:{ skin:'#f6d3bd', hair:'#4a403a', hairStyle:'messy', beard:false, glasses:false, top:'#111111', topStyle:'hoodie', logo:'nfcore', logoColour:'#3cc8b4', pants:'#2f3a55', shoes:'#1b1b1b' },
+    look:{ skin:'#f6d3bd', hair:'#4a403a', hairStyle:'messy', beard:false, top:'#111111', topStyle:'hoodie', logo:'nfcore', logoColour:'#3cc8b4', pants:'#2f3a55', shoes:'#1b1b1b' },
     facts:[['Name','Phil Ewels'],['Class','Product Manager, Open Source'],['Guild','Seqera'],['Base','Stockholm, via the UK']],
     bars:[['Open source',99],['Community',96],['QC reports',100],['Slide decks',0]],
     lore:['Co-founded nf-core','Created MultiQC','Works on Nextflow and nf-core','Makes the Nextflow Podcast'],
@@ -69,7 +69,7 @@ const CHARACTERS = [
 const TOPICS = {
   why:      { title:'Why bother writing software?', short:'WHY', colour:'#ff6f91', icon:'brick', place:'theatre', size:'thick', opener:true,
               blurb:'If an agent can write a tool in minutes, why build software carefully at all? Deterministic building blocks, and spending AI effort on the commons.',
-              host:{ name:'Sam the Session Chair', look:{ skin:'#d9a27c', hair:'#5a3d2b', hairStyle:'swept', glasses:true, top:'#3a3550', topStyle:'sweat', pants:'#2b2b36' } },
+              host:{ name:'Sam the Session Chair', look:{ skin:'#d9a27c', hair:'#5a3d2b', hairStyle:'swept', top:'#3a3550', topStyle:'sweat', pants:'#2b2b36' } },
               beats:[
                 { at:'podium', big:'Why bother writing software any more?' },
                 { at:'screen', id:'vibes', say:'Vibe-coded tools: fast, private, disposable' },
@@ -116,7 +116,7 @@ const TOPICS = {
                 { at:'counter', id:'two', say:'Your tools now have two audiences' },
                 { at:'counter', id:'llms', say:'llms.txt and .md URLs: plain text for agents' },
                 { at:'rail', id:'env', say:'Agents announce themselves: env vars' },
-                { at:'counter', id:'skills', say:'AGENTS.md and project skills: a welcome pack' },
+                { at:'counter', id:'skills', say:'Welcome packs: docs and visuals, AGENTS.md and skills' },
                 { at:'pile', id:'context', say:'Context is everything' },
                 { at:'rail', id:'richclick', feature:'richclick', say:'The rich-click help story',
                   steps:['Plain click --help','rich-click: help that people enjoy reading','Agent mode: the same help, without the boxes'] },
@@ -148,7 +148,7 @@ const TOPICS = {
               ] },
   docs:     { title:'Building awesome docs sites', short:'DOCS', colour:'#2ec4d6', icon:'sign', place:'corridor', size:'thin',
               blurb:'Documentation sites people actually enjoy: starlight-quiz, starlight-pydocs and starlight-codeblocks.',
-              host:{ name:'Dot the Docent', look:{ skin:'#a86f4c', hair:'#1f1f1f', hairStyle:'short', glasses:true, top:'#2ec4d6', topStyle:'hoodie', pants:'#263042' } },
+              host:{ name:'Dot the Docent', look:{ skin:'#a86f4c', hair:'#1f1f1f', hairStyle:'short', top:'#2ec4d6', topStyle:'hoodie', pants:'#263042' } },
               beats:[
                 { at:'signs', say:'Good docs are signposts' },
                 { at:'board', say:'starlight-codeblocks: 26 features for code' },

@@ -13,12 +13,12 @@
     { skin: '#efc6a3', hair: '#3a2a1f', hairStyle: 'short', top: '#e85d5d', topStyle: 'tee', pants: '#2f3a4f' },
     { skin: '#a86f4c', hair: '#1f1f1f', hairStyle: 'long', top: '#2ec4d6', topStyle: 'hoodie', pants: '#2f3a4f' },
     { skin: '#e8b894', hair: '#d9a441', hairStyle: 'swept', top: '#3cc87a', topStyle: 'tee', pants: '#2f3a4f' },
-    { skin: '#c98e62', hair: '#8b2f2f', hairStyle: 'messy', glasses: true, top: '#f5a623', topStyle: 'sweat', pants: '#2f3a4f' },
+    { skin: '#c98e62', hair: '#8b2f2f', hairStyle: 'messy', top: '#f5a623', topStyle: 'sweat', pants: '#2f3a4f' },
     { skin: '#f2c9a0', hair: '#4a403a', hairStyle: 'bald', beard: true, top: '#9b6cf0', topStyle: 'tee', pants: '#2f3a4f' },
   ];
   const GUESTS = [
     { L: { skin: '#f6d3bd', hair: '#c86a3a', hairStyle: 'long', top: '#4a7a9a', topStyle: 'sweat', pants: '#2b3445' }, x: 458, f: 1 },
-    { L: { skin: '#8a5a3c', hair: '#1f1f1f', hairStyle: 'short', glasses: true, top: '#ff8fa3', topStyle: 'tee', pants: '#2b3445' }, x: 530, f: -1 },
+    { L: { skin: '#8a5a3c', hair: '#1f1f1f', hairStyle: 'short', top: '#ff8fa3', topStyle: 'tee', pants: '#2b3445' }, x: 530, f: -1 },
   ];
   const DONE = [[482, -1], [506, 1], [444, 1], [542, -1], [494, 1]];
   const CLEANER = { skin: '#d9a27c', hair: '#3a3a3a', hairStyle: 'short', top: '#3d6f8e', topStyle: 'tee', pants: '#3d6f8e', shoes: '#2b2b2b' };
