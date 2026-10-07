@@ -556,7 +556,8 @@ const Game = {
     else if(pl.target==null && Input.take('action')){ const p=this.p, vis=pokeable.filter(o=>o.x>this.camX+8 && o.x<this.camX+VW-8).sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x));
       if(vis.length){ pl.target=vis[0].x; pl.pokeAfter=vis[0].id; } }
     if(asking||Fade.busy) return;
-    if(it) Prompt.set(`<b>●</b> ${esc(it.label)}`);
+    // props stay unlabelled mid-talk so the pill never covers the scene; Action still finds them
+    if(it && (pl.idx<0 || pl.idx>=pl.t.beats.length)) Prompt.set(`<b>●</b> ${esc(it.label)}`);
     else if(pl.out) Prompt.clear();
     else if(pl.idx<0) Prompt.set('<b>◀</b> Leave<span class="or">|</span><b>▶</b> Start');
     else if(pl.idx>=pl.t.beats.length && pl.target==null) Prompt.set('<b>▶</b> Back to the foyer');
