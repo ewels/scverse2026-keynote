@@ -33,15 +33,11 @@ header p{ margin:4px 0 0; color:var(--muted); max-width:60ch; }
 #shell{ position:relative; }
 .hbtns{ display:flex; gap:8px; flex-wrap:wrap; }
 #side, #strip{ display:none; }
-#shell.live{ --side:clamp(170px,18%,360px); display:grid; grid-template-columns:minmax(0,1fr) var(--side); grid-template-rows:auto auto; width:min(100%, calc((100svh - 330px) * 1.7778 * 1.22)); margin:0 auto; background:#0b0f1c; border-radius:12px; overflow:hidden; }
-#shell.live .stage{ grid-column:1; grid-row:1; width:100%; border-radius:0; }
-#shell.live #side{ display:flex; grid-column:2; grid-row:1 / span 2; }
-#shell.live #strip{ display:flex; grid-column:1; grid-row:2; min-height:clamp(64px, 9vw, 190px); }
-#shell.live:fullscreen{ --side:18vw; --strip:13vh; display:grid; align-items:stretch; justify-items:stretch; width:100vw; height:100vh; max-width:none; border-radius:0;
-  grid-template-columns:min(calc(100vw - var(--side)), calc((100vh - var(--strip)) * 16 / 9)) var(--side);
-  grid-template-rows:calc(min(calc(100vw - var(--side)), calc((100vh - var(--strip)) * 16 / 9)) * 9 / 16) 1fr;
-  justify-content:center; align-content:stretch; }
-#shell.live:fullscreen .stage{ width:100%; }
+#shell.live{ --side:clamp(170px,18%,360px); display:grid; grid-template-columns:minmax(0,1fr) var(--side); grid-template-rows:minmax(0,1fr); width:min(100%, max(480px, calc((100svh - 220px) * 16 / 9))); aspect-ratio:16/9; margin:0 auto; background:#0b0f1c; border-radius:12px; overflow:hidden; }
+#shell.live .stage{ aspect-ratio:auto; width:100%; height:100%; border-radius:0; }
+#shell.live #side, #shell.live #strip{ display:flex; }
+#shell.live:fullscreen{ --side:18vw; display:grid; align-items:stretch; width:100vw; height:100vh; aspect-ratio:auto; border-radius:0; }
+#shell.live:fullscreen .stage{ width:100%; max-width:177.78vh; }
 #side{ flex-direction:column; align-items:center; gap:.4em; padding:calc(var(--sw,2px)*6) calc(var(--sw,2px)*5); background:#111727; color:#e8ecf5; border-left:2px solid #232c47; text-align:center; }
 #side .qr{ width:92%; aspect-ratio:1; image-rendering:pixelated; background:#fff; }
 #side p{ margin:0; }
@@ -54,16 +50,16 @@ header p{ margin:4px 0 0; color:var(--muted); max-width:60ch; }
 #side .conn{ margin-top:.6em; font-size:calc(var(--sw,2px)*6.5); color:#6f7a99; }
 #side .conn::before{ content:"● "; color:#ff6b6b; }
 #side .conn.on::before{ color:#4be06f; }
-#strip{ gap:1.2%; padding:1.2% 1.4%; background:#0e1322; border-top:2px solid #232c47; align-items:stretch; }
-#strip .tb{ --c:#ffd166; flex:1 1 0; min-width:0; display:flex; align-items:center; gap:calc(var(--sh,1.5px)*6); background:#151c30; border:2px solid #232c47; border-left:5px solid var(--c); padding:0 calc(var(--sh,1.5px)*7); }
-#strip .tb canvas{ height:calc(var(--sh,1.5px)*40); width:auto; aspect-ratio:auto; image-rendering:pixelated; flex:none; }
-#strip .tb .body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:calc(var(--sh,1.5px)*9); }
-#strip .tb .tt{ font-family:Silkscreen, SilkscreenLocal, "Courier New", monospace; font-size:calc(var(--sh,1.5px)*15); line-height:1; color:var(--c); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-#strip .tb .br{ display:flex; align-items:center; gap:calc(var(--sh,1.5px)*5); }
-#strip .tb .bar{ flex:1; height:calc(var(--sh,1.5px)*20); background:#0b0f1c; position:relative; }
-#strip .tb .bar i{ position:absolute; top:0; bottom:0; left:0; width:0; background:repeating-linear-gradient(90deg, var(--c) 0 calc(var(--sh,1.5px)*5), transparent calc(var(--sh,1.5px)*5) calc(var(--sh,1.5px)*6.5)); transition:width .6s steps(8); }
-#strip .tb .n{ font-family:Silkscreen, SilkscreenLocal, "Courier New", monospace; font-size:calc(var(--sh,1.5px)*15); color:#fff; min-width:2ch; text-align:right; }
-#strip .none{ margin:auto; font-family:VT323, VT323Local, monospace; font-size:calc(var(--sh,1.5px)*24); color:#8e99b8; }
+#strip{ flex-direction:column; gap:calc(var(--sw,2px)*2.5); width:100%; margin:calc(var(--sw,2px)*4) 0 auto; text-align:left; }
+#strip .tb{ --c:#ffd166; display:flex; align-items:center; gap:calc(var(--sw,2px)*3); background:#151c30; border:2px solid #232c47; border-left:5px solid var(--c); padding:calc(var(--sw,2px)*2) calc(var(--sw,2px)*3); }
+#strip .tb canvas{ height:calc(var(--sw,2px)*11); width:auto; aspect-ratio:auto; image-rendering:pixelated; flex:none; }
+#strip .tb .body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:calc(var(--sw,2px)*2.5); }
+#strip .tb .tt{ font-family:Silkscreen, SilkscreenLocal, "Courier New", monospace; font-size:calc(var(--sw,2px)*5.5); line-height:1; color:var(--c); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+#strip .tb .br{ display:flex; align-items:center; gap:calc(var(--sw,2px)*2); }
+#strip .tb .bar{ flex:1; height:calc(var(--sw,2px)*5); background:#0b0f1c; position:relative; }
+#strip .tb .bar i{ position:absolute; top:0; bottom:0; left:0; width:0; background:repeating-linear-gradient(90deg, var(--c) 0 calc(var(--sw,2px)*1.5), transparent calc(var(--sw,2px)*1.5) calc(var(--sw,2px)*2)); transition:width .6s steps(8); }
+#strip .tb .n{ font-family:Silkscreen, SilkscreenLocal, "Courier New", monospace; font-size:calc(var(--sw,2px)*5.5); color:#fff; min-width:2ch; text-align:right; }
+#strip .none{ margin:auto; font-family:VT323, VT323Local, monospace; font-size:calc(var(--sw,2px)*8); color:#8e99b8; }
 #shell:fullscreen{ display:flex; align-items:center; justify-content:center; background:#000; }
 #shell:fullscreen .stage{ width:min(100vw, 177.78vh); border-radius:0; }
 .stage{ position:relative; width:min(100%, max(320px, calc((100svh - 200px) * 1.7778))); aspect-ratio:16/9; margin:0 auto; background:#0d1220; border-radius:12px; overflow:hidden; container-type:inline-size; user-select:none; -webkit-user-select:none; touch-action:none; }
@@ -154,11 +150,11 @@ kbd{ font-family:inherit; font-weight:700; border:1px solid var(--line); border-
       <canvas id="qr" class="qr"></canvas>
       <p class="lbl">Vote and ask questions at</p>
       <p class="url" id="joinUrl"></p>
+      <div id="strip" aria-label="Topic rankings"></div>
       <p class="stat"><b id="qCount">0</b> <span id="qLabel">questions up next</span></p>
       <p class="stat"><b id="voterCount">0</b> <span id="voterLabel">people ranking</span></p>
       <p class="conn" id="conn">Connecting</p>
     </aside>
-    <div id="strip" aria-label="Topic rankings"></div>
   </div>
 
   <div class="pad" aria-label="On-screen controls">
@@ -262,8 +258,7 @@ const Live = { ws:null, state:null, questions:[], answered:new Set(), outbox:[],
     $('header p').textContent='Stage mode. Left and right on the clicker drive everything; B or Shift+F5 takes action.';
     $('#joinUrl').textContent=JOIN_URL.replace(/^https?:\/\//,'').replace(/\/$/,'');
     this.drawQR(JOIN_URL);
-    const ro=new ResizeObserver(()=>{ const sd=$('#side'), st=$('#strip'); sd.style.setProperty('--sw',sd.clientWidth/100+'px'); st.style.setProperty('--sh',st.clientHeight/100+'px'); });
-    ro.observe($('#side')); ro.observe($('#strip'));
+    new ResizeObserver(()=>{ const sd=$('#side'); sd.style.setProperty('--sw',sd.clientWidth/100+'px'); }).observe($('#side'));
     this.connect();
     setInterval(()=>{ if(this.ws && this.ws.readyState===1) this.ws.send('ping'); },25000);
   },
@@ -304,6 +299,10 @@ $('#resetLive').addEventListener('click',()=>{ $('#resetLive').blur(); if(!confi
 /* ================= pixel helpers ================= */
 const c2d=$('#c2d'), ctx=c2d.getContext('2d');
 const S=6, VW=320, VH=180;
+// A stage narrower than 16:9 (stage view, beside the sidebar) shows VW-CROP columns, offset by CX.
+let CROP=0, CX=0;
+new ResizeObserver(()=>{ const st=$('#stage'); if(!st.clientWidth) return;
+  const w=Math.min(VW,Math.round(VH*st.clientWidth/st.clientHeight)); CROP=VW-w; if(c2d.width!==w*S) c2d.width=w*S; }).observe($('#stage'));
 function R(x,y,w,h,c){ ctx.fillStyle=c; ctx.fillRect(x,y,w,h); }
 function T(str,x,y,size,col,align='left'){ ctx.font=`${size}px Silkscreen, SilkscreenLocal, "Courier New", monospace`; ctx.textAlign=align; ctx.textBaseline='top'; ctx.fillStyle=col; ctx.fillText(str,x,y); }
 function disc(cx,cy,r,c){ r=Math.round(r); for(let y=-r;y<=r;y++){ const w=Math.floor(Math.sqrt(r*r-y*y)); R(Math.round(cx-w),Math.round(cy+y),2*w+1,1,c); } }
@@ -499,12 +498,14 @@ const Game = {
 
   render(){
     ctx.setTransform(1,0,0,1,0,0); ctx.imageSmoothingEnabled=false; ctx.globalAlpha=1;
+    // Fixed-width scenes pan to keep their edge doors reachable; the rest crop evenly.
+    CX=this.scene==='foyer'||this.scene==='room'?Math.round(clamp(this.p.x-(VW-CROP)/2,0,CROP)):Math.round(CROP/2);
     ({menu:this.drawMenu, select:this.drawSelect, outside:this.drawOutside, foyer:this.drawFoyer, room:this.drawRoom})[this.scene].call(this);
   },
 
   /* ---------- menu: DTU at dusk ---------- */
   drawMenu(){
-    const t=this.time; ctx.setTransform(S,0,0,S,0,0);
+    const t=this.time; ctx.setTransform(S,0,0,S,-CX*S,0);
     const sk=['#121a33','#172240','#1e2c50','#273a62','#344b74','#476186','#627d9d','#859fba'];
     sk.forEach((c,i)=>R(0,i*16,VW,17,c));
     for(let i=0;i<46;i++){ const x=Math.floor(hash(i*3+1)*VW), y=Math.floor(hash(i*7+2)*58); if(Math.sin(t*1.6+i*1.7)>-0.2) R(x,y,1,1,i%5?'#c9d6f2':'#ffffff'); }
@@ -532,7 +533,7 @@ const Game = {
 
   /* ---------- character select ---------- */
   drawSelect(){
-    const t=this.time; ctx.setTransform(S,0,0,S,0,0);
+    const t=this.time; ctx.setTransform(S,0,0,S,-CX*S,0);
     R(0,0,VW,VH,'#111727'); for(let x=0;x<VW;x+=16) R(x,0,8,126,'#141b2e');
     R(0,126,VW,54,'#1a2137'); R(0,126,VW,1,'#2a3352'); R(0,142,VW,1,'#20283f'); R(0,160,VW,1,'#20283f');
     T('SELECT YOUR CHARACTER',12,11,8,'#ffffff'); T('Player 1',12,23,5,'#ffd166');
@@ -555,7 +556,7 @@ const Game = {
     const cx=this.camX, t=this.time, v0=Math.floor(cx)-8, v1=Math.ceil(cx)+VW+8;
     const par=(wx,f)=>Math.round((wx-cx-160)*f+160);
     const vis=(a,b)=>b>v0 && a<v1;
-    ctx.setTransform(S,0,0,S,0,0);
+    ctx.setTransform(S,0,0,S,-CX*S,0);
     ['#3f8fdc','#4f9be0','#62a8e5','#78b6ea','#90c4ee','#a9d2f1','#c3dff5','#dcecf8'].forEach((c,i)=>R(0,i*18,VW,19,c));
     for(let i=0;i<5;i++){ const x=((i*131+t*3-cx*0.08)%(VW+120)+VW+120)%(VW+120)-80; cumulus(Math.round(x),22+(i*23)%36,i%2?1.3:0.9); }
     // far forest, thinning out after the campus
@@ -573,7 +574,7 @@ const Game = {
       const bx=par(1180,0.45)+Math.round(Math.sin(t*0.2)*14); if(bx>x0){ R(bx-6,128,13,2,'#f4efe6'); R(bx-4,130,9,1,'#6b4a2f'); line(bx,127,bx,116,'#6b4a2f'); for(let y=0;y<10;y++) R(bx+1,117+y,Math.round(y*0.6)+1,1,'#ffffff'); }
       for(let i=0;i<3;i++){ const gx=Math.round(seaX+140+i*38+Math.sin(t*0.7+i)*20), gy=Math.round(60+i*9+Math.sin(t*1.3+i*2)*4), f=Math.sin(t*6+i)>0?1:0;
         if(gx>x0){ line(gx-4,gy-f,gx,gy+1,'#f7f7f7'); line(gx,gy+1,gx+4,gy-f,'#f7f7f7'); } } }
-    ctx.setTransform(S,0,0,S,-Math.round(cx*S),0);
+    ctx.setTransform(S,0,0,S,-Math.round(cx*S)-CX*S,0);
     // back strips: campus lawn, road into the distance, stubble field, dunes
     if(vis(0,700)){ R(0,130,700,16,'#6aae4a'); for(let x=0;x<700;x+=24) R(x,130,12,16,'#73b851'); }
     if(vis(700,800)){ R(700,128,100,18,'#6aae4a'); for(let y=122;y<146;y++){ const hw=Math.round(3+(y-122)*1.2); R(750-hw,y,hw*2,1,'#56595d'); R(750-hw,y,1,1,'#8a8c8f'); R(750+hw-1,y,1,1,'#8a8c8f'); if(y%4<2) R(749,y,2,1,'#e8e8e8'); }
@@ -624,7 +625,7 @@ const Game = {
     this.drawAsker(OUT_FEET);
     person(this.hero().look,this.p.x,OUT_FEET,this.p.t,this.p.face,this.p.moving);
     // foreground reeds and dune grass (slightly faster parallax)
-    ctx.setTransform(S,0,0,S,0,0);
+    ctx.setTransform(S,0,0,S,-CX*S,0);
     for(let k=0;k<11;k++){ const wx=k*62+Math.floor(hash(k*5)*26), sx=par(wx,1.18); if(sx>-30&&sx<VW+30) this.reeds(sx,k); }
     for(let k=0;k<3;k++){ const sx=par(1066+k*20,1.18); if(sx>-30&&sx<VW+30) for(let i=0;i<5;i++) line(sx+i*3,181,sx+i*3+(i%3)-1,164+(i%2)*4,'#9aa050'); }
     if(this.seaT>=0 && this.seaT<4){ ctx.globalAlpha=Math.min(1,Math.max(0,(4-this.seaT)/1)); R(80,30,160,14,'#1f2a44'); T('EASTER EGG: YOU FOUND THE SEA',160,34,5,'#ffd166','center'); ctx.globalAlpha=1; }
@@ -688,7 +689,7 @@ const Game = {
 
   /* ---------- foyer ---------- */
   drawFoyer(){
-    ctx.setTransform(S,0,0,S,0,0); const t=this.time;
+    ctx.setTransform(S,0,0,S,-CX*S,0); const t=this.time;
     R(0,0,320,150,'#d6d2c9'); for(let x=0;x<320;x+=3) if(hash(x)>0.8) R(x,0,1,146,'#cdc9bf');
     R(60,10,200,92,'#3a4146');
     ctx.save(); ctx.beginPath(); ctx.rect(62,12,196,88); ctx.clip();
@@ -727,7 +728,7 @@ const Game = {
 
   /* ---------- topic room ---------- */
   drawRoom(){
-    const tp=TOPICS[this.room]; ctx.setTransform(S,0,0,S,0,0);
+    const tp=TOPICS[this.room]; ctx.setTransform(S,0,0,S,-CX*S,0);
     const wall=mix(tp.colour,'#0f1320',0.62), wall2=mix(tp.colour,'#0f1320',0.56);
     R(0,0,320,150,wall); for(let x=0;x<320;x+=20) R(x,0,10,146,wall2);
     R(0,146,320,4,mix(tp.colour,'#000000',0.5));
