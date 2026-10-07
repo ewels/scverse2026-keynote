@@ -82,18 +82,20 @@ test('stage, phones and moderator stay in sync', async ({ browser }) => {
   await stage.evaluate(async () => { const ws = await window.__open('mod'); ws.send(JSON.stringify({ t: 'react', kind: 'clap' })); });
   await stage.waitForTimeout(600);
   expect(await stage.evaluate(() => window.__reacts)).toEqual([]);
+  await stage.evaluate(() => { const g = window.__game, f = g.react; window.__rc = 0; g.react = function (...a) { window.__rc++; return f.apply(this, a); }; });
   await ana.locator('#reacts [data-k=heart]').click();
   await bea.locator('#reacts [data-k=heart]').click();
   await bea.locator('#reacts [data-k=clap]').click();
   await expect.poll(() => stage.evaluate(() => window.__reacts.reduce((n, m) => n + (m.counts.heart || 0), 0))).toBe(2);
+  expect(await stage.evaluate(() => window.__rc)).toBeGreaterThan(0);
   const batches = await stage.evaluate(() => window.__reacts);
   expect(batches.reduce((n, m) => n + (m.counts.clap || 0), 0)).toBe(0);
   expect(batches[0].phones).toBeGreaterThanOrEqual(1);
   expect(batches[0].connected).toBe(2);
 
-  // Visiting a place removes its bar.
+  // The opener is never ranked, so entering it leaves the bars alone.
   await enterTheatre(stage);
-  await expect(stage.locator('#strip .tb')).toHaveCount(ranked - 1);
+  await expect(stage.locator('#strip .tb')).toHaveCount(ranked);
   await expect(stage.locator('#strip .tb .tt', { hasText: 'WHY' })).toHaveCount(0);
 
   // The Q&A door ends the talk and sends the phones to the game link.

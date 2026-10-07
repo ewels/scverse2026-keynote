@@ -38,22 +38,25 @@ header p{ margin:4px 0 0; color:var(--muted); max-width:60ch; }
 #shell.live #side, #shell.live #strip{ display:flex; }
 #shell.live:fullscreen{ --side:18vw; display:grid; align-items:stretch; width:100vw; height:100vh; aspect-ratio:auto; border-radius:0; }
 #shell.live:fullscreen .stage{ width:100%; max-width:177.78vh; }
-#side{ flex-direction:column; align-items:center; gap:.4em; padding:calc(var(--sw,2px)*6) calc(var(--sw,2px)*5); background:#111727; color:#e8ecf5; border-left:2px solid #232c47; text-align:center; }
-#side .qr{ width:92%; aspect-ratio:1; image-rendering:pixelated; background:#fff; }
+#side{ flex-direction:column; align-items:center; gap:.2em; padding:calc(var(--sw,2px)*4) calc(var(--sw,2px)*5); background:#111727; color:#e8ecf5; border-left:2px solid #232c47; text-align:center; }
+#side .qr{ width:66%; aspect-ratio:1; image-rendering:pixelated; background:#fff; }
 #side p{ margin:0; }
-#side .lbl{ font-size:calc(var(--sw,2px)*7.5); color:#9aa6c6; margin-top:.5em; }
+#side .lbl{ font-size:calc(var(--sw,2px)*7.5); color:#9aa6c6; margin-top:.2em; }
 #side .url{ font-family:Silkscreen, SilkscreenLocal, "Courier New", monospace; font-size:calc(var(--sw,2px)*8); line-height:1.15; color:#ffd166; overflow-wrap:anywhere; }
 #side .stat{ font-family:VT323, VT323Local, monospace; font-size:calc(var(--sw,2px)*11); line-height:1; color:#c8d0e6; }
 #side .stat:first-of-type{ margin-top:auto; }
 #side .stat b{ font-family:Silkscreen, SilkscreenLocal, "Courier New", monospace; font-weight:700; font-size:calc(var(--sw,2px)*10); color:#fff; }
 #side .stat.hot b{ color:#ffd166; }
-#side .conn{ margin-top:.6em; font-size:calc(var(--sw,2px)*6.5); color:#6f7a99; }
+#side .clock b{ color:#4be06f; }
+#side .clock.amber b{ color:#ffd166; }
+#side .clock.red b{ color:#ff6b6b; }
+#side .conn{ margin-top:.2em; font-size:calc(var(--sw,2px)*6.5); color:#6f7a99; }
 #side .conn::before{ content:"● "; color:#ff6b6b; }
 #side .conn.on::before{ color:#4be06f; }
-#strip{ flex-direction:column; gap:calc(var(--sw,2px)*2.5); width:100%; margin:calc(var(--sw,2px)*4) 0 auto; text-align:left; }
-#strip .tb{ --c:#ffd166; display:flex; align-items:center; gap:calc(var(--sw,2px)*3); background:#151c30; border:2px solid #232c47; border-left:5px solid var(--c); padding:calc(var(--sw,2px)*2) calc(var(--sw,2px)*3); }
-#strip .tb canvas{ height:calc(var(--sw,2px)*11); width:auto; aspect-ratio:auto; image-rendering:pixelated; flex:none; }
-#strip .tb .body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:calc(var(--sw,2px)*2.5); }
+#strip{ flex-direction:column; gap:calc(var(--sw,2px)*1.5); width:100%; margin:calc(var(--sw,2px)*2) 0 auto; text-align:left; }
+#strip .tb{ --c:#ffd166; display:flex; align-items:center; gap:calc(var(--sw,2px)*3); background:#151c30; border:2px solid #232c47; border-left:5px solid var(--c); padding:calc(var(--sw,2px)*1) calc(var(--sw,2px)*3); }
+#strip .tb canvas{ height:calc(var(--sw,2px)*9); width:auto; aspect-ratio:auto; image-rendering:pixelated; flex:none; }
+#strip .tb .body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:calc(var(--sw,2px)*1.5); }
 #strip .tb .tt{ font-family:Silkscreen, SilkscreenLocal, "Courier New", monospace; font-size:calc(var(--sw,2px)*5.5); line-height:1; color:var(--c); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 #strip .tb .br{ display:flex; align-items:center; gap:calc(var(--sw,2px)*2); }
 #strip .tb .bar{ flex:1; height:calc(var(--sw,2px)*5); background:#0b0f1c; position:relative; }
@@ -164,6 +167,7 @@ kbd{ font-family:inherit; font-weight:700; border:1px solid var(--line); border-
       <p class="lbl">Vote and ask questions at</p>
       <p class="url" id="joinUrl"></p>
       <div id="strip" aria-label="Topic rankings"></div>
+      <p class="stat clock hidden" id="clock"><b id="clockT">00:00</b> <span>elapsed</span></p>
       <p class="stat"><b id="qCount">0</b> <span id="qLabel">questions up next</span></p>
       <p class="stat"><b id="voterCount">0</b> <span id="voterLabel">people ranking</span></p>
       <p class="conn" id="conn">Connecting</p>
@@ -288,7 +292,7 @@ const KEY = (()=>{ let k=PARAMS.get('key');
 const API = String(window.KEYNOTE_API||'').trim().replace(/\/+$/,'');
 const LIVE = PARAMS.has('stage') && /^https?:\/\//.test(API);
 const JOIN_URL = new URL('join/', location.origin + location.pathname.replace(/[^/]*$/,'')).href;
-const Live = { ws:null, state:null, questions:[], answered:new Set(), outbox:[], retry:1000, bars:new Map(),
+const Live = { ws:null, state:null, questions:[], answered:new Set(), outbox:[], retry:1000, bars:new Map(), ovAt:-99,
   start(){
     if(!LIVE) return;
     $('#shell').classList.add('live'); $('#resetLive').classList.remove('hidden');
@@ -296,6 +300,9 @@ const Live = { ws:null, state:null, questions:[], answered:new Set(), outbox:[],
     $('#joinUrl').textContent=JOIN_URL.replace(/^https?:\/\//,'').replace(/\/$/,'');
     this.drawQR(JOIN_URL);
     new ResizeObserver(()=>{ const sd=$('#side'); sd.style.setProperty('--sw',sd.clientWidth/100+'px'); }).observe($('#side'));
+    setInterval(()=>{ const a=Game.openAt, el=$('#clock'); if(!a){ el.classList.add('hidden'); return; } const s=Math.floor((Date.now()-a)/1000);
+      el.classList.remove('hidden'); el.classList.toggle('amber',s>=1800 && s<2100); el.classList.toggle('red',s>=2100);
+      $('#clockT').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); },500);
     this.connect();
     setInterval(()=>{ if(this.ws && this.ws.readyState===1) this.ws.send('ping'); },25000);
   },
@@ -306,9 +313,11 @@ const Live = { ws:null, state:null, questions:[], answered:new Set(), outbox:[],
   connect(){
     const ws=this.ws=new WebSocket(`${API.replace(/^http/,'ws')}/api/ws?role=presenter&key=${encodeURIComponent(KEY)}`);
     ws.onopen=()=>{ this.retry=1000; $('#conn').classList.add('on'); $('#conn').textContent='Live';
-      ws.send(JSON.stringify({ t:'config', topics:Object.entries(TOPICS).map(([key,t])=>({ key, title:t.title, short:t.short, colour:t.colour, blurb:t.blurb||'', icon:ICONS[t.icon] })) }));
+      ws.send(JSON.stringify({ t:'config', topics:Object.entries(TOPICS).filter(([,t])=>!t.opener).map(([key,t])=>({ key, size:t.size, title:t.title, short:t.short, colour:t.colour, blurb:t.blurb||'', icon:ICONS[t.icon] })) }));
       while(this.outbox.length) ws.send(JSON.stringify(this.outbox.shift())); };
     ws.onmessage=e=>{ if(e.data==='pong') return; let m; try{ m=JSON.parse(e.data); }catch(err){ return; }
+      if(m.t==='react'){ for(const [k,n] of Object.entries(m.counts||{})){ Game.react(k,n); if(k==='star') Game.victory(); }
+        if(m.recent>=Math.max(3,Math.ceil((m.connected||0)/3)) && Game.time-this.ovAt>20){ this.ovAt=Game.time; Game.ovation(); } return; }
       if(m.t==='state'){ this.state=m; this.questions=(m.questions||[]).filter(q=>!this.answered.has(q.id)); this.render(); } };
     ws.onclose=()=>{ $('#conn').classList.remove('on'); $('#conn').textContent=KEY?'Reconnecting':'Add ?key= to the URL';
       setTimeout(()=>this.connect(),this.retry); this.retry=Math.min(10000,this.retry*1.6); };
@@ -317,7 +326,7 @@ const Live = { ws:null, state:null, questions:[], answered:new Set(), outbox:[],
   icon(t){ const m=ICONS[t.icon]; const c=document.createElement('canvas'); c.width=m[0].length; c.height=m.length;
     const g=c.getContext('2d'), pal=iconPal(t); m.forEach((row,y)=>[...row].forEach((ch,x)=>{ if(pal[ch]){ g.fillStyle=pal[ch]; g.fillRect(x,y,1,1); } })); return c; },
   render(){ const st=this.state; if(!st) return; const strip=$('#strip');
-    const open=Object.keys(TOPICS).filter(k=>!st.visited.includes(k));
+    const open=Object.keys(TOPICS).filter(k=>!TOPICS[k].opener && !st.visited.includes(k));
     for(const [k,el] of this.bars) if(!open.includes(k)){ el.remove(); this.bars.delete(k); }
     const max=Math.max(5,...open.map(k=>st.counts[k]||0));
     open.forEach(k=>{ const t=TOPICS[k]; let el=this.bars.get(k);
@@ -451,7 +460,7 @@ const GUARDS=[{ skin:'#c98e62', hair:'#1b1b1b', hairStyle:'bald', top:'#d6dc3c',
 const NEXT_SPEAKER={ skin:'#e8b894', hair:'#6b4a2f', hairStyle:'long', glasses:true, top:'#3a5a8c', topStyle:'sweat', pants:'#2b2b36' };
 // Every egg in the venue, engine and places; the end screen counts against this, so add new ids here.
 const EGGS=['sea','plant','organiser','bell','printer','cow','cat','cat-follow','fight','moonwalk','dance','sweep','rain','coffee',
-  'theatre-title','triplicate','dino','hoodie','poster','arcade','lost','photobooth'];
+  'star','theatre-title','triplicate','dino','hoodie','poster','arcade','lost','photobooth'];
 // the venue cat from the hackathon's photos (ginger, white chest), side on, facing right
 const CAT_PAL={ f:'#e8913a', s:'#c06a22', w:'#f6efe2', e:'#3d8a3a', n:'#e88aa0' };
 const CAT_BODY=['..........f..f','f.........ffff','f.........ffef','.f.fsfsfsffwwn','..ffffffffffw.','..fffffffffww.'];
@@ -475,7 +484,7 @@ const Game = {
     this.dk={ door:0, rings:0, ringT:-9, glareT:-9, jamT:-9, totesT:-9, totesDown:false }; this.fy={ waves:0, wave:null }; this.askerScene=null; this.pl=null; this.topic=null;
     this.p={x:40,face:1,t:0,moving:false}; this.camX=0;
     Object.assign(this,{ cat:null, catNext:0, fx:[], reacts:[], annoy:{who:null,n:0,t:0}, fight:null, saved:{}, resume:null, revoked:false, hub:false,
-      jit:0, danceT:0, ovT:0, idleT:0, idleRun:0, moonT:0, sweeping:false, cl:{x:140,face:1,jobs:[]}, cof:{cups:0,fallT:null,mopT:null}, hostSeen:new Set(), carried:{} });
+      jit:0, danceT:0, ovT:0, jumpT:0, openAt:0, idleT:0, idleRun:0, moonT:0, sweeping:false, cl:{x:140,face:1,jobs:[]}, cof:{cups:0,fallT:null,mopT:null}, hostSeen:new Set(), carried:{} });
     Fade.busy=false; $('#fade').style.opacity='0'; Input.queue.length=0;
     Dlg.close(); Prompt.clear(); Title.hide(); Card.hide(); Caption.hide(); Big.hide(); Menu.show();
   },
@@ -505,7 +514,7 @@ const Game = {
   // a place left by force (the fight) resumes at the beat it was on, with its state as it was
   enterPlace(key,now){ const f=()=>{ const d=place(key), sv=this.saved[key]; delete this.saved[key]; if(this.resume===key) this.resume=null;
       this.pl={ key, t:TOPICS[key], d, st:sv?sv.st:{}, idx:-1, target:null, stepT:0, feat:null, poked:null }; this.topic=key;
-      this.visited.add(key); Live.send({t:'visited', topic:key}); this.go('place',d.spawn??24);
+      this.visited.add(key); if(key===OPENER && !this.openAt) this.openAt=Date.now(); Live.send({t:'visited', topic:key}); this.go('place',d.spawn??24);
       if(!sv) d.enter&&d.enter(this.pl.st); else if(sv.idx>=0){ this.pl.idx=sv.idx-1; this.step(1); }
       if(this.jit===1) this.jit=2;
       const h=this.hero().id, tok=token;
@@ -525,7 +534,7 @@ const Game = {
     if(this.toasts.length && (this.toasts[0].t-=dt)<=0) this.toasts.shift();
     this.bubbles=this.bubbles.filter(b=>(b.t-=dt)>0);
     this.fx=this.fx.filter(f=>{ f.x+=f.vx*dt; f.y+=f.vy*dt; return (f.t+=dt)<f.life; }); this.reacts=this.reacts.filter(r=>(r.t+=dt)<3);
-    this.danceT=Math.max(0,this.danceT-dt); this.ovT=Math.max(0,this.ovT-dt);
+    this.danceT=Math.max(0,this.danceT-dt); this.jumpT=Math.max(0,this.jumpT-dt); this.ovT=Math.max(0,this.ovT-dt);
     const live=!['menu','select'].includes(this.scene);
     if(Input.code){ Input.code=false; if(live){ this.danceT=3; this.egg('dance','Everybody dance'); } }
     if(Input.queue.length||Input.dir()){ if(this.idleT<0) this.idleRun++; this.idleT=0; } else this.idleT+=dt;
@@ -746,6 +755,8 @@ const Game = {
     this.cl.jobs.push({ x:STACK_X+14, dur:5, start:()=>{ c.mopT=this.time; if(this.scene==='foyer') this.say('Really?',this.cl.x,124,2.5); }, done:()=>{ c.cups=0; c.fallT=c.mopT=null; } }); },
   /* phase 8 hooks: phone reactions float up from the bottom; enough at once and the crowd stands */
   react(kind,n=1){ for(let i=0;i<Math.min(n,12) && this.reacts.length<40;i++) this.reacts.push({ k:kind, x:24+Math.random()*(VW-CROP-48), t:-i*0.18 }); },
+  victory(){ this.jumpT=0.6; this.egg('star','Golden badge');
+    for(let i=0;i<5;i++) this.fx.push({ k:'spark', x:this.p.x-6+i*3, y:this.feet()-18, vx:(i-2)*5, vy:-8, t:0, life:0.9 }); },
   ovation(){ this.ovT=4; this.react('clap',12); },
   kickPlant(pl){ const p=this.p; p.face=pl.x>=p.x?1:-1; pl.dir=p.face; this.kickT=0.5; Prompt.clear();
     this.tm.after(0.14,()=>{ pl.state='falling'; }); },
@@ -769,7 +780,7 @@ const Game = {
     this.drawFx();
     for(const b of this.bubbles){ const w=Math.ceil(tw(b.s,5))+6, vx=this.camX+CX, x=Math.round(clamp(b.x-w/2,vx+2,vx+VW-CROP-w-2)), y=Math.round(b.y)-12, bx=Math.round(b.x);
       R(x-1,y-1,w+2,11,'#1b2332'); R(x,y,w,9,'#ffffff'); R(bx-2,y+9,5,1,'#ffffff'); R(bx-1,y+10,3,1,'#ffffff'); R(bx,y+11,1,1,'#ffffff'); T(b.s,x+3,y+2,5,'#1b2332'); } },
-  drawHero(feet){ const p=this.p, x=p.x+(this.jit?(Math.floor(this.time*12)%2?1:-1)*0.6:0);
+  drawHero(feet){ if(this.jumpT>0) feet-=Math.round(Math.sin(Math.PI*(1-this.jumpT/0.6))*9); const p=this.p, x=p.x+(this.jit?(Math.floor(this.time*12)%2?1:-1)*0.6:0);
     person(this.hero().look,x,feet,p.t,p.face,p.moving,1,this.kickT>0.12&&this.kickT<0.42?'kick':null);
     const bob=p.moving&&Math.floor(p.t*8)%2===0?-1:0, top=Math.round(feet)-20+bob, x0=Math.round(x)-6, px=c=>x0+(p.face<0?11-c:c);
     if(this.danceT>0||this.ovT>0) return;
