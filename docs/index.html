@@ -401,6 +401,11 @@ function buildSprite(L,frame){
   if(frame.startsWith('cheer')){ const w=frame==='cheerB'?1:0; for(let r=10;r<=14;r++) set(r,9,'.');
     set(8,9,'T'); for(let r=4;r<=7;r++) set(r,10+(r<6?w:0),'T'); set(3,10+w,'s'); set(2,10+w,'s'); }
   (LEG_FRAMES[frame]||LEG_FRAMES.idle).forEach((row,i)=>[...row].forEach((ch,c)=>{ if(ch!=='.') set(15+i,c,ch); }));
+  // crouching: drop the body three rows, fold the legs and reach a hand down and forward
+  if(frame.startsWith('stroke')){ const up=g.slice(0,15).map(r=>[...r]); for(let r=0;r<20;r++) g[r].fill('.');
+    up.forEach((row,r)=>{ g[r+3]=row; }); for(let r=13;r<=17;r++) g[r][9]='.';
+    const h=frame==='strokeB'?1:0; set(13,9,'T'); set(14,10,'T'); set(15,10+h,'s'); set(16,10+h,'s');
+    [...'..ppppppp...'].forEach((ch,c)=>{ if(ch!=='.') set(18,c,ch); }); [...'..kkk..kkk..'].forEach((ch,c)=>{ if(ch!=='.') set(19,c,ch); }); }
   return g.map(r=>r.join(''));
 }
 function spritePal(L){ const t=L.top, dark=lum(t)<0.22;
@@ -490,7 +495,7 @@ const Game = {
     this.dk={ door:0, fdoor:0, rings:0, ringT:-9, glareT:-9, jamT:-9, totesT:-9, totesDown:false }; this.fy={ waves:0, wave:null }; this.askerScene=null; this.pl=null; this.topic=null;
     this.p={x:40,face:1,t:0,moving:false}; this.camX=0;
     Object.assign(this,{ cat:null, fx:[], reacts:[], annoy:{who:null,n:0,t:0}, fight:null, saved:{}, resume:null, revoked:false, visitor:false,
-      jit:0, gold:false, drinkT:-9, danceT:0, ovT:0, jumpT:0, openAt:0, idleT:0, idleRun:0, moonT:0, sweeping:false, cl:{x:SWEEP[0],face:1,jobs:[]}, cof:{cups:0,fallT:null,mopT:null}, hostSeen:new Set(), carried:{} });
+      jit:0, gold:false, drinkT:-9, strokeT:-9, strokeFace:1, danceT:0, ovT:0, jumpT:0, openAt:0, idleT:0, idleRun:0, moonT:0, sweeping:false, cl:{x:SWEEP[0],face:1,jobs:[]}, cof:{cups:0,fallT:null,mopT:null}, hostSeen:new Set(), carried:{} });
     Fade.busy=false; $('#fade').style.opacity='0'; Input.queue.length=0;
     Dlg.close(); Prompt.clear(); Title.hide(); Card.hide(); Caption.hide(); Big.hide(); Menu.show();
   },
@@ -512,7 +517,7 @@ const Game = {
     if(key) return this.enterPlace(key,true);
     if(id==='desk') return this.go('foyer',DESK_X+24);
     this.go(id,{outside:40,foyer:24,end:160}[id]); },
-  go(scene,x){ this.scene=scene; const p=this.p; p.x=x; p.face=1; p.moving=false; this.jit=0; this.bubbles=[]; this.kickT=0; this.fx=[]; this.idleT=0; this.fight=null;
+  go(scene,x){ this.scene=scene; const p=this.p; p.x=x; p.face=1; p.moving=false; this.jit=0; this.gold=false; this.bubbles=[]; this.kickT=0; this.fx=[]; this.idleT=0; this.fight=null;
     const c=this.cat; if(c){ c.x=x-14; c.face=1; c.mode='sit'; c.t=this.time; }
     Caption.hide(); Big.hide(); Prompt.clear(); Title.hide(); this.camX=clamp(x-VW/2,this.minX(),this.width()-VW);
     if(scene==='end'){ this.toasts=[]; if(!this.ended){ this.ended=true; Live.send({t:'ended', on:true}); } this.endTitle(); } },
@@ -579,10 +584,11 @@ const Game = {
     }
     else Prompt.clear();
   },
-  near(items){ const x=this.p.x; return items.filter(i=>Math.abs(x-i.x)<(i.r||14)).sort((a,b)=>Math.abs(x-a.x)-Math.abs(x-b.x))[0]; },
+  // the cat always trails the hero, so it only answers when nothing else is in reach
+  near(items){ const x=this.p.x; return items.filter(i=>Math.abs(x-i.x)<(i.r||14)).sort((a,b)=>!!a.low-!!b.low||Math.abs(x-a.x)-Math.abs(x-b.x))[0]; },
   items(){
     const tl=t=>`<span style="color:${t.colour}">${esc(t.title)}</span>`;
-    const cat=this.cat?[{ x:this.cat.x, r:12, label:'Stroke the cat', act:()=>this.stroke() }]:[];
+    const cat=this.cat?[{ x:this.cat.x, r:20, low:true, label:'Stroke the cat', act:()=>this.stroke() }]:[];
     if(this.scene==='outside') return [{ x:ENTRANCE, label:'Enter Building 101', act:()=>Fade.go(()=>this.go('foyer',DESK_X+24)) }];
     const desk=[
       this.badge?{ x:DESK_GREETER, r:22, label:`Talk to ${esc(GREETER.name)}`, act:()=>this.pester('greeter',DESK_X+DESK_GREETER,106,()=>this.say(this.dk.rings>=3?'And leave the bell alone.':'Enjoy the talk!',DESK_X+DESK_GREETER,106)) }
@@ -626,11 +632,11 @@ const Game = {
     if(pl.feat){ if(Input.take('right')) this.featStep(1); else if(Input.take('left')) this.featStep(-1); if(!asking) Prompt.clear(); return; }
     if(Input.take('right')) this.step(1); else if(Input.take('left')) this.step(-1);
     const pokeable=[...(d.props||[]), ...(d.host!=null?[{ id:'host', x:d.host, label:`Talk to ${pl.t.host.name}` }]:[])];
-    const it=pl.target==null && this.near(this.cat?[...pokeable,{ id:'cat', x:this.cat.x, r:12, label:'Stroke the cat' }]:pokeable);
+    const p=this.p, vis=pokeable.filter(o=>o.x>this.camX+8 && o.x<this.camX+VW-8).sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x));
+    const it=pl.target==null && (this.near(pokeable) || (!vis.length && this.cat && this.near([{ id:'cat', x:this.cat.x, r:20, label:'Stroke the cat' }])));
     if(it && Input.take('action')) this.poke(it.id);
     // nothing in reach: walk over to the nearest thing on screen, so the clicker can reach every prop
-    else if(pl.target==null && Input.take('action')){ const p=this.p, vis=pokeable.filter(o=>o.x>this.camX+8 && o.x<this.camX+VW-8).sort((a,b)=>Math.abs(a.x-p.x)-Math.abs(b.x-p.x));
-      if(vis.length){ pl.target=vis[0].x; pl.pokeAfter=vis[0].id; } }
+    else if(pl.target==null && Input.take('action') && vis.length){ pl.target=vis[0].x; pl.pokeAfter=vis[0].id; }
     if(asking||Fade.busy) return;
     // props stay unlabelled mid-talk so the pill never covers the scene; Action still finds them
     if(it && (pl.idx<0 || pl.idx>=pl.t.beats.length)) Prompt.set(`<b>●</b> ${esc(it.label)}`);
@@ -727,13 +733,16 @@ const Game = {
     lines.forEach(([i,s],k)=>this.tm.after(k*2.6,()=>{ if(tok===token && run===this.idleRun && this.scene===sc) this.say(s,who[i][0],who[i][1],2.4); })); },
   // the cat from the hackathon's cat photos follows just behind the hero for the rest of the game
   updCat(dt){ const t=this.time, p=this.p; if(!this.carried.cat || this.fight) return;
+    if(this.strokeFace && t-this.strokeT>=1.2){ p.face=this.strokeFace; this.strokeFace=0; }
+    if(t-this.strokeT<1.2){ const c=this.cat; if(c) c.x+=clamp(p.x+p.face*10-c.x,-40*dt,40*dt); return; }
     let c=this.cat;
     if(!c){ const vx=this.camX+CX; c=this.cat={ x:p.face>0?vx-12:vx+VW-CROP+12, face:p.face, mode:'walk', t, strokes:0 }; }
     const dx=p.x-p.face*14-c.x;
     if(Math.abs(dx)>3){ c.mode='walk'; c.face=Math.sign(dx); c.x+=c.face*Math.min(Math.abs(dx),Math.max(80,Math.abs(dx)*8)*dt); return; }
     if(c.mode==='walk'){ c.mode='sit'; c.t=t; c.face=p.face; }
     const a=t-c.t; if(c.mode==='sit'&&a>5){ c.mode='wash'; c.t=t; } else if(c.mode==='wash'&&a>3){ c.mode='sit'; c.t=t; } },
-  stroke(){ const c=this.cat, y=this.feet()-10; if(!c) return; c.mode='sit'; c.t=this.time;
+  stroke(){ const c=this.cat, y=this.feet()-10; if(!c || this.time-this.strokeT<1.2) return; c.mode='sit'; c.t=this.time;
+    this.strokeT=this.time; this.strokeFace=this.p.face; this.p.face=Math.sign(c.x-this.p.x)||1;
     c.strokes++; this.say('prrr',c.x,y,1.6);
     for(let i=0;i<3;i++) this.fx.push({ k:'heart', x:c.x-4+i*4, y:y-2, vx:(i-1)*3, vy:-10-i*3, t:-i*0.25, life:1.6 });
     this.egg('cat','You stroked the cat'); },
@@ -783,11 +792,11 @@ const Game = {
     for(const b of this.bubbles){ const w=Math.ceil(tw(b.s,5))+6, vx=this.camX+CX, x=Math.round(clamp(b.x-w/2,vx+2,vx+VW-CROP-w-2)), y=Math.round(b.y)-12, bx=Math.round(b.x);
       R(x-1,y-1,w+2,11,'#1b2332'); R(x,y,w,9,'#ffffff'); R(bx-2,y+9,5,1,'#ffffff'); R(bx-1,y+10,3,1,'#ffffff'); R(bx,y+11,1,1,'#ffffff'); T(b.s,x+3,y+2,5,'#1b2332'); } },
   drawHero(feet){ if(this.jumpT>0) feet-=Math.round(Math.sin(Math.PI*(1-this.jumpT/0.6))*9); const p=this.p,
-      x=p.x+(this.jit?(Math.floor(this.time*12)%2?1:-1)*0.6:0), drink=!p.moving&&this.time-this.drinkT<1.2;
-    person(this.hero().look,x,feet,p.t,p.face,p.moving,1,this.kickT>0.12&&this.kickT<0.42?'kick':drink?'drink':null);
+      x=p.x+(this.jit?(Math.floor(this.time*12)%2?1:-1)*0.6:0), drink=!p.moving&&this.time-this.drinkT<1.2, crouch=!p.moving&&this.time-this.strokeT<1.2;
+    person(this.hero().look,x,feet,p.t,p.face,p.moving,1,this.kickT>0.12&&this.kickT<0.42?'kick':drink?'drink':crouch?(Math.floor(this.time*6)%2?'strokeA':'strokeB'):null);
     const bob=p.moving&&Math.floor(p.t*8)%2===0?-1:0, top=Math.round(feet)-20+bob, x0=Math.round(x)-6, px=c=>x0+(p.face<0?11-c:c);
-    if(this.gold){ const g=Math.sin(this.time*5)>0?'#ffe680':'#ffc21a'; R(px(6),top+4,1,1,g); R(px(8),top+4,1,1,g); }
-    if(this.danceT>0||this.ovT>0) return;
+    if(this.gold){ const g=Math.sin(this.time*5)>0?'#ffe680':'#ffc21a'; const ey=top+4+(crouch?3:0); R(px(6),ey,1,1,g); R(px(8),ey,1,1,g); }
+    if(this.danceT>0||this.ovT>0||crouch) return;
     if(drink){ R(px(9),top+4,1,3,'#ffffff'); R(px(10),top+4,1,3,'#ffffff'); R(px(9),top+4,1,1,'#6b4423'); R(px(10),top+4,1,1,'#6b4423'); R(px(11),top+5,1,1,'#ffffff'); }
     if(this.badge){ const bx=Math.round(x), by=top+8; line(bx-2,by,bx-1,by+2,'#e85d75'); line(bx+1,by,bx,by+2,'#e85d75'); R(bx-1,by+3,3,3,this.visitor?'#c9ccd2':'#ffffff'); }
     // hackathon sticker on the hoodie
