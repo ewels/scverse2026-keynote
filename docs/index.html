@@ -435,7 +435,7 @@ function tw(s,size){ ctx.font=FONT(size); return ctx.measureText(s).width; }
 const OPENER=Object.keys(TOPICS).find(k=>TOPICS[k].opener);
 const GAP=96, HALL=Object.keys(TOPICS).filter(k=>k!==OPENER).map((key,i)=>({ key, x:112+i*GAP }));
 const DESK_X=-320, QA_DOOR=112+HALL.length*GAP, LOO_DOOR=QA_DOOR+96, FOYER_W=LOO_DOOR+24, DESK_GREETER=150, DESK_DOOR=292;
-const COFFEE_SAYS={1:'Ahh, coffee',2:'Just one more',3:'Is it warm in here?',4:'I can see colours',5:'MORE',6:'*vibrating*',7:'I can hear sounds... wait'}, COFFEE_MAX=8;
+const COFFEE_SAYS={1:'Ahh, coffee',2:'Just one more',3:'Is it warm in here?',4:'I can see colours',5:'MORE',6:'I can hear sounds',7:'*vibrating*'}, COFFEE_MAX=8;
 const LOO_LINES=['I can’t go when someone is watching','Not with the whole room looking','Is my mic still on?','Stage fright. Literally.','Maybe after the Q&A'];
 const FOYER_CUPS=[[0,122],[6,122],[3,116]];
 const COFFEE_X=(HALL.find(h=>TOPICS[h.key].place==='coffee')||{x:376}).x, URN_X=COFFEE_X-15, STACK_X=COFFEE_X+15;
