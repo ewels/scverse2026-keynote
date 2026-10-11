@@ -112,7 +112,7 @@ const TOPICS = {
                 { at:'sign', id:'upstream', say:'When should you contribute upstream?' },
                 { at:'sign', id:'combine', say:'When should you combine tools into one?' },
                 { at:'board', id:'rustar', say:'ruSTAR: STAR in Rust, 99.9% identical alignments' },
-                { at:'board', id:'fastqc', say:'FastQC-Rust: parallelism sent upstream, FastQC 2.7x faster' },
+                { at:'board', id:'fastqc', say:'FastQC-Rust: 7.5 min to 37 s, parallelism sent upstream' },
                 { at:'board', id:'rustqc', say:'RustQC: 15 QC tools in one pass, 15 hours to 15 minutes' },
               ] },
   agents:   { title:'Building tools for agents', short:'AGENTS', colour:'#6c8cff', icon:'robot', place:'cloakroom', size:'medium',

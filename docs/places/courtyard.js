@@ -168,7 +168,7 @@
   };
 
   // Rows follow the signpost arms' order: rewrite, upstream, combine.
-  const ROWS = { rustar: ['RUSTAR', 'REWRITE', '99.9%'], fastqc: ['FASTQC-RUST', 'UPSTREAM', '2.7X'], rustqc: ['RUSTQC', 'COMBINE', '>60X'] };
+  const ROWS = { rustar: ['RUSTAR', 'REWRITE', '99.9%'], fastqc: ['FASTQC-RUST', 'UPSTREAM', '12.4X'], rustqc: ['RUSTQC', 'COMBINE', '>60X'] };
   const BOARD = Object.keys(ROWS), COLS = [[0, 11, '#f7f3ea'], [12, 8, '#ffd166'], [21, 7, '#2fb67c']], FLAPS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-';
   const board = (st, t) => {
     R(BX + 12, 96, 3, 32, '#3b3f47'); R(BX + 142, 96, 3, 32, '#3b3f47');
