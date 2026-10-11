@@ -871,7 +871,7 @@ const Game = {
     ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,c2d.width,c2d.height); ctx.imageSmoothingEnabled=false; ctx.globalAlpha=1;
     const feat=this.scene==='place'&&this.pl.feat;
     // Walkable scenes pan the cropped view to keep the hero centred; the rest crop evenly.
-    CX=['menu','select','over'].includes(this.scene)||feat?Math.round(CROP/2):Math.round(clamp(Math.round(this.p.x-(VW-CROP)/2)-this.camX,0,CROP)*S)/S;
+    CX=['menu','select','over'].includes(this.scene)||feat?Math.round(CROP/2):Math.round(clamp(Math.round(this.p.x)-(VW-CROP)/2-this.camX,0,CROP)*S)/S;
     Prompt.el.classList.toggle('top',this.scene==='place'||!!Caption.s);
     if(feat) this.drawFeature();
     else ({menu:this.drawMenu, select:this.drawSelect, outside:this.drawOutside, foyer:this.drawFoyer, place:this.drawPlace, end:this.drawEnd, over:this.drawMenu, toilets:this.drawToilets})[this.scene].call(this);
