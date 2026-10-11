@@ -1,98 +1,101 @@
-# Choose your own keynote
+# Choose your own keynote: [scverse conference 2026](https://scverse.org/conference2026/)
 
-Phil Ewels' scverse 2026 keynote as a side-scrolling game, plus two phone companions for the talk itself.
+My keynote at the [scverse conference 2026](https://scverse.org/conference2026/) (12–14 October, DTU, Copenhagen), presented as a pixel-art side-scrolling game. There were no slides. I walked around a pixel version of the venue, and the audience voted on their phones for which topic came next.
 
-- `docs/` is a static site: the game, the audience page and the moderator page.
-- `worker/` is a small **Cloudflare Worker** that serves `docs/` and syncs rankings and questions in real time. The free plan covers it.
+![The game's start menu: "Choose your own keynote" over DTU Lyngby at dusk](.github/menu.png)
 
-During the talk everything runs from the Worker, on one address. After the talk the game moves to **GitHub Pages**, where it stays online for free with the live features off.
+## Play it
 
-## Addresses
+**[Play the game in your browser](https://ewels.github.io/scverse2026-keynote/)**. It needs no install and no sign-in.
 
-With the Worker deployed at `https://scverse2026.USER.workers.dev`:
+| Key | Does |
+| --- | --- |
+| <kbd>←</kbd> <kbd>→</kbd> | Walk, choose and step through the talk |
+| <kbd>Space</kbd> / <kbd>Enter</kbd> / <kbd>B</kbd> | Take action: talk, open doors, poke things |
+| <kbd>F</kbd> | Full screen |
+| <kbd>R</kbd> | Back to the menu |
+
+Each room in the venue holds one topic:
+
+- 🎓 Why bother writing software? (the opener, in the lecture theatre)
+- 🧬 Community building with nf-core
+- 🦀 rewrites.bio
+- 🤖 Building tools for agents
+- 📊 MultiQC
+- 🎮 Side projects
+- 📚 Building awesome docs sites
+
+There are easter eggs hidden around the venue. Have fun finding them!
+
+## How it worked on the day
+
+- 🗳️ **Live ranking.** The audience scanned a QR code and ranked the topics on their phones. Bars beside the game showed which room was most wanted next.
+- 🙋 **Questions.** People sent and upvoted questions. When I put a question on screen, a character in the game walked up with a "?" to ask it.
+- 👏 **Reactions.** Claps, hearts and coffees from phones floated up over the game. When enough came in at once, the pixel crowd stood up.
+
+All of the code was written by Claude Opus 5.5. It is plain HTML, CSS and JavaScript, and all the art is drawn in code. There is no build step and there are no image files. A small [Cloudflare Worker](https://developers.cloudflare.com/workers/) synced the votes and questions during the talk. Now the game runs on GitHub Pages with the live features off.
+
+## Run it yourself
+
+Open `docs/index.html` in a browser. That's it.
+
+To run it with the live features, start the Worker locally:
+
+```sh
+cd worker && cp .dev.vars.example .dev.vars && npx wrangler dev
+```
+
+Then open the stage at `http://localhost:8787/?stage&key=dev`, the audience page at `/join/` and the moderator page at `/mod/?key=dev`.
+
+<details>
+<summary>Deploying, presenting and testing</summary>
+
+### What's where
+
+- `docs/`: the static site. `index.html` is the game, `content.js` holds the talk's content (characters, topics, beats), `places/` has one script per room, `join/` is the audience page and `mod/` is the moderator page.
+- `worker/`: the Cloudflare Worker and one Durable Object that holds the live state. It also serves `docs/`.
 
 | Address | Who | What |
 | --- | --- | --- |
-| `/` | Anyone | The game. Stays up after the talk. |
-| `/?stage&key=KEY` | You, on the laptop | The game plus QR code, short link, ranking bars and questions up next |
-| `/join/` | Audience | Rank the topics once, send and vote on questions, get the game link at the end |
-| `/mod/?key=KEY` | You, on your phone | Put questions on screen, mark them answered, dismiss them |
+| `/` | Anyone | The game |
+| `/?stage&key=KEY` | Presenter, on the laptop | The game plus QR code, ranking bars and upcoming questions |
+| `/join/` | Audience | Rank the topics, send and vote on questions |
+| `/mod/?key=KEY` | Presenter, on a phone | Put questions on screen, mark them answered, dismiss them |
 
-The QR code on stage points at `/join/` on whatever site you opened the stage on. A custom domain on the Worker gives a shorter link to read out.
+### Deploy
 
-## Deploy
-
-Your presenter key and the Worker's address live in `.env`, which git ignores. Create it from the example and generate a key:
+The presenter key and the Worker's address go in `.env`, which git ignores:
 
 ```sh
 cp .env.example .env
 sed -i '' "s/^PRESENTER_KEY=.*/PRESENTER_KEY=$(openssl rand -hex 24)/" .env
-```
-
-Then deploy and upload the key, without it ever appearing on screen:
-
-```sh
-cd worker
-npm install
-npx wrangler login
-npx wrangler deploy
+cd worker && npm install && npx wrangler login && npx wrangler deploy
 sed -n 's/^PRESENTER_KEY=//p' ../.env | npx wrangler secret put PRESENTER_KEY
 ```
 
-The deploy prints the Worker's address: put it in `KEYNOTE_URL` in `.env`. The pages use whatever origin they're served from, so there's nothing else to configure. Changing the key takes effect straight away, even mid-talk.
+Put the printed address in `KEYNOTE_URL` in `.env`. After that, GitHub Actions deploys every push to `main` that changes `docs/` or `worker/`, once the tests pass. It needs the `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` repository secrets. A deploy drops every phone for a moment, so don't push during the talk.
 
-After that, GitHub Actions deploys every push to `main` that changes `docs/` or `worker/`, once the tests pass. It needs two repository secrets: `CLOUDFLARE_ACCOUNT_ID`, and `CLOUDFLARE_API_TOKEN` with Workers Scripts write access. You can also run it by hand from the Actions tab. A deploy briefly drops every phone, so don't push during the talk.
+### Present
 
-## Before the talk
+Run `./present.sh` (needs [gum](https://github.com/charmbracelet/gum)) and pick **Start the talk**. It opens the stage and copies the moderator link to the clipboard, so the key never shows on screen. Run it before the projector mirrors your screen. Press F for full screen, reset the rehearsal votes, and open the moderator link on your phone. The dots turn green when everything is connected. If the connection drops, the game carries on.
 
-Run `./present.sh` (needs [gum](https://github.com/charmbracelet/gum): `brew install gum`) and pick **Start the talk**. It reads `.env`, opens the stage on the laptop and copies the moderator link to the clipboard, so you never handle the key.
+### Move to GitHub Pages afterwards
 
-1. On the laptop, press F for full screen. Full screen also hides the address bar, and with it the key.
-2. Click "Reset votes and questions" above the game to clear rehearsal data.
-3. On your phone, paste the moderator link into the browser. With a shared clipboard (iCloud), it's already there. The page remembers the key, so add it to your home screen.
-4. The dots on the stage sidebar and the moderator page turn green when they're connected.
+1. Make the repo public, then set Pages to deploy from `main` and `/docs`.
+2. Remove the `deploy` job from `.github/workflows/test.yml`.
+3. Delete the Worker with `npx wrangler delete`, or leave it: it costs nothing when idle.
 
-Run it before the projector is mirroring your screen: the address bar shows the key until the page strips it.
-
-If the connection drops during the talk, the game carries on and the bars just stop moving.
-
-## After the talk
-
-1. Make the repo public on GitHub.
-2. Go to Settings → Pages → Build and deployment. Choose "Deploy from a branch", pick `main` and `/docs`, and save.
-3. Remove the `deploy` job from `.github/workflows/test.yml`, or it will recreate the Worker on the next push.
-4. Delete the Worker with `npx wrangler delete`, or leave it running, since it costs nothing idle.
-
-On GitHub Pages the live features are off: the game works, and the audience page says voting is closed and links to the game.
-
-## How it behaves
-
-- **Rankings.** Everyone arranges the topics from a shuffled start and taps Submit, then gets told to put their phone away. Scoring is a Borda count over rooms not yet visited: with n rooms left, a first choice is worth n points and a last choice 1. A room's bar disappears once you walk into it.
-- **Questions.** Name plus up to 140 characters, at most 3 unanswered per phone, 20 seconds apart. Everyone sees the open questions, most votes first, and can vote up any except their own. Dismissed questions disappear for everyone but the asker, who still sees theirs as sent. Anything you put on screen is brought up by a character with a "?", and reading it out in the game marks it answered.
-- **Moderator page.** Two tabs: **New**, most votes first, and **On screen**, in the order they'll come up in the game. The New count flashes if a question arrives while you're on the other tab. Every action has a few seconds of Undo. The page keeps your phone awake, and buzzes on Android when a question arrives.
-- **End of the talk.** Audience phones switch to a link to the game.
-
-Limits are at the top of `worker/src/worker.js`. The talk's content (characters, topics, each topic's beats) is in `docs/content.js`, with a guide to every field at the top, and each topic's place is drawn by its own script in `docs/places/`. The phone page picks the topics up from the stage.
-
-## Run it locally
-
-```sh
-cd worker && cp .dev.vars.example .dev.vars && npx wrangler dev      # site and backend on :8787, key "dev"
-```
-
-Open `http://localhost:8787/?stage&key=dev`, `http://localhost:8787/join/` and `http://localhost:8787/mod/?key=dev`. Opening `docs/index.html` straight from disk also works, with the live features off.
-
-## Tests
-
-Playwright smoke tests play the game from disk, then run the stage, two phones and the moderator page against a local Worker.
+### Tests
 
 ```sh
 npm install && npm --prefix worker install && npx playwright install chromium   # once
 npm test
 ```
 
-GitHub Actions runs them on every push and pull request. Add `?debug` to the game's address to expose `window.__game` and `window.__live` in the browser console.
+The Playwright tests play the game from disk, then drive the stage, two phones and the moderator page against a local Worker. Add `?debug` to the game's address to skip the intro and expose `window.__game` and `window.__live`. Limits (question length, cooldowns and so on) are at the top of `worker/src/worker.js`.
+
+</details>
 
 ## Credits
 
-Fonts: Silkscreen and VT323, SIL Open Font License 1.1 (`docs/fonts/`). QR codes: qrcode-generator by Kazuhiko Arase, MIT licence (`docs/vendor/qrcode.js`).
+Made by [Phil Ewels](https://github.com/ewels). Fonts: Silkscreen and VT323, SIL Open Font License 1.1. QR codes: qrcode-generator by Kazuhiko Arase, MIT licence.
