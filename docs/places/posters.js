@@ -288,8 +288,7 @@
   const fy = (s, v) => 30 + 34 * Math.exp(-((v - 30 - s * 5) ** 2) / (120 + s * 40)) + 10 * Math.sin(v * 0.12 + s) * 0.4 + s * 3;
   const fEcharts = t => {
     fFrame('ECHARTS PLOTS', t);
-    const P = 10, k = t % P, X0 = 66, X1 = 262, Y0 = 38, Y1 = 130;
-    const zoom = ease((k - 6.2) / 0.8), d0 = lerp(0, 20, zoom), d1 = lerp(100, 50, zoom);
+    const P = 7, k = t % P, X0 = 66, X1 = 262, Y0 = 38, Y1 = 130, d0 = 0, d1 = 100;
     const px = v => X0 + (v - d0) / (d1 - d0) * (X1 - X0), py = v => Y1 - (v / 80) * (Y1 - Y0);
     for (let v = 0; v <= 80; v += 20) { R(X0, Math.round(py(v)), X1 - X0, 1, '#ebe5da'); T(String(v), X0 - 3, Math.round(py(v)) - 3, 4, '#7f8aab', 'right'); }
     R(X0, Y0, 1, Y1 - Y0, '#9aa0a6'); R(X0, Y1, X1 - X0, 1, '#9aa0a6');
@@ -306,14 +305,7 @@
       [0, 1, 2].forEach(s => { R(bx + 4, 60 + s * 7, 3, 3, SER[s]); T(`S${s + 1} ${fy(s, hv).toFixed(1)}`, bx + 10, 58 + s * 7, 5, '#3a3f4a'); });
       cursor(hxp + 1, 100, 0);
     }
-    if (k >= 4.6 && k < 6.4) {
-      const a = ease((k - 4.6) / 1.2), xa = px(20), xb = lerp(xa, px(50), a);
-      ctx.globalAlpha = 0.25; R(Math.round(xa), Y0, Math.round(xb - xa), Y1 - Y0, '#6c8cff'); ctx.globalAlpha = 1;
-      R(Math.round(xa), Y0, 1, Y1 - Y0, '#3b5bdb'); R(Math.round(xb), Y0, 1, Y1 - Y0, '#3b5bdb');
-      cursor(xb, 90, 0);
-    }
-    if (k > 7) { R(214, 32, 48, 10, '#e6eeff'); T('ZOOMED', 238, 34, 5, '#3b5bdb', 'center'); }
-    if (k > 7.4) { R(52, 134, 216, 14, '#fff3c4'); T('STATIC EXPORTS WITHOUT CHROMIUM', 160, 137, 6, '#8a5a00', 'center'); }
+    if (k > 4.8) { R(52, 134, 216, 14, '#fff3c4'); T('STATIC EXPORTS WITHOUT CHROMIUM', 160, 137, 6, '#8a5a00', 'center'); }
     else SER.forEach((c, s) => { R(72 + s * 38, 138, 6, 4, c); T(`S${s + 1}`, 81 + s * 38, 137, 5, '#3a3f4a'); });
   };
   const arrow = (x0, y, x1, c, t) => { R(x0, y, x1 - x0, 2, c); for (let i = 0; i < 4; i++) R(x1 - 4 + i, y - 3 + i, 1, 8 - i * 2, c); const p = ((t * 0.9) % 1); R(Math.round(lerp(x0, x1 - 6, p)), y - 1, 4, 4, '#e8590c'); };
