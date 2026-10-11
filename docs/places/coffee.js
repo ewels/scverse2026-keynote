@@ -226,9 +226,9 @@
     for (const i of order) { const p = q[i], x = Math.round(p.x), y = Math.round(p.y), inLine = i > act, presenting = i === act && !p.mv;
       if (i === 5) { cabinet(st, t, depth, x, y, presenting); continue; }
       const face = stare && inLine ? Math.sign(g.heroX() - x) || 1 : p.face;
-      person(LOOKS[i], x, y - (inLine && !p.mv && Math.sin(t * 1.7 + i * 3) > 0.96 ? 1 : 0), t + i, face, p.mv);
+      person(LOOKS[i], x, y - (inLine && !p.mv && Math.sin(t * 1.7 + i * 3) > 0.96 ? 1 : 0), t + i, face, p.mv, 1, presenting ? 'cheerA' : undefined);
       if (i < act) { const sip = Math.sin(t * 0.8 + i * 1.7) > 0.8; cup(x + face * 5 - 2, y - (sip ? 18 : 13), !sip, t); }
-      else if (presenting) { for (let k = 0; k < 9; k++) R(x - 6 - Math.round(k * 0.6), y - 13 - k, 2, 1, k < 6 ? LOOKS[i].top : LOOKS[i].skin); small(i, x - 16, y - 33, t); }
+      else if (presenting) small(i, face < 0 ? x - 15 : x + 4, y - 28, t);
       else small(i, x - 5 + face * 7, y - 12, t);
       if (stare && inLine) { R(x - 6, y - 24, 4, 1, INK); R(x + 2, y - 24, 4, 1, INK); R(x - 1, y - 30 - Math.round(Math.abs(Math.sin(t * 8))), 2, 4, '#e85d5d'); R(x - 1, y - 25, 2, 1, '#e85d5d'); } }
     if (inner) person(g.hero(), g.heroX(), FLOOR, t, 1, false);
