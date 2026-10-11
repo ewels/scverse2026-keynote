@@ -159,17 +159,30 @@
       for (let a = 0; a < 20; a++) { const ang = a / 20 * 6.283; R(Math.round(gx + Math.cos(ang) * 5), Math.round(gy + Math.sin(ang) * 5), 1, 1, '#d4a017'); }
       R(gx - 3, gy - 3, 6, 6, 'rgba(200,230,255,.35)'); R(gx - 2, gy - 3, 2, 1, '#ffffff'); },
     chores(t, s) { grid(); shadowT('AGENTS ON CHORES', SX + 8, SY + 6, 7, '#ffffff', 'left', '#0a1428');
-      const at = clamp01(s / 2) * 4, merged = s > 2.8, bx = SX + 124, by = SY + 84;
-      const k = ease(clamp01((s - 2) / 0.4)), rx = lerp(slotX(Math.round(at)) + 15, SX + SW - 10, k), ry = PIPE_Y - 14 - Math.sin(k * 3.14) * 6;
-      // drawn first, so it falls behind the bricks and into the box
-      if (s > 2 && !merged) { const py = lerp(ry + 7, by - 2, ease(clamp01((s - 2.4) / 0.4)));
+      const cx = i => SX + 36 + i * 64, work = i => 0.8 + i * 1.4, bx = SX + 63, by = SY + 85, merged = s > 5.5;
+      // starts where the review screen left the robot, so the cut doesn't jump
+      const K = [[0, SX + SW - 18, SY + 28], [0.8, cx(0), SY + 26], [1.8, cx(0), SY + 26], [2.2, cx(1), SY + 26], [3.2, cx(1), SY + 26], [3.6, cx(2), SY + 26], [4.6, cx(2), SY + 26], [5.2, SX + 100, SY + 74]];
+      let j = 0; while (j < K.length - 2 && s > K[j + 1][0]) j++;
+      const k = clamp01((s - K[j][0]) / (K[j + 1][0] - K[j][0])), sm = k * k * (3 - 2 * k);
+      const rx = lerp(K[j][1], K[j + 1][1], sm), ry = lerp(K[j][2], K[j + 1][2], sm) + Math.sin(t * 2) * 2;
+      if (s > 4.6 && !merged) { const py = lerp(ry + 7, by - 2, ease(clamp01((s - 5.2) / 0.3)));
         R(rx - 10, py, 20, 9, '#3cc87a'); R(rx - 10, py, 20, 1, '#9ff0c4'); T('PR', rx, py + 2, 5, '#0d2a1a', 'center'); }
-      pipeline(5, null, t, i => s < 2 && i === Math.round(at));
-      for (let i = 0; i < 5; i++) if (s > 0.15 && at >= i - 0.05) { const x = slotX(i) + 4; tick(x, PIPE_Y + 18);
-        R(x + 12, PIPE_Y + 14, 6, 7, '#ffffff'); R(x + 13, PIPE_Y + 16, 4, 1, '#8f9ab0'); R(x + 13, PIPE_Y + 18, 3, 1, '#8f9ab0'); }
+      ['TEMPLATE SYNC', 'BUGFIXES', 'DOCS'].forEach((name, i) => {
+        const x = cx(i), p = clamp01((s - work(i)) / 0.9), done = p >= 1, y = SY + 45;
+        if (p > 0 && !done && Math.sin(t * 20) > 0) line(Math.round(rx), Math.round(ry) + 5, x, y - 4, '#6cf0ff');
+        if (i === 0) { const a0 = p * 12.57, c = done ? '#3cc87a' : '#6c8cff';
+          for (const h of [0, 3.14]) { for (let n = 0; n <= 20; n++) { const a = a0 + h + 0.5 + n * 0.115; for (const r of [6, 7]) R(Math.round(x + Math.cos(a) * r), Math.round(y + Math.sin(a) * r), 1, 1, c); }
+            const e = a0 + h + 2.8; R(Math.round(x + Math.cos(e) * 7) - 1, Math.round(y + Math.sin(e) * 7) - 1, 3, 3, c); } }
+        if (i === 1) { brick(x - 12, y, 24, 9, '#ff6f91', 3);
+          if (p < 0.6) { const b = Math.round(x + Math.sin(t * 3) * 8); R(b - 3, y - 6, 7, 4, '#2a1a10'); R(b - 1, y - 5, 1, 1, '#e85d5d'); R(b + 1, y - 4, 1, 1, '#e85d5d'); R(b + 4, y - 5, 3, 3, '#111111'); R(b + 7, y - 7, 1, 2, '#111111'); for (const d of [-3, 0, 3]) R(b + d, y - 2, 1, 1, '#111111'); }
+          else if (p < 0.85) for (let n = 0; n < 6; n++) R(x + Math.round(Math.cos(n) * 5 * p), y - 3 + Math.round(Math.sin(n) * 3 * p), 1, 1, '#ffd166'); }
+        if (i === 2) { R(x - 8, y - 9, 16, 19, '#ffffff'); R(x + 5, y - 9, 3, 3, '#8f9ab0');
+          for (let n = 0; n < 5; n++) R(x - 6, y - 5 + n * 3, n === 4 ? 7 : 12, 1, n < Math.floor(p * 5 + 0.2) ? '#2f6fe3' : '#e4e8ee'); }
+        if (done) tick(x + 9, y + 6);
+        T(name, x, SY + 58, 4, done ? '#9ff0c4' : '#c8d0e6', 'center'); });
       R(bx, by, 74, 13, merged ? '#2fb67c' : '#1d3a5c'); R(bx, by, 74, 1, merged ? '#7fe0b0' : '#4a6a9a');
       T(merged ? 'MERGED!' : 'shared repo', bx + 37, by + 4, merged ? 5 : 4, '#ffffff', 'center');
-      robot(rx, ry + (s < 2 ? Math.sin(t * 8) : 0), t); },
+      robot(rx, ry, t); },
     shelf(t, s) { R(SX, SY, SW, SH, '#1a1220'); shadowT('LOOK FOR A BLOCK FIRST', SX + 8, SY + 5, 7, '#ffffff', 'left', '#0a0610');
       const scan = Math.min(FOUND, Math.floor(s / 0.15)), got = s > 1.5, k = ease(clamp01((s - 1.5) / 0.5));
       SHELVES.forEach(([name, mods, cols], r) => { const y = SY + 22 + r * 28;

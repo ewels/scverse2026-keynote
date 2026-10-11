@@ -80,7 +80,7 @@ const TOPICS = {
                 { at:'screen', id:'assemble', say:'Agents assemble, blocks execute' },
                 { at:'front', id:'pool', say:'Pool AI effort into shared community tools' },
                 { at:'screen', id:'review', say:'More eyes on shared tools: bugs fixed for everyone' },
-                { at:'screen', id:'chores', say:'Point your agents at the chores: tests, docs, PRs' },
+                { at:'screen', id:'chores', say:'Point your agents at the chores: template sync, bugs, docs' },
                 { at:'edge', id:'shelf', say:'Before you vibe-code it, look for a block' },
                 { at:'screen', id:'recap', say:'Three things to take home' },
                 { at:'podium', id:'answer', say:'Why bother? Because science runs on shared blocks' },
