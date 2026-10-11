@@ -136,8 +136,8 @@
         for (const x of dots) { if ([0, 1, 2, 3, 4].some(i => x >= slotX(i) && x < slotX(i) + 30)) continue; disc(x, PIPE_Y + 6, 2, '#ffffff'); disc(x, PIPE_Y + 6, 1, '#6cf0ff'); }
         if (s > 5 * per + 4.5) { const x = slotX(4) + 34; R(x, PIPE_Y - 4, 12, 16, '#ffffff'); R(x + 2, PIPE_Y + 6, 2, 4, '#3cc87a'); R(x + 5, PIPE_Y + 3, 2, 7, '#f5a623'); R(x + 8, PIPE_Y, 2, 10, '#6c8cff'); }
       } },
-    commons(t, s, st) { R(SX, SY, SW, SH, '#1d2a1d'); for (let y = 0; y < SH; y += 2) R(SX, SY + y, SW, 1, mix('#2d4a2a', '#18241a', y / SH));
-      shadowT('THE COMMONS', SX + 8, SY + 8, 9, '#ffffff', 'left', '#0d1a0d'); T('built by everyone, used by everyone', SX + 8, SY + 22, 4, '#bfe8b0');
+    pool(t, s, st) { R(SX, SY, SW, SH, '#1d2a1d'); for (let y = 0; y < SH; y += 2) R(SX, SY + y, SW, 1, mix('#2d4a2a', '#18241a', y / SH));
+      shadowT('BUILD IT TOGETHER', SX + 8, SY + 8, 9, '#ffffff', 'left', '#0d1a0d'); T('built by many, used by everyone', SX + 8, SY + 22, 4, '#bfe8b0');
       R(SX + 6, SY + 96, 112, 2, '#4a6a3a');
       for (let i = 0; i < WALL.length; i++) { const w = WALL[i], c = i < 3 ? '#8a8f94' : BRICK[i % BRICK.length];
         if (i < 3 || s >= THROW_T(i - 3) + 1.2) brick(w.x, w.y, 17, 9, c, 3); }
@@ -179,7 +179,7 @@
       if (r === ROWS - 1) avTech(t);
     }
   };
-  const standOf = (p, scr, sT) => { if (scr !== 'commons') return 0; const i = THROWERS.indexOf(p); if (i < 0) return 0; const t0 = THROW_T(i); return sT >= t0 && sT < t0 + 0.9 ? 1 : 0; };
+  const standOf = (p, scr, sT) => { if (scr !== 'pool') return 0; const i = THROWERS.indexOf(p); if (i < 0) return 0; const t0 = THROW_T(i); return sT >= t0 && sT < t0 + 0.9 ? 1 : 0; };
   const drawSeat = (p, st, t, scr, sT) => {
     const { x, by } = p;
     R(x - 6, by - 14, 12, 11, '#7a1f2a'); R(x - 5, by - 15, 10, 1, '#8a2430'); R(x - 6, by - 14, 1, 11, '#94303c');
@@ -342,7 +342,7 @@
       if (s >= 2.4) { rot(PLANE, PLANE_PAL, tx + 1, ty - 2, 2.2); R(tx - 1, ty + 1, 3, 1, '#8f9ab0');
         if (s < 3.2) { const k = (s - 2.4) / 0.8; ctx.globalAlpha = 1 - k; for (let i = 0; i < 5; i++) { const a = i * 1.26; disc(tx + Math.cos(a) * (3 + k * 8), ty + Math.sin(a) * (2 + k * 5), 1, '#e8dcc8'); } ctx.globalAlpha = 1; } }
     }
-    if (st.scr === 'commons') THROWERS.forEach((p, i) => { const t0 = THROW_T(i) + 0.3, k = (s - t0) / 0.9; if (k < 0 || k >= 1) return;
+    if (st.scr === 'pool') THROWERS.forEach((p, i) => { const t0 = THROW_T(i) + 0.3, k = (s - t0) / 0.9; if (k < 0 || k >= 1) return;
       const w = WALL[i + 3]; const x0 = p.x + 4, y0 = p.by - 26, x1 = w.x + 8, y1 = w.y + 4;
       brick(lerp(x0, x1, k) - 4, lerp(y0, y1, k) - Math.sin(k * 3.14) * 40, 8, 5, BRICK[(i + 3) % BRICK.length], 2); });
   };

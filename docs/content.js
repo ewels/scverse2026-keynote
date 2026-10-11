@@ -68,7 +68,7 @@ const CHARACTERS = [
 
 const TOPICS = {
   why:      { title:'Why bother writing software?', short:'WHY', colour:'#ff6f91', icon:'brick', place:'theatre', size:'thick', opener:true,
-              blurb:'If an agent can write a tool in minutes, why build software carefully at all? Deterministic building blocks, and spending AI effort on the commons.',
+              blurb:'If an agent can write a tool in minutes, why build software carefully at all? Deterministic building blocks, and pooling AI effort into shared community tools.',
               host:{ name:'Sam the Session Chair', look:{ skin:'#d9a27c', hair:'#5a3d2b', hairStyle:'swept', top:'#3a3550', topStyle:'sweat', pants:'#2b2b36' } },
               beats:[
                 { at:'podium', big:'Why bother writing software any more?' },
@@ -77,7 +77,7 @@ const TOPICS = {
                 { at:'table', feature:'lego', say:'Deterministic building blocks',
                   steps:['Same input, same output, every time','Reusable: validate once, use everywhere','Understandable: read once, trust everywhere','Comparable: same tool, comparable results','Small, tested, composable'] },
                 { at:'screen', id:'assemble', say:'Agents assemble, blocks execute' },
-                { at:'front', id:'commons', say:'Spend AI effort on the commons' },
+                { at:'front', id:'pool', say:'Pool AI effort into shared community tools' },
                 { at:'screen', id:'review', say:'Someone else always finds more' },
               ] },
   nfcore:   { title:'Community building with nf-core', short:'NF-CORE', colour:'#3cc87a', icon:'core', place:'hackathon', size:'thick',
