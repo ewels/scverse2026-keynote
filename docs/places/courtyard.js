@@ -214,7 +214,8 @@
       const open = rT < 8 ? 0 : ev.beatIdx > 0 || (ev.beatIdx === 0 && !ev.walking) ? 1 : 0;
       if (open) st.torch = true;
       st.gate += clamp(open - st.gate, -dt * (rT < 8 ? 2.5 : 0.7), dt * 0.7);
-      const ft = flee ? 900 : BOARD.includes(id) ? 652 : SIGNS.includes(id) ? 300 : 122;
+      // at the board Ferris must stay further from the hero than the dinosaur, or Action walks to him instead
+      const ft = flee ? 900 : BOARD.includes(id) ? 532 : SIGNS.includes(id) ? 300 : 122;
       const fdx = ft - fx; st.fMoving = Math.abs(fdx) > 0.5; fx += Math.sign(fdx) * Math.min(Math.abs(fdx), (flee ? 170 : 80) * dt);
       for (const n of st.npcs) {
         const tg = flee ? 900 + n.home(t) : n.home(t), dx = tg - n.x, sp = flee ? 120 : rT < 12 && n.x > n.home(t) + 2 ? 60 : 28;
