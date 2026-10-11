@@ -514,7 +514,8 @@ const EGGS={ sea:['You found the sea','Walk right, outside, all the way'], rain:
   hoodie:['Your own hoodie','Pull cloakroom tickets up to number 10'], poster:['You are the poster now','Look at the empty poster board'],
   arcade:['The game inside the game','Poke the arcade cabinet by the coffee'], lost:['Someone followed the signs','Turn every corridor sign round'],
   toilet:['You found the toilets','Go past the Q&A door'],
-  mirror:['Your reflection waved first','Look in the toilet mirror'], dryer:['Blown away by the hand dryer','Use the hand dryer'], knock:['Knock knock. Occupied.','Knock on the cubicle three times'] };
+  mirror:['Your reflection waved first','Look in the toilet mirror'], dryer:['Blown away by the hand dryer','Use the hand dryer'], knock:['Knock knock. Occupied.','Knock on the cubicle three times'],
+  cloakbell:['The attendant took the bell','Keep ringing the cloakroom bell'] };
 // the venue cat from the hackathon's photos (ginger, white chest), side on, facing right
 const CAT_PAL={ f:'#e8913a', s:'#c06a22', w:'#f6efe2', e:'#3d8a3a', n:'#e88aa0' };
 const CAT_PALS=[{ f:'#2b2b2b', s:'#1b1b1b', w:'#f6efe2', e:'#e8c547', n:'#e88aa0' }, { f:'#9aa0a6', s:'#6d737a', w:'#e8e8e8', e:'#3d8a3a', n:'#e88aa0' },
@@ -899,7 +900,10 @@ const Game = {
     // hackathon sticker on the hoodie
     if(this.visited.has('nfcore')) [[3,12,'#ffffff'],[4,12,'#3cc87a'],[3,13,'#3cc87a'],[4,13,'#24b064']].forEach(([c,r,col])=>R(px(c),top+r,1,1,col));
     // the cloakroom's oversized coat, dragging on the floor
-    if(this.carried.coat){ const x=Math.round(p.x), f=Math.round(feet), c='#9a7a4a', d='#7a5c34', l='#b8966a';
+    if(this.carried.coat==='puffer'){ const c='#ff8fb1', d='#d9658a';
+      R(x0,top+9,12,7,c); R(x0+1,top+16,10,1,c); R(x0,top+11,12,1,d); R(x0,top+14,12,1,d); R(x0+6,top+10,1,6,d);
+      R(x0+2,top+7,8,3,'#fff6ea'); R(x0+3,top+7,1,1,'#e8dccb'); R(x0+7,top+8,1,1,'#e8dccb'); }
+    else if(this.carried.coat){ const x=Math.round(p.x), f=Math.round(feet), c='#9a7a4a', d='#7a5c34', l='#b8966a';
       for(let y=f-12;y<f-2;y++){ const h=Math.round(7+(y-f+12)*0.8); R(x-h,y,2*h+1,1,c); }
       R(x-17,f-3,35,4,c); R(x-18,f,37,1,d); for(const fx of [-13,-7,6,12]) R(x+fx,f-4,1,4,d);
       R(x-8,f-19,3,8,l); R(x+6,f-19,3,8,l); line(x-5,f-12,x,f-4,d); line(x+5,f-12,x,f-4,d);

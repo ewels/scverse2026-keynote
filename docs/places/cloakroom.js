@@ -1,7 +1,7 @@
 // Cloakroom: building tools for agents. One counter, two queues: humans on the left, robots on the right.
 (window.KEYNOTE_PLACES = window.KEYNOTE_PLACES || {}).cloakroom = g => {
   const { R, T, disc, line, map2d, mix, person, look, hash, time, ctx } = g;
-  const W = 600, EXIT = 584, DISP = 50, HH = 126, ADA = 290, BELL = 206, STAND = 368, PILE = 436, LANE0 = 478, LANE1 = 570;
+  const W = 600, EXIT = 584, DISP = 50, HH = 126, ADA = 290, BELL = 206, DESK = BELL + 16, STAND = 368, PILE = 436, LANE0 = 478, LANE1 = 570;
   const ORDER = ['two', 'llms', 'env', 'skills', 'context', 'richclick', 'tokens'];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), k01 = v => clamp(v, 0, 1);
   const COAT = ['#8b2f2f', '#2b3445', '#3f6b4c', '#d9a441', '#6c8cff', '#4a3a2a', '#b8b8b8', '#7a4a8c', '#c8643c']
@@ -91,12 +91,13 @@
     R(ADA - 18, 88, 37, 11, '#3b4b63'); R(ADA - 17, 89, 35, 9, '#0e1424'); T('ROBOTS', ADA, 90, 6, agent ? '#4be06f' : '#6c8cff', 'center');
   };
 
+  const bellArt = (x, y, ring) => { R(x - 5, y, 10, 2, '#6f6a62'); R(x - 4 + ring, y - 3, 8, 3, '#e2b52c'); R(x - 3 + ring, y - 4, 6, 1, '#e2b52c'); R(x - 1 + ring, y - 6, 2, 2, '#c99a1d'); R(x - 3 + ring, y - 3, 2, 1, '#ffe48a'); };
+  const puffer = (x, y) => { R(x - 6, y, 13, 7, '#ff8fb1'); R(x - 6, y + 2, 13, 1, '#d9658a'); R(x - 6, y + 5, 13, 1, '#d9658a'); R(x - 7, y - 1, 15, 2, '#fff6ea'); };
   const counter = (t, st) => {
     R(84, 121, 266, 4, '#c99a62'); R(84, 121, 266, 1, '#e8c08a'); R(84, 125, 266, 1, '#8a5a34'); R(86, 126, 262, 28, '#7d5230');
     for (let x = 86; x < 348; x += 22) { R(x + 3, 129, 16, 21, '#6f4728'); R(x + 3, 129, 16, 1, '#8a5a34'); }
     R(252, 126, 2, 28, '#5a3a20');
-    const ring = t - st.bellT < 0.5 ? Math.round(Math.sin(t * 60)) : 0;
-    R(BELL - 5, 119, 10, 2, '#6f6a62'); R(BELL - 4 + ring, 116, 8, 3, '#e2b52c'); R(BELL - 3 + ring, 115, 6, 1, '#e2b52c'); R(BELL - 1 + ring, 113, 2, 2, '#c99a1d'); R(BELL - 3 + ring, 116, 2, 1, '#ffe48a');
+    if (!st.snatched) bellArt(BELL, 119, t - st.bellT < 0.5 ? Math.round(Math.sin(t * 60)) : 0);
     if (t - st.bellT < 0.9) { const a = t - st.bellT; ctx.globalAlpha = k01(1.6 - a * 1.8); T('DING', BELL, 104 - Math.round(a * 10), 5, '#ffd166', 'center'); ctx.globalAlpha = 1; }
     const n = 41 + Math.floor(t / 6) % 58, fl = (t % 6) < 0.4;
     R(158, 128, 40, 21, '#1b1b1b'); R(159, 129, 38, 19, '#2a1414'); T('SERVING', 178, 131, 5, '#ff9a7a', 'center');
@@ -149,7 +150,7 @@
   };
   const coatStand = (t, st) => {
     R(STAND - 1, 90, 3, 62, '#6b4a2f'); R(STAND - 8, 151, 17, 3, '#4a3424'); R(STAND - 7, 91, 15, 2, '#6b4a2f'); R(STAND - 8, 88, 2, 4, '#6b4a2f'); R(STAND + 7, 88, 2, 4, '#6b4a2f'); disc(STAND, 89, 2, '#8a6a4a');
-    if (g.carry('coat')) return;
+    if (g.carry('coat') === true) return;
     bigCoat(STAND + Math.round(Math.sin(t * 0.8) * 0.6), 93);
   };
 
@@ -251,7 +252,7 @@
       { id: 'bell', x: BELL, r: 10, label: 'Ring the bell' },
       { id: 'coat', x: STAND, r: 6, label: 'Try on the big coat' },
     ],
-    enter(st) { Object.assign(st, { tix: 0, tixT: -99, bellT: -99, bellSaid: 0, ax: HH, eggT: -99, eggSaid: false, hostN: 0, checked: 0, fly: [], floorTix: [], saidBoa: false }); },
+    enter(st) { Object.assign(st, { tix: 0, tixT: -99, bellT: -99, bellSaid: 0, rings: [], snatched: false, snatchT: -99, dearT: -99, ax: HH, eggT: -99, eggSaid: false, hostN: 0, checked: 0, fly: [], floorTix: [], saidBoa: false }); },
     beat(id, st) { if (id === 'context') { st.checked = 0; st.saidBoa = false; } },
     update(dt, st, ev) {
       const t = time(); cur = ev.beat ? ev.beat.id || ev.beat.at : ''; kNow = ev.beat ? ORDER.indexOf(cur) : ev.beatIdx >= 0 ? ORDER.length : -1;
@@ -270,9 +271,13 @@
       }
       const b = t - st.bellT;
       if (st.bellT > 0 && b > 3.5 && st.bellSaid === 0) { st.bellSaid = 1; g.say('Coming...', HH, 104, 2.2); }
-      const target = st.bellT > 0 && b > 4 && b < 16 ? BELL - 12 : HH;
-      const dx = target - st.ax; st.aMoving = Math.abs(dx) > 0.5; if (st.aMoving) { st.ax += Math.sign(dx) * Math.min(Math.abs(dx), 9 * dt); st.aFace = Math.sign(dx); }
-      if (b < 16 && st.bellSaid === 1 && !st.aMoving && st.ax > HH + 30) { st.bellSaid = 2; g.say('Yes, dear?', st.ax, 104, 2.5); }
+      const angry = t - st.snatchT < 6, target = angry || st.bellT > 0 && st.bellSaid < 9 && b > 4 && b < 20 ? DESK : HH;
+      const dx = target - st.ax; st.aMoving = Math.abs(dx) > 0.5; if (st.aMoving) { st.ax += Math.sign(dx) * Math.min(Math.abs(dx), 12 * dt); st.aFace = Math.sign(dx); }
+      if (st.snatched && !angry && !st.aMoving) st.snatched = false;
+      if (b < 20 && st.bellSaid === 1 && !st.aMoving && Math.abs(st.ax - DESK) < 1) { st.bellSaid = 2; st.dearT = t; g.say('Yes, dear?', st.ax, 104, 2.5); }
+      if (st.bellSaid === 2 && t - st.dearT > 2.6) { st.bellSaid = 3;
+        if (g.carry('coat') === 'puffer') g.say('Still wearing it? Good.', st.ax, 104, 2.5);
+        else { g.carry('coat', 'puffer'); g.say('Your jacket, dear. Wrap up warm.', st.ax, 104, 3); } }
       const e = t - st.eggT;
       if (st.eggT > 0 && e > 2.4 && !st.eggSaid) { st.eggSaid = true; g.say('Ticket 10. Yours, I think?', DISP + 18, 108, 3); g.egg('hoodie', 'Your own hoodie'); }
     },
@@ -285,8 +290,16 @@
         if (st.tix === 10 && st.eggT < 0) { st.eggT = t; st.eggSaid = false; }
         return true;
       }
-      if (id === 'bell') { st.bellT = t; st.bellSaid = 0; g.say('Yes? How can I help?', ADA, 104, 2.2); return true; }
-      if (id === 'coat') { const on = !g.carry('coat'); g.carry('coat', on || null); g.say(on ? 'Far too big' : 'Back on the stand', Math.round(g.heroX()), 128, 2.5); return true; }
+      if (id === 'bell') {
+        if (st.snatched) { g.say('Where did the bell go?', Math.round(g.heroX()), 128, 2); return true; }
+        st.rings = st.rings.filter(r => t - r < 3).concat(t); st.bellT = t;
+        if (st.rings.length >= 5) {
+          Object.assign(st, { rings: [], snatched: true, snatchT: t, bellSaid: 9, ax: DESK, aFace: -1 });
+          g.say('I HEARD YOU THE FIRST TIME!', DESK, 100, 3); g.egg('cloakbell', 'The attendant took the bell'); return true;
+        }
+        st.bellSaid = 0; g.say('Yes? How can I help?', ADA, 104, 2.2); return true;
+      }
+      if (id === 'coat') { const on = g.carry('coat') !== true; g.carry('coat', on || null); g.say(on ? 'Far too big' : 'Back on the stand', Math.round(g.heroX()), 128, 2.5); return true; }
       if (id === 'host') {
         const H = g.hero(), org = H === look('lukas') || H === look('luca');
         const lines = ['Ticket, please.', 'Do you have that in markdown?', 'I read llms.txt for fun.', 'My context window is full of coats.', 'Beep. Sorry, habit.'];
@@ -297,10 +310,13 @@
       const t = time(), k = kNow, live = !ev.walking, s = ev.stepT, on = id => cur === id && live;
       room(t, st, k);
       humanAlcove(t, st); robotAlcove(t, st, k, ev);
-      person(LOOKS.att, st.ax, 126, t, st.aMoving ? st.aFace : 1, st.aMoving);
+      const pop = Math.round(14 * (1 - k01((t - st.snatchT) / 0.25)));
+      person(LOOKS.att, st.ax, 126 + pop, t, st.aMoving ? st.aFace : 1, st.aMoving);
+      if (st.snatched) bellArt(Math.round(st.ax) + 7, 112 + pop, t - st.snatchT < 1.5 ? Math.round(Math.sin(t * 60)) : 0);
       const push = on('skills') && s < 0.8;
       person(look('agents'), ADA + (push ? 2 : Math.round(Math.sin(t * 0.9) * 2)), 126, t, 1, false);
       counter(t, st);
+      if (st.bellSaid === 2) puffer(DESK - 2, 114);
       if (on('skills') && s < 1) { const p = k01(s / 0.6); R(ADA - 2 + Math.round(p * 6), 116 - Math.round(p * 6), 7, 5, '#2f8f5a'); R(ADA - 2 + Math.round(p * 6), 116 - Math.round(p * 6), 7, 1, '#ffd166'); }
       floor();
       rightWall(t);
