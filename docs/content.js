@@ -35,6 +35,7 @@
 //
 // GREETER     The registration desk character: name, colour, look.
 // OUTRO       Shown on the Q&A screen.
+// SUMMIT      The Q&A screen's QR code and link: where to watch the talks afterwards.
 // ICONS       Pixel art as rows of characters: o = topic colour, a = lighter colour,
 //             w = white, k = near-black, anything else = transparent.
 // LOGOS       Pixel logos for a sprite's top: rows use l = logoColour, n = brown,
@@ -161,6 +162,8 @@ const TOPICS = {
 };
 const GREETER = { name:'Greeter', colour:'#ff8fa3', look:{ skin:'#c98e62', hair:'#2b2b2b', hairStyle:'long', top:'#e85d75', topStyle:'tee', pants:'#394257' } };
 const OUTRO = ['THANKS!','Questions?'];
+// TODO: confirm the URL
+const SUMMIT = { url:'https://summit.nextflow.io/', title:'Nextflow Summit', label:'Watch the talks on demand' };
 const ICONS = {
   robot:['....aa....','....aa....','.oooooooo.','.owwoowwo.','.owkoowko.','.oooooooo.','.oowwwwoo.','.oooooooo.','...o..o...','..oo..oo..'],
   core:['.....k.....','.....kaa...','..ooooooo..','.ooooooooo.','..wwwwwww..','...wwkww...','....www....','...wwkww...','..wwwwwww..','.ooooooooo.','..ooooooo..','....ooo....'],
@@ -173,5 +176,5 @@ const ICONS = {
 };
 const LOGOS = { chip:{ r:10, c:5, rows:['lll','l.l','lll'] }, nfcore:{ r:10, c:3, rows:['l....l','.l..l.','..ll..','.l..l.','l....l'] } };
 
-window.KEYNOTE_CONTENT = { CHARACTERS, TOPICS, GREETER, OUTRO, ICONS, LOGOS };
+window.KEYNOTE_CONTENT = { CHARACTERS, TOPICS, GREETER, OUTRO, SUMMIT, ICONS, LOGOS };
 })();

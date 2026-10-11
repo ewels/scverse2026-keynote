@@ -198,7 +198,7 @@ kbd{ font-family:inherit; font-weight:700; border:1px solid var(--line); border-
 (() => {
 'use strict';
 
-const { CHARACTERS, TOPICS, GREETER, OUTRO, ICONS, LOGOS } = window.KEYNOTE_CONTENT;
+const { CHARACTERS, TOPICS, GREETER, OUTRO, SUMMIT, ICONS, LOGOS } = window.KEYNOTE_CONTENT;
 
 /* ================= utils ================= */
 const $ = s => document.querySelector(s);
@@ -209,6 +209,7 @@ function mix(a,b,t){ const A=hex2rgb(a), B=hex2rgb(b); return rgb2hex(A.map((v,i
 function lum(h){ const [r,g,b]=hex2rgb(h); return (0.299*r+0.587*g+0.114*b)/255; }
 function hash(n){ n=Math.imul(n^0x5bd1e995,0x27d4eb2d); n^=n>>>15; return (n>>>0)/4294967296; }
 function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function qrMake(text){ if(typeof qrcode!=='function') return null; const q=qrcode(0,'M'); q.addData(text); q.make(); return q; }
 function iconPal(t){ return { o:t.colour, a:mix(t.colour,'#ffffff',0.45), w:'#ffffff', k:'#1b1f2a' }; }
 
 /* ================= input ================= */
@@ -306,8 +307,8 @@ const Live = { ws:null, state:null, questions:[], answered:new Set(), outbox:[],
     this.connect();
     setInterval(()=>{ if(this.ws && this.ws.readyState===1) this.ws.send('ping'); },25000);
   },
-  drawQR(text){ const cv=$('#qr'); if(typeof qrcode!=='function'){ cv.style.display='none'; return; }
-    const q=qrcode(0,'M'); q.addData(text); q.make(); const n=q.getModuleCount(), m=2;
+  drawQR(text){ const cv=$('#qr'), q=qrMake(text); if(!q){ cv.style.display='none'; return; }
+    const n=q.getModuleCount(), m=2;
     cv.width=cv.height=n+m*2; const g=cv.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,cv.width,cv.height); g.fillStyle='#0f1424';
     for(let r=0;r<n;r++) for(let c=0;c<n;c++) if(q.isDark(r,c)) g.fillRect(c+m,r+m,1,1); },
   connect(){
@@ -1374,8 +1375,17 @@ const Game = {
     R(0,140,320,14,'#5a3a22'); R(0,140,320,2,'#7d5230'); R(0,154,320,26,'#1b1020');
     R(214,104,2,40,'#8a8f94'); R(208,143,14,2,'#8a8f94'); R(212,100,6,5,'#3b3f47'); R(213,99,4,1,'#6f7a80');
     for(let i=0;i<12;i++){ const x=10+i*27, b=Math.round(Math.sin(t*3+i)*0.8); disc(x,174+b,5,['#4a3a2a','#2b2b2b','#8b2f2f','#d9a441'][i%4]); R(x-6,178,12,2,'#1f2a44'); }
+    this.drawSummit();
     this.drawActors(146);
   },
+  // pinned to the right of the visible stage, so the sidebar's crop never cuts the QR code
+  drawSummit(){ const q=this.summitQR===undefined?(this.summitQR=qrMake(SUMMIT.url)):this.summitQR;
+    const url=SUMMIT.url.replace(/^https?:\/\//,'').replace(/\/$/,''), w=Math.max(64,Math.ceil(Math.max(tw(url,5),tw(SUMMIT.title,5),tw(SUMMIT.label,4)))+8);
+    const x=Math.round(this.camX+CX+VW-CROP-w-6), y=48, cx=x+w/2; R(x,y,w,90,'#111727'); R(x,y,w,2,'#ffd166'); R(x,y+88,w,2,'#232c47');
+    T(SUMMIT.title,cx,y+5,5,'#ffd166','center'); T(SUMMIT.label,cx,y+13,4,'#c8d0e6','center');
+    if(q){ const n=q.getModuleCount(), k=Math.floor(56*S/(n+4))/S, sz=k*(n+4), qx=Math.round(cx-sz/2), qy=y+21;
+      R(qx,qy,sz,sz,'#ffffff'); for(let r=0;r<n;r++) for(let c=0;c<n;c++) if(q.isDark(r,c)) R(qx+(c+2)*k,qy+(r+2)*k,k,k,'#0f1424'); }
+    T(url,cx,y+80,5,'#ffffff','center'); },
 };
 
 /* ================= splash ================= */
