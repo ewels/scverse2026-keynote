@@ -6,13 +6,13 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const ORANGE = '#e0602e';
 
-  const CRAB = ['o.o..............o.o', 'o.o..............o.o', 'ooo...o.o..o.o...ooo', '.o...oooooooooo...o.', '.oo.oooooooooooo.oo.', '..oooookwookwooooo..', '.ooooookkookkoooooo.', '.oooookkkkkkkoooooo.', '..oooooookkooooooo..', '...dddddddddddddd...'];
-  const SHUT = ['....................', '.oo..............oo.'];
-  const LEGS = [['..d.d.d......d.d.d..', '.d.d.d........d.d.d.'], ['...d.d.d....d.d.d...', '..d.d.d......d.d.d..']];
+  const CRAB = ['........o.o.o.o........', '......o..ooooo..o......', '.......ooooooooo.......', 'o.o.o.ooooooooooo.o.o.o', '.oo..ooooooooooooo..oo.', '..o..oooowkowkoooo..o..', '...ooooookkokkoooooo...', '....odooooooooooodo....', '...do.ddddddddddd.od...'];
+  const SHUT = '.oo.o.ooooooooooo.o.oo.';
+  const LEGS = [['....do.d.......d.od....', '.....d...........d.....', '......d.........d......'], ['....do.d.......d.od....', '.....d...........d.....', '....d.............d....']];
   const CRAB_PAL = { o: ORANGE, d: '#b84a20', w: '#ffffff', k: '#1b1b1b' };
   const crab = (x, feet, s, t, moving, shut) => {
-    const rows = (shut ? SHUT.concat(CRAB.slice(2)) : CRAB).concat(LEGS[moving ? Math.floor(t * 14) % 2 : 0]);
-    map2d(rows, Math.round(x) - 10 * s, Math.round(feet) - 12 * s, CRAB_PAL, s);
+    const body = shut ? CRAB.slice(0, 3).concat(SHUT, CRAB.slice(4)) : CRAB;
+    map2d(body.concat(LEGS[moving ? Math.floor(t * 14) % 2 : 0]), Math.round(x) - 11 * s, Math.round(feet) - 12 * s, CRAB_PAL, s);
   };
   const TORT = ['....ssssss......', '..ssSSssSSss....', '.sSSssSSssSSs.hk', '.sssssssssssshhh', 'hddddddddddddhh.'];
   const TLEG = [['..hh...hh...hh..'], ['.hh...hh....hh..']];
