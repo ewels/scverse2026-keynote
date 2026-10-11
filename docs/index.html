@@ -676,11 +676,12 @@ const Game = {
     const at=pl.idx<n&&pl.t.beats[pl.idx].at, fx=at&&pl.d.focus&&pl.d.focus[at];
     pl.target=pl.idx<n?(fx??this.p.x):(pl.d.exit??this.width()-20); },
   startBeat(){ const pl=this.pl, b=pl.t.beats[pl.idx]; if(!b) return; pl.stepT=0;
+    const f=b.feature&&pl.d.features&&pl.d.features[b.feature], beat=()=>pl.d.beat&&pl.d.beat(b.id||b.at,pl.st);
+    // start a featurette's beat under the fade, or the place flashes its new state first
+    if(f) return Fade.go(()=>{ beat(); pl.feat={ step:0, f }; pl.stepT=0; this.featCaption(); });
     if(b.say) Caption.show(b.say,b.who==='host'?pl.t.host.name:'',pl.t.colour);
     if(b.big) Big.show(b.big);
-    pl.d.beat&&pl.d.beat(b.id||b.at,pl.st);
-    const f=b.feature&&pl.d.features&&pl.d.features[b.feature];
-    if(f) Fade.go(()=>{ pl.feat={ step:0, f }; pl.stepT=0; this.featCaption(); }); },
+    beat(); },
   featCaption(){ const pl=this.pl, b=pl.t.beats[pl.idx], s=(b.steps&&b.steps[pl.feat.step])||b.say; if(s) Caption.show(s,'',pl.t.colour); },
   featStep(dir){ const pl=this.pl, ft=pl.feat, s=ft.step+dir;
     if(s>=0 && s<ft.f.steps){ ft.step=s; pl.stepT=0; return this.featCaption(); }
