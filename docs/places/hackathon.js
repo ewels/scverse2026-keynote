@@ -54,7 +54,7 @@
   // seconds since a beat started; 1e3 once it has passed; -1 if not reached
   const age = (st, id) => { const i = IDS.indexOf(id); return i < 0 || i > st.cur ? -1 : i === st.cur ? time() - st.t0 : 1e3; };
   // quarter-years since spring 2018; the clock beat runs it up to autumn 2026
-  const quarters = st => { const a = age(st, 'time'), k = c01(a / 2.6); return a < 0 ? 1 : 1 + 33 * k * k * (3 - 2 * k); };
+  const quarters = st => { const a = age(st, 'time'), k = c01(a / 5.2); return a < 0 ? 1 : 1 + 33 * k * k * (3 - 2 * k); };
 
   function view(x0, y0, w, h, s, t) {
     const S = SEASONS[s];
