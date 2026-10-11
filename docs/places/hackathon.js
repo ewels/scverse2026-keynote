@@ -40,7 +40,7 @@
     ['#f5a623', 'try -profile docker'], ['#6c8cff', 'that worked, thanks!'], ['#9b59b6', 'new rnaseq release!'],
     ['#3cc8b4', 'obligatory cat pic'], ['#ffd166', 'who is at the hackathon?'],
   ];
-  const STORY = ['rnaseq.nf', 'rnaseq_v2.nf', 'rnaseq_final.nf', 'rnaseq_final_2.nf', 'rnaseq_REAL_final.nf'];
+  const STORY = ['smith_lab_rnaseq.nf', 'rnaseq_KI.nf', 'tumour-rnaseq-pipe/', 'EMBL_rnaseq_v3.nf', 'yet_another_rnaseq/'];
   const RULES = ['NEXTFLOW', 'CONTAINERS', 'CI TESTS', 'DOCS', 'PEER REVIEW', 'MIT LICENCE'];
   const DOCS = ['1 READ DOCS', '2 SAY HI', '3 FIRST PR'];
   const MO = ['First hackathon? Welcome!', 'Say hi on Slack!', 'There is pizza by the tables', 'Need a review? Ping me'];
