@@ -99,6 +99,28 @@ header p{ margin:4px 0 0; color:var(--muted); max-width:60ch; }
 .title h2{ font-family:Silkscreen, SilkscreenLocal, monospace; font-weight:700; font-size:5.2cqw; line-height:1; margin:0 0 1.2cqw; }
 .title .sub{ font-family:VT323, VT323Local, monospace; font-size:3.4cqw; margin:0; }
 .title .hint{ position:absolute; bottom:7%; font-family:Silkscreen, SilkscreenLocal, monospace; font-size:1.7cqw; margin:0; background:rgba(27,35,50,.75); padding:.8cqw 1.6cqw; border-radius:.6cqw; text-shadow:none; animation:pulse 1.6s ease-in-out infinite; }
+.over{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; padding:2.6cqw 3cqw 1.6cqw; background:rgba(9,13,26,.88); color:#fff; text-align:center; }
+.over h2{ margin:0; font-family:Silkscreen, SilkscreenLocal, monospace; font-weight:700; font-size:4.4cqw; line-height:1; text-shadow:0 .4cqw 0 #000; }
+.over .score{ margin:1.2cqw 0 0; font-family:Silkscreen, SilkscreenLocal, monospace; font-size:2.2cqw; color:#ffe2a6; }
+.over .score b{ display:block; font-size:8cqw; line-height:1; color:#ffd166; text-shadow:0 .5cqw 0 #000; }
+.over .lbl{ margin:2cqw 0 .6cqw; font-family:Silkscreen, SilkscreenLocal, monospace; font-size:1.5cqw; color:#9aa6c6; }
+.over .board{ display:grid; grid-template-columns:repeat(3,auto); gap:0 4cqw; font-family:VT323, VT323Local, monospace; font-size:2.8cqw; line-height:1.1; color:#9aa6c6; }
+.over .board div{ display:contents; }
+.over .board .me{ color:#ffd166; }
+.over .eggs{ display:none; list-style:none; margin:1.4cqw 0 0; padding:0; width:100%; columns:3; column-gap:2.4cqw; text-align:left; font-family:VT323, VT323Local, monospace; font-size:2cqw; line-height:1; color:#9aa6c6; }
+.over .eggs li{ position:relative; break-inside:avoid; padding:0 0 .5cqw 2cqw; }
+.over .eggs li::before{ content:"▸"; position:absolute; left:0; }
+.over .eggs li.got{ color:#fff; }
+.over .eggs li.got::before{ content:"✓"; color:#4be06f; }
+.over .eggs small{ display:block; font-size:1.8cqw; color:#6f7a99; }
+.over.all h2, .over.all .lbl, .over.all .board{ display:none; }
+.over.all .score b{ display:inline; font-size:2.6cqw; text-shadow:none; }
+.over.all .eggs{ display:block; }
+.over .opts{ display:flex; gap:5cqw; margin:auto 0 0; padding:0; list-style:none; font-family:Silkscreen, SilkscreenLocal, monospace; font-size:2.2cqw; }
+.over .opts li{ position:relative; padding-left:2.8cqw; color:#65708d; }
+.over .opts li.sel{ color:#fff; }
+.over .opts li.sel::before{ content:"▶"; position:absolute; left:0; color:#ffd166; animation:pulse 1s steps(2) infinite; }
+.over .hint{ margin:.8cqw 0 0; font-family:VT323, VT323Local, monospace; font-size:1.9cqw; color:#4e5773; }
 .prompt{ position:absolute; left:50%; bottom:2.6%; transform:translateX(-50%); background:rgba(12,17,30,.85); color:#fff; font-family:Silkscreen, SilkscreenLocal, monospace; font-size:1.75cqw; padding:.9cqw 1.8cqw; border-radius:.7cqw; white-space:nowrap; pointer-events:none; border:.2cqw solid rgba(255,255,255,.25); }
 .prompt b{ color:#ffd166; }
 .prompt .or{ opacity:.6; margin:0 1cqw; }
@@ -127,7 +149,7 @@ header p{ margin:4px 0 0; color:var(--muted); max-width:60ch; }
 .pad .restart{ font-family:inherit; font-size:15px; font-weight:700; min-width:auto; padding:0 16px; margin-left:12px; }
 .keys{ text-align:center; color:var(--muted); font-size:14px; margin:0; }
 kbd{ font-family:inherit; font-weight:700; border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:0 5px; background:var(--panel); color:var(--fg); }
-@media (prefers-reduced-motion: reduce){ .title .hint,.dialogue .more,.menu li.sel::before{ animation:none; } .fade{ transition:none; } }
+@media (prefers-reduced-motion: reduce){ .title .hint,.dialogue .more,.menu li.sel::before,.over .opts li.sel::before{ animation:none; } .fade{ transition:none; } }
 </style>
 </head>
 <body>
@@ -156,6 +178,7 @@ kbd{ font-family:inherit; font-weight:700; border:1px solid var(--line); border-
         <p class="c-special"></p>
       </div>
       <div id="title" class="title hidden"><h2></h2><p class="sub"></p><p class="hint"></p></div>
+      <div id="over" class="over hidden"><h2>Game over</h2><p class="score"></p><p class="lbl">Recent runs</p><div class="board"></div><ul class="eggs"></ul><ul class="opts"></ul><p class="hint">R for the menu</p></div>
       <div id="caption" class="caption hidden"><div class="who"></div><p class="txt"></p></div>
       <div id="big" class="big hidden"><div><p></p><small></small></div></div>
       <div id="prompt" class="prompt hidden"></div>
@@ -219,7 +242,7 @@ const Input = { held:{left:false,right:false}, queue:[], hist:[], moon:false, re
   press(k){ const now=performance.now(); if(k==='left') this.moon=this.held.right||now-this.relR<350;
     if(k!=='action') this.held[k]=true; this.hist=[...this.hist,[k,now]].slice(-5);
     // the dance code swallows its Action, so it never pokes anything
-    if(this.hist.map(h=>h[0]).join()==='left,right,left,right,action' && now-this.hist[0][1]<2000 && !['menu','select'].includes(Game.scene)){ this.hist=[]; this.code=true; return; }
+    if(this.hist.map(h=>h[0]).join()==='left,right,left,right,action' && now-this.hist[0][1]<2000 && !['menu','select','over'].includes(Game.scene)){ this.hist=[]; this.code=true; return; }
     this.queue.push(k); },
   release(k){ if(k==='action') return; this.held[k]=false; if(k==='right') this.relR=performance.now(); else this.moon=false; } };
 const KEYMAP = { ArrowLeft:'left', KeyA:'left', PageUp:'left', ArrowRight:'right', KeyD:'right', PageDown:'right', Space:'action', Enter:'action', NumpadEnter:'action', KeyB:'action', F5:'action' };
@@ -479,9 +502,19 @@ const CLEANER={ skin:'#d9a27c', hair:'#3a3a3a', hairStyle:'short', top:'#3d6f8e'
 const VOLUNTEER={ skin:'#efc6a3', hair:'#c8501e', hairStyle:'messy', top:'#e85d75', topStyle:'tee', pants:'#394257' };
 const GUARDS=[{ skin:'#c98e62', hair:'#1b1b1b', hairStyle:'bald', top:'#d6dc3c', topStyle:'tee', pants:'#1b1f2a' },
   { skin:'#f2c9a0', hair:'#5a3d2b', hairStyle:'short', top:'#d6dc3c', topStyle:'tee', pants:'#1b1f2a' }];
-// Every egg in the venue, engine and places; the end screen counts against this, so add new ids here.
-const EGGS=['sea','plant','organiser','bell','printer','cow','cat','fight','moonwalk','dance','sweep','rain','coffee',
-  'star','theatre-title','triplicate','dino','hoodie','poster','arcade','lost','palm','toilet','mirror','dryer','knock','gulls','cats'];
+// Every egg in the venue, engine and places, as id: [name, hint]; the end screen counts and lists these, so add new ids here.
+const EGGS={ sea:['You found the sea','Walk right, outside, all the way'], rain:['You left mid-talk','Step outside once the talk has begun'],
+  organiser:['Organiser badge, then','Play as Lukas or Luca'], bell:['The greeter glared at you','Ring the desk bell three times'], printer:['You jammed the badge printer','Poke the badge printer'],
+  plant:['You kicked over a plant','Kick a plant in the foyer'], sweep:['The cleaner swept up after you','Kick over both foyer plants'], cow:['A cow waved back','Keep waving at the foyer windows'],
+  coffee:['Too much coffee','Keep drinking coffee'], moonwalk:['Moonwalk','Hold Right, then hold Left too'], dance:['Everybody dance','Left, Right, Left, Right, Action'],
+  fight:['You started a fight','Poke someone six times, fast'], star:['Golden badge','Audience: send a star from your phone'],
+  'theatre-title':['The game, on the big screen','Wiggle the theatre projector cable'], triplicate:['Approved in triplicate','Stamp the hackathon paperwork, a lot'],
+  cats:['Cats all the way down','Pin up cat photos at the hackathon'], cat:['You stroked the cat','Stroke the cat that follows you'],
+  palm:['You felled the palm tree','Shake the courtyard palm, a lot'], gulls:['You summoned the gulls','Keep throwing bread in the pond'], dino:['The dinosaur escaped','Poke the courtyard dinosaur'],
+  hoodie:['Your own hoodie','Pull cloakroom tickets up to number 10'], poster:['You are the poster now','Look at the empty poster board'],
+  arcade:['The game inside the game','Poke the arcade cabinet by the coffee'], lost:['Someone followed the signs','Turn every corridor sign round'],
+  toilet:['You found the toilets','Go past the Q&A door'],
+  mirror:['Your reflection waved first','Look in the toilet mirror'], dryer:['Blown away by the hand dryer','Use the hand dryer'], knock:['Knock knock. Occupied.','Knock on the cubicle three times'] };
 // the venue cat from the hackathon's photos (ginger, white chest), side on, facing right
 const CAT_PAL={ f:'#e8913a', s:'#c06a22', w:'#f6efe2', e:'#3d8a3a', n:'#e88aa0' };
 const CAT_PALS=[{ f:'#2b2b2b', s:'#1b1b1b', w:'#f6efe2', e:'#e8c547', n:'#e88aa0' }, { f:'#9aa0a6', s:'#6d737a', w:'#e8e8e8', e:'#3d8a3a', n:'#e88aa0' },
@@ -508,9 +541,9 @@ const Game = {
     this.loo={ knocks:0, tries:0, mirrorT:-9, dryT:-9, tapT:-9 }; this.dk={ door:0, fdoor:0, rings:0, ringT:-9, glareT:-9, jamT:-9, totesT:-9, totesDown:false }; this.fy={ waves:0, wave:null }; this.askerScene=null; this.pl=null; this.topic=null;
     this.p={x:40,face:1,t:0,moving:false}; this.camX=0;
     Object.assign(this,{ cat:null, herd:null, fx:[], reacts:[], annoy:{who:null,n:0,t:0}, fight:null, saved:{}, resume:null, revoked:false, visitor:false,
-      jit:0, gold:false, drinkT:-9, strokeT:-9, strokeFace:1, danceT:0, ovT:0, jumpT:0, openAt:0, idleT:0, idleRun:0, moonT:0, sweeping:false, cl:{x:SWEEP[0],face:1,jobs:[]}, cof:{cups:0,fallT:null,mopT:null,side:[true,true,true]}, hostSeen:new Set(), carried:{} });
+      jit:0, gold:false, runAt:0, drinkT:-9, strokeT:-9, strokeFace:1, danceT:0, ovT:0, jumpT:0, openAt:0, idleT:0, idleRun:0, moonT:0, sweeping:false, cl:{x:SWEEP[0],face:1,jobs:[]}, cof:{cups:0,fallT:null,mopT:null,side:[true,true,true]}, hostSeen:new Set(), carried:{} });
     Fade.busy=false; $('#fade').style.opacity='0'; Input.queue.length=0;
-    Dlg.close(); Prompt.clear(); Title.hide(); Card.hide(); Caption.hide(); Big.hide(); Menu.show();
+    Dlg.close(); Prompt.clear(); Title.hide(); Card.hide(); Caption.hide(); Big.hide(); $('#over').classList.add('hidden'); Menu.show();
   },
   get beatIdx(){ return this.pl?this.pl.idx:-1; },
   get busy(){ return Fade.busy; },
@@ -521,7 +554,7 @@ const Game = {
   width(){ return this.scene==='outside'?OUT_W:this.scene==='foyer'?FOYER_W:this.scene==='place'?this.pl.d.width||320:320; },
   toast(s){ this.toasts.push({s,t:3}); },
   egg(id,label){ if(id==='coffee' && !this.jit) this.jit=1; if(this.eggs.has(id)) return; this.eggs.set(id,label); this.toast('EASTER EGG: '+label);
-    if(!EGGS.includes(id)) console.warn('Egg missing from EGGS: '+id); },
+    if(!EGGS[id]) console.warn('Egg missing from EGGS: '+id); },
   say(s,x,y,secs=2.5){ this.bubbles=this.bubbles.filter(b=>b.x!==x); this.bubbles.push({s,x,y,t:secs}); },
   // ?debug only: jump straight to a scene, a topic id or a place id.
   goto(id){ token++; Fade.busy=false; $('#fade').style.opacity='0'; Dlg.close(); Menu.hide(); Card.hide();
@@ -529,12 +562,15 @@ const Game = {
     const key=TOPICS[id]?id:Object.keys(TOPICS).find(k=>TOPICS[k].place===id);
     if(key) return this.enterPlace(key,true);
     if(id==='desk') return this.go('foyer',DESK_X+24);
-    this.go(id,{outside:40,foyer:24,end:160,toilets:24}[id]); },
+    this.go(id,{outside:40,foyer:24,end:160,toilets:24,over:160}[id]); },
   go(scene,x){ this.scene=scene; const p=this.p; p.x=x; p.face=1; p.moving=false; this.jit=0; this.gold=false; this.bubbles=[]; this.kickT=0; this.fx=[]; this.idleT=0; this.fight=null;
     const c=this.cat; if(c){ c.x=x-14; c.face=1; c.mode='sit'; c.t=this.time; }
     Caption.hide(); Big.hide(); Prompt.clear(); Title.hide(); this.camX=clamp(x-VW/2,this.minX(),this.width()-VW);
-    if(scene==='end'){ this.toasts=[]; if(!this.ended){ this.ended=true; Live.send({t:'ended', on:true}); } this.endTitle(); } },
-  endTitle(){ Title.show(OUTRO[0],OUTRO[1],`Easter eggs found: ${this.eggs.size}/${new Set([...EGGS,...this.eggs.keys()]).size}  ·  R for the menu`); },
+    if(scene==='end'){ this.toasts=[]; if(!this.ended){ this.ended=true; Live.send({t:'ended', on:true}); } this.endTitle(); }
+    if(scene==='over'){ this.toasts=[]; this.overSel=1; this.overAll=false; this.runs=this.saveRun(); this.renderOver(); }
+    $('#over').classList.toggle('hidden',scene!=='over'); },
+  eggTotal(){ return new Set([...Object.keys(EGGS),...this.eggs.keys()]).size; },
+  endTitle(){ Title.show(OUTRO[0],OUTRO[1],`Easter eggs found: ${this.eggs.size}/${this.eggTotal()}  ·  ▶ Final score`); },
   // a place left by force (the fight) resumes at the beat it was on, with its state as it was
   enterPlace(key,now){ const f=()=>{ const d=place(key), sv=this.saved[key]; delete this.saved[key]; if(this.resume===key) this.resume=null;
       // once the opener is over, the next speaker has the stage
@@ -568,6 +604,8 @@ const Game = {
     if(Dlg.open){ if(Input.take('action','right')) Dlg.next(); return; }
     if(this.scene==='menu'){ if(Input.take('right','action')) Fade.go(()=>this.enterSelect()); return; }
     if(this.scene==='select'){ this.updateSelect(); return; }
+    if(this.scene==='over') return this.updateOver();
+    if(this.scene==='end' && Input.take('right')) return Fade.go(()=>this.go('over',160));
     if(Big.open && this.scene!=='place'){ if(Input.take('action','left','right')) Big.hide(); return; }
     // Right in a place snaps the fight back, so the talk is never stuck behind it
     if(this.fight){ if(this.scene==='place' && Input.queue.includes('right')) this.fight=null; else return this.updFight(dt); }
@@ -732,6 +770,25 @@ const Game = {
     else if(Input.take('right')){ if(this.sel<CHARACTERS.length-1){ this.sel++; Card.show(CHARACTERS[this.sel]); } }
     else if(Input.take('action')) this.choose();
   },
+  /* ---------- game over: this run's eggs, past runs, every egg ---------- */
+  saveRun(){ let runs=[]; try{ runs=JSON.parse(localStorage.getItem('keynote-runs')); }catch(e){} if(!Array.isArray(runs)) runs=[];
+    if(!this.runAt) this.runAt=Date.now();
+    runs=[...runs.filter(r=>r.at!==this.runAt),{ at:this.runAt, hero:this.hero().name, eggs:this.eggs.size, of:this.eggTotal() }].slice(-50);
+    try{ localStorage.setItem('keynote-runs',JSON.stringify(runs)); }catch(e){}
+    return runs; },
+  renderOver(){ const el=$('#over'), when=t=>new Date(t).toLocaleString('en-GB',{ day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+    el.classList.toggle('all',this.overAll);
+    el.querySelector('.score').innerHTML=`<b>${this.eggs.size}/${this.eggTotal()}</b> easter eggs found`;
+    el.querySelector('.board').innerHTML=this.runs.slice(-6).reverse().map(r=>`<div${r.at===this.runAt?' class="me"':''}><span>${esc(when(r.at))}</span><span>${esc(r.hero)}</span><span>${+r.eggs}/${+r.of}</span></div>`).join('');
+    el.querySelector('.eggs').innerHTML=Object.entries(EGGS).map(([id,[name,hint]])=>`<li${this.eggs.has(id)?' class="got"':''}>${esc(this.eggs.get(id)||name)}<small>${esc(hint)}</small></li>`).join('');
+    el.querySelector('.opts').innerHTML=['Back to Q&A',this.overAll?'Hide the easter eggs':'Show all easter eggs'].map((s,i)=>`<li${i===this.overSel?' class="sel"':''}>${esc(s)}</li>`).join(''); },
+  // Left past the first option goes back, so Left still means back
+  updateOver(){ const back=()=>Fade.go(()=>this.go('end',160));
+    if(Input.take('left')){ if(!this.overSel) return back(); this.overSel=0; }
+    else if(Input.take('right')) this.overSel=1;
+    else if(Input.take('action')){ if(!this.overSel) return back(); this.overAll=!this.overAll; }
+    else return;
+    this.renderOver(); },
   /* ---------- venue-wide play ---------- */
   feet(){ return this.scene==='outside'?OUT_FEET:this.scene==='place'?this.pl.d.floor||154:this.scene==='end'?146:154; },
   // poking the same NPC fast gets crosser replies, and the sixth poke starts a fight
@@ -813,10 +870,10 @@ const Game = {
     ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,c2d.width,c2d.height); ctx.imageSmoothingEnabled=false; ctx.globalAlpha=1;
     const feat=this.scene==='place'&&this.pl.feat;
     // Walkable scenes pan the cropped view to keep the hero centred; the rest crop evenly.
-    CX=this.scene==='menu'||this.scene==='select'||feat?Math.round(CROP/2):Math.round(clamp(Math.round(this.p.x-(VW-CROP)/2)-this.camX,0,CROP)*S)/S;
+    CX=['menu','select','over'].includes(this.scene)||feat?Math.round(CROP/2):Math.round(clamp(Math.round(this.p.x-(VW-CROP)/2)-this.camX,0,CROP)*S)/S;
     Prompt.el.classList.toggle('top',this.scene==='place'||!!Caption.s);
     if(feat) this.drawFeature();
-    else ({menu:this.drawMenu, select:this.drawSelect, outside:this.drawOutside, foyer:this.drawFoyer, place:this.drawPlace, end:this.drawEnd, toilets:this.drawToilets})[this.scene].call(this);
+    else ({menu:this.drawMenu, select:this.drawSelect, outside:this.drawOutside, foyer:this.drawFoyer, place:this.drawPlace, end:this.drawEnd, over:this.drawMenu, toilets:this.drawToilets})[this.scene].call(this);
     ctx.globalAlpha=1; this.drawEggCount(); this.drawToast(); this.drawReacts();
   },
   world(){ ctx.setTransform(S,0,0,S,-Math.round((this.camX+CX)*S),0); },
@@ -866,8 +923,8 @@ const Game = {
   drawReacts(){ if(!this.reacts.length) return; ctx.setTransform(S,0,0,S,-CX*S,0);
     for(const r of this.reacts){ if(r.t<0) continue; const m=REACT[r.k]||REACT.star, x=Math.round(CX+r.x+Math.sin(r.t*3+r.x)*4), y=Math.round(VH-16-r.t*38);
       ctx.globalAlpha=clamp((3-r.t)*2,0,1); map2d(m.shadow,x+1,y+1,{k:'#1b2332'}); map2d(m.rows,x,y,m.pal); } ctx.globalAlpha=1; },
-  drawEggCount(){ if(['menu','select'].includes(this.scene)) return; ctx.setTransform(S,0,0,S,-CX*S,0);
-    const x=CX+4, s=`${this.eggs.size}/${new Set([...EGGS,...this.eggs.keys()]).size}`, w=Math.ceil(tw(s,5));
+  drawEggCount(){ if(['menu','select','over'].includes(this.scene)) return; ctx.setTransform(S,0,0,S,-CX*S,0);
+    const x=CX+4, s=`${this.eggs.size}/${this.eggTotal()}`, w=Math.ceil(tw(s,5));
     R(x,4,w+15,11,'rgba(27,35,50,.75)'); map2d(['.ww.','wwww','wwww','wwww','.ww.'],x+3,7,{w:'#fff6dc'}); R(x+4,8,1,1,'#ffffff');
     T(s,x+10,6.5,5,'#ffd166'); },
   drawToast(){ const ts=this.toasts[0]; if(!ts) return; ctx.setTransform(S,0,0,S,-CX*S,0);

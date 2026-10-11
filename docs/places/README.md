@@ -34,7 +34,7 @@ One classic script per place (no modules: `index.html` must run from `file://`).
 - `visited(topic)`: true once that topic's place has been entered this game.
 - `carry(key, value)` / `carry(key)`: a value that lasts for the rest of the game, across scenes. The engine draws the cloakroom's carried `coat` (`true`) on the hero everywhere; `null` takes it off.
 
-A new egg id must also be added to `EGGS` in `index.html`, or the end screen's total will be short (`?debug` warns in the console).
+A new egg id must also be added to `EGGS` in `index.html`, with a name and a hint, or the end screen's total and list will be short (`?debug` warns in the console).
 
 The engine owns some play across every place: the venue cat (after the hackathon) walks in and is stroked with Action when it is the nearest thing, poking the host six times fast starts a fight (the place's `poke('host')` is skipped from the third quick poke on), and a fight saves the place's `st` and beat so the next visit resumes there without calling `enter` again. `egg('coffee')` gives the hero a jittery walk until they leave the next place.
 

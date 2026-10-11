@@ -80,3 +80,21 @@ test('a fight throws you out and the place resumes; the cat follows from the cat
   await page.waitForFunction(() => { const g = window.__game; return g.cat && Math.abs(g.cat.x - g.p.x) < 20; });
   expect(errors).toEqual([]);
 });
+
+test('Right in the Q&A room ends the game; runs are kept and every egg can be listed', async ({ page, context }) => {
+  const errors = await openGame(page, context);
+  await pickPhil(page);
+  await page.evaluate(() => { const g = window.__game; g.goto('end'); g.egg('sea', 'You found the sea'); });
+  await pressUntil(page, 'ArrowRight', () => window.__game.scene === 'over');
+  await expect(page.locator('#over .score b')).toHaveText(/^1\/\d+$/);
+  await expect(page.locator('#over .board .me')).toContainText('Phil');
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('keynote-runs')).at(-1).eggs)).toBe(1);
+
+  await pressUntil(page, 'b', () => document.querySelector('#over').classList.contains('all'));
+  expect(await page.locator('#over .eggs li').count()).toBeGreaterThan(20);
+  await expect(page.locator('#over .eggs li.got')).toHaveCount(1);
+
+  await pressUntil(page, 'ArrowLeft', () => window.__game.scene === 'end');
+  await expect(page.locator('#over')).toBeHidden();
+  expect(errors).toEqual([]);
+});
