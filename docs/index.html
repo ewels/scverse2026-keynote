@@ -1442,8 +1442,8 @@ const Game = {
   // pinned to the right of the visible stage, so the sidebar's crop never cuts the QR code
   drawSummit(){ const q=this.summitQR===undefined?(this.summitQR=qrMake(SUMMIT.url)):this.summitQR;
     const url=SUMMIT.text, w=Math.max(64,Math.ceil(Math.max(tw(url,5),tw(SUMMIT.title,5),tw(SUMMIT.label,4)))+8);
-    const x=Math.round(this.camX+CX+VW-CROP-w-6), y=48, cx=x+w/2; R(x,y,w,90,'#111727'); R(x,y,w,2,'#ffd166'); R(x,y+88,w,2,'#232c47');
-    T(SUMMIT.title,cx,y+5,5,'#ffd166','center'); T(SUMMIT.label,cx,y+13,4,'#c8d0e6','center');
+    const x=Math.round(this.camX+CX+VW-CROP-w-6), y=48, cx=x+w/2; R(x,y,w,90,'#111727'); R(x,y,w,2,SUMMIT.colour); R(x,y+88,w,2,'#232c47');
+    T(SUMMIT.title,cx,y+5,5,SUMMIT.colour,'center'); T(SUMMIT.label,cx,y+13,4,'#c8d0e6','center');
     if(q){ const n=q.getModuleCount(), k=Math.floor(56*S/(n+4))/S, sz=k*(n+4), qx=Math.round(cx-sz/2), qy=y+21;
       R(qx,qy,sz,sz,'#ffffff'); for(let r=0;r<n;r++) for(let c=0;c<n;c++) if(q.isDark(r,c)) R(qx+(c+2)*k,qy+(r+2)*k,k,k,'#0f1424'); }
     T(url,cx,y+80,5,'#ffffff','center'); },
