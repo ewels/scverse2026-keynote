@@ -134,33 +134,47 @@
     }
   };
 
-  const dino = (st, t) => {
-    const rT = st.roar != null ? t - st.roar : 99, roar = rT < 2.6, pk = st.dinoT != null ? t - st.dinoT : 99;
-    const sh = roar && rT > 0.2 ? Math.round(Math.sin(t * 30)) : 0, ox = DX + sh, by = DB, up = roar ? -3 : 0, open = roar ? 6 : 0;
-    const c = '#9a9f97', hi = '#b8bdb4', lo = '#7a7f78';
-    R(DX - 4, by, 62, 24, '#cfc6b2'); R(DX - 6, by - 1, 66, 3, '#e0d8c6'); R(DX - 4, by + 21, 62, 3, '#b3a990'); R(DX + 9, by + 7, 40, 10, '#b3a990'); T('LEGACY', DX + 29, by + 9, 5, '#f7f3ea', 'center');
-    R(ox + 34, by - 32, 10, 10, c); R(ox + 42, by - 28, 10, 7, c); R(ox + 50, by - 24, 8, 5, c); R(ox + 56, by - 21, 6, 3, c); R(ox + 60, by - 19, 4, 2, lo);
-    R(ox + 12, by - 14, 6, 12, lo); R(ox + 9, by - 2, 10, 2, lo);
-    R(ox + 8, by - 34, 28, 18, c); R(ox + 12, by - 34, 20, 2, hi); R(ox + 8, by - 20, 28, 4, lo);
-    R(ox + 18, by - 20, 12, 12, c); R(ox + 19, by - 20, 4, 8, hi); R(ox + 22, by - 8, 6, 6, c); R(ox + 18, by - 2, 12, 2, c);
-    R(ox + 8, by - 28, 4, 2, lo); R(ox + 7, by - 26, 2, 3, lo);
-    R(ox + 6, by - 48 + up, 10, 14 - up, c); R(ox + 10, by - 40, 10, 8, c);
-    const hy = by - 58 + up;
+  // f: walk frame 0-3, or -1 standing. Facing right mirrors about the feet.
+  const dinoBody = (ox, by, face, f, dy, glow, blink) => {
+    const c = '#9a9f97', hi = '#b8bdb4', lo = '#7a7f78', s = f < 0 ? 0 : [1, 0, -1, 0][f], b = by + dy - (f % 2 ? 1 : 0);
+    if (face > 0) { ctx.save(); ctx.translate(2 * ox + 40, 0); ctx.scale(-1, 1); }
+    R(ox + 34, b - 32, 10, 10, c); R(ox + 42, b - 28, 10, 7, c); R(ox + 50, b - 24, 8, 5, c); R(ox + 56, b - 21, 6, 3, c); R(ox + 60, b - 19, 4, 2, lo);
+    R(ox + 12 - 3 * s, b - 14, 6, by - b + 12, lo); R(ox + 9 - 3 * s, by - 2 - (s > 0 ? 2 : 0), 10, 2, lo);
+    R(ox + 8, b - 34, 28, 18, c); R(ox + 12, b - 34, 20, 2, hi); R(ox + 8, b - 20, 28, 4, lo);
+    R(ox + 18, b - 20, 12, 12, c); R(ox + 19, b - 20, 4, 8, hi); R(ox + 22 + 3 * s, b - 8, 6, by - b + 6, c); R(ox + 18 + 3 * s, by - 2 - (s < 0 ? 2 : 0), 12, 2, c);
+    R(ox + 8, b - 28, 4, 2, lo); R(ox + 7, b - 26, 2, 3, lo);
+    R(ox + 6, b - 48, 10, 14, c); R(ox + 10, b - 40, 10, 8, c);
+    const hy = b - 58;
     R(ox - 10, hy, 22, 10, c); R(ox - 10, hy, 22, 2, hi); R(ox - 14, hy + 3, 4, 7, c); R(ox - 13, hy + 4, 1, 1, lo);
     for (let x = ox - 13; x < ox + 6; x += 3) R(x, hy + 10, 1, 2, '#e8e6dc');
-    if (open) R(ox - 12, hy + 10, 18, open, '#5b2a2a');
-    R(ox - 12, hy + 10 + open, 18, 4, c); R(ox - 12, hy + 13 + open, 18, 1, lo); for (let x = ox - 11; x < ox + 4; x += 3) R(x, hy + 9 + open, 1, 1, '#e8e6dc');
-    const glow = pk < 1.6 || roar, blink = pk > 0.7 && pk < 0.9;
+    R(ox - 12, hy + 10, 18, 4, c); R(ox - 12, hy + 13, 18, 1, lo); for (let x = ox - 11; x < ox + 4; x += 3) R(x, hy + 9, 1, 1, '#e8e6dc');
     if (blink) R(ox + 1, hy + 4, 4, 1, lo); else { R(ox + 1, hy + 3, 3, 3, '#6a6f68'); if (glow) { R(ox + 1, hy + 3, 3, 3, '#ffd166'); R(ox + 2, hy + 3, 1, 3, '#1b1b1b'); } }
     R(ox + 1, hy + 2, 5, 1, lo);
-    for (let i = 0; i < 6; i++) R(ox + 10 + i * 6, by - 35 - (i % 2), 3, 2, '#6f8f5a');
-    R(DX - 1, by - 7, 5, 7, '#cfe4f2'); R(DX, by - 4, 3, 3, '#9fd0ec'); R(DX - 1, by - 7, 1, 7, '#ffffff');
-    const rip = Math.min(pk, rT);
-    if (rip < 2.4) {
-      const cx = 560, cy = 76; disc(cx, cy, 14, '#1b2332'); disc(cx, cy, 13, '#f7f3ea'); disc(cx, cy, 11, '#6fb3dd');
-      for (let i = 0; i < 3; i++) { const r = (rip * 7 + i * 4) % 11; if (r > 1) for (let a = 0; a < 28; a++) R(Math.round(cx + Math.cos(a / 28 * 6.283) * r), Math.round(cy + Math.sin(a / 28 * 6.283) * r), 1, 1, '#d6ecf8'); }
-      line(cx + 9, cy + 10, DX - 1, by - 8, '#1b2332');
+    for (let i = 0; i < 6; i++) R(ox + 10 + i * 6, b - 35 - (i % 2), 3, 2, '#6f8f5a');
+    if (face > 0) ctx.restore();
+  };
+
+  // Once it leaves it turns, so it is drawn in front of the race board from then on.
+  const HOP = 1.7, LAND = 2.3, WALK = 2.6, FEET = 140;
+  const dino = (st, t, front) => {
+    const k = st.leave != null ? t - st.leave : -1, pk = st.dinoT != null ? t - st.dinoT : 99;
+    if (!front) {
+      R(DX - 4, DB, 62, 24, '#cfc6b2'); R(DX - 6, DB - 1, 66, 3, '#e0d8c6'); R(DX - 4, DB + 21, 62, 3, '#b3a990'); R(DX + 9, DB + 7, 40, 10, '#b3a990'); T('LEGACY', DX + 29, DB + 9, 5, '#f7f3ea', 'center');
+      if (k < 0) dinoBody(DX, DB, -1, -1, 0, pk < 1.6, pk > 0.7 && pk < 0.9);
+      else if (k < 0.6) dinoBody(DX + Math.round(Math.sin(t * 30)), DB, -1, -1, 0, true, false);
+      return;
     }
+    if (k < 0.6) return;
+    if (k < 1.4) return dinoBody(DX + Math.round((k - 0.6) * 30), DB, 1, Math.floor(k * 8) % 4, 0, true, false);
+    if (k < HOP) return dinoBody(DX + 24, DB, 1, -1, 2, true, false);
+    if (k < LAND) { const p = (k - HOP) / (LAND - HOP); return dinoBody(DX + 24 + Math.round(p * 36), Math.round(DB + (FEET - DB) * p - Math.sin(p * Math.PI) * 14), 1, -1, 0, true, false); }
+    if (k < WALK) {
+      const d = Math.round((k - LAND) * 30);
+      for (const sx of [-1, 1]) { R(DX + 80 + sx * (12 + d), FEET - 3 - (d >> 2), 3, 2, '#e8dcc0'); R(DX + 80 + sx * (8 + d), FEET - 1, 2, 1, '#e8dcc0'); }
+      return dinoBody(DX + 60, FEET, 1, -1, 2, true, false);
+    }
+    const ox = DX + 60 + Math.round((k - WALK) * 50);
+    if (ox < W + 30) dinoBody(ox, FEET, 1, Math.floor(k * 8) % 4, 0, true, false);
   };
 
   const board = (rs, t) => {
@@ -220,7 +234,7 @@
       ];
     },
     update(dt, st, ev) {
-      const t = time(), id = cur(ev), rT = st.roar != null ? t - st.roar : 99, flee = rT > 0.8 && rT < 7;
+      const t = time(), id = cur(ev), rT = st.leave != null ? t - st.leave : 99, flee = rT > HOP && rT < 8;
       const open = rT < 8 ? 0 : ev.beatIdx > 0 || (ev.beatIdx === 0 && !ev.walking) ? 1 : 0;
       if (open) st.torch = true;
       st.gate += clamp(open - st.gate, -dt * (rT < 8 ? 2.5 : 0.7), dt * 0.7);
@@ -231,7 +245,7 @@
         n.moving = Math.abs(dx) > 0.4; if (n.moving) { n.x += Math.sign(dx) * Math.min(Math.abs(dx), sp * dt); n.face = Math.sign(dx); } else if (n.face0) n.face = n.face0;
       }
       if (flee && !st.yelled) { st.yelled = true; st.npcs.forEach((n, i) => g.say(['Run!', 'Aaah!', 'Not again!'][i], n.x, 128, 1.6)); }
-      if (rT > 7) st.yelled = false;
+      if (rT > 8) st.yelled = false;
       if (st.quote == null && g.heroX() > 90) st.quote = t;
       while (st.quote != null && st.said < QUOTE.length && t - st.quote >= QUOTE[st.said][0]) { const [, x, s, secs] = QUOTE[st.said++]; g.say(s, x, 128, secs); }
       if (st.flock != null && t - st.flock > 14) { st.flock = null; st.bread = 0; st.gulls = []; st.crumbs = []; }
@@ -260,8 +274,8 @@
         return true; }
       if (id === 'pair') { if (st.said >= QUOTE.length) { st.quote = t; st.said = 0; } return true; }
       if (id === 'dino') {
-        st.dinoT = t; st.dinoN++;
-        if (st.dinoN % 3 === 0 && (st.roar == null || t - st.roar > 9)) { st.roar = t; g.say('(silent roar)', DX - 6, DB - 50, 2.4); g.egg('dino', 'The dinosaur roared'); }
+        if (st.leave != null) return 'Life found a way';
+        st.dinoT = t; if (++st.dinoN === 3) { st.leave = t; g.egg('dino', 'The dinosaur escaped'); }
         return true;
       }
       if (id === 'host') { st.clickT = t; g.say(['Click click!', 'I only go sideways', 'No garbage collector. Just me.', 'Snip snip!'][st.clicks++ % 4], fx, 132); return true; }
@@ -281,6 +295,7 @@
       board(st.race, t);
       R(0, 128, W, 18, '#d9cdb4'); for (let x = 0; x < W; x += 16) { R(x, 128, 1, 18, '#c4b79c'); R(x + 8, 137, 1, 9, '#c4b79c'); } R(0, 137, W, 1, '#c4b79c');
       track(t);
+      dino(st, t, true);
       R(0, 146, W, 34, '#c9b48a'); R(0, 146, W, 1, '#b39d72'); for (let x = 0; x < W; x += 12) { R(x, 146, 1, 34, '#b8a275'); R(x + 6, 156, 6, 1, '#b39d72'); }
       R(0, 24, 30, 126, '#c2b393'); R(0, 24, 30, 3, '#d8cbb0'); R(4, 70, 22, 80, '#2b3a4f'); R(6, 72, 18, 78, '#9cc3dd'); R(14, 72, 2, 78, '#2b3a4f'); R(8, 76, 2, 20, '#d6ecf8');
       pond(st, id, t);
