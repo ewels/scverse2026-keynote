@@ -93,18 +93,20 @@
 
   const bellArt = (x, y, ring) => { R(x - 5, y, 10, 2, '#6f6a62'); R(x - 4 + ring, y - 3, 8, 3, '#e2b52c'); R(x - 3 + ring, y - 4, 6, 1, '#e2b52c'); R(x - 1 + ring, y - 6, 2, 2, '#c99a1d'); R(x - 3 + ring, y - 3, 2, 1, '#ffe48a'); };
   const puffer = (x, y) => { R(x - 6, y, 13, 7, '#ff8fb1'); R(x - 6, y + 2, 13, 1, '#d9658a'); R(x - 6, y + 5, 13, 1, '#d9658a'); R(x - 7, y - 1, 15, 2, '#fff6ea'); };
+  const board = () => {
+    R(158, 86, 44, 30, '#f7f3ea'); R(158, 86, 44, 2, '#c8322c'); R(158, 114, 44, 2, '#c8322c');
+    T('PLEASE', 180, 90, 6, '#1b2332', 'center'); T('TAKE A', 180, 98, 6, '#1b2332', 'center'); T('TICKET', 180, 106, 6, '#c8322c', 'center');
+    R(179, 116, 2, 5, '#6f6a62');
+  };
   const counter = (t, st) => {
     R(84, 121, 266, 4, '#c99a62'); R(84, 121, 266, 1, '#e8c08a'); R(84, 125, 266, 1, '#8a5a34'); R(86, 126, 262, 28, '#7d5230');
     for (let x = 86; x < 348; x += 22) { R(x + 3, 129, 16, 21, '#6f4728'); R(x + 3, 129, 16, 1, '#8a5a34'); }
     R(252, 126, 2, 28, '#5a3a20');
-    if (!st.snatched) bellArt(BELL, 119, t - st.bellT < 0.5 ? Math.round(Math.sin(t * 60)) : 0);
+    if (!st.snatched && !st.kept) bellArt(BELL, 119, t - st.bellT < 0.5 ? Math.round(Math.sin(t * 60)) : 0);
     if (t - st.bellT < 0.9) { const a = t - st.bellT; ctx.globalAlpha = k01(1.6 - a * 1.8); T('DING', BELL, 104 - Math.round(a * 10), 5, '#ffd166', 'center'); ctx.globalAlpha = 1; }
     const n = 41 + Math.floor(t / 6) % 58, fl = (t % 6) < 0.4;
     R(158, 128, 40, 21, '#1b1b1b'); R(159, 129, 38, 19, '#2a1414'); T('SERVING', 178, 131, 5, '#ff9a7a', 'center');
     T(String(n).padStart(3, '0'), 178, 138, 9, fl ? '#ffd166' : '#ff4d4d', 'center');
-    R(158, 86, 44, 30, '#f7f3ea'); R(158, 86, 44, 2, '#c8322c'); R(158, 114, 44, 2, '#c8322c');
-    T('PLEASE', 180, 90, 6, '#1b2332', 'center'); T('TAKE A', 180, 98, 6, '#1b2332', 'center'); T('TICKET', 180, 106, 6, '#c8322c', 'center');
-    R(179, 116, 2, 5, '#6f6a62');
     R(150, 117, 12, 4, '#f7f3ea'); R(150, 117, 12, 1, '#e85d75'); R(170, 118, 14, 3, '#2b3445'); R(171, 118, 12, 1, '#c9a24a');
   };
 
@@ -262,7 +264,7 @@
       { id: 'bell', x: BELL, r: 10, label: 'Ring the bell' },
       { id: 'coat', x: STAND, r: 6, label: 'Try on the big coat' },
     ],
-    enter(st) { Object.assign(st, { tix: 0, tixT: -99, bellT: -99, bellSaid: 0, rings: [], snatched: false, snatchT: -99, dearT: -99, ax: HH, eggT: -99, eggSaid: false, hostN: 0, fly: [], floorTix: [] }); },
+    enter(st) { Object.assign(st, { tix: 0, tixT: -99, bellT: -99, bellSaid: 0, rings: [], grab: false, snatched: false, kept: false, snatchT: -99, dearT: -99, ax: HH, eggT: -99, eggSaid: false, hostN: 0, fly: [], floorTix: [] }); },
     update(dt, st, ev) {
       const t = time(); cur = ev.beat ? ev.beat.id || ev.beat.at : ''; kNow = ev.beat ? ORDER.indexOf(cur) : ev.beatIdx >= 0 ? ORDER.length : -1;
       const live = !ev.walking;
@@ -273,9 +275,10 @@
       if (st.floorTix.length > 48) st.floorTix.splice(0, st.floorTix.length - 48);
       const b = t - st.bellT;
       if (st.bellT > 0 && b > 3.5 && st.bellSaid === 0) { st.bellSaid = 1; g.say('Coming...', HH, 104, 2.2); }
-      const angry = t - st.snatchT < 6, target = angry || st.bellT > 0 && st.bellSaid < 9 && b > 4 && b < 20 ? DESK : HH;
-      const dx = target - st.ax; st.aMoving = Math.abs(dx) > 0.5; if (st.aMoving) { st.ax += Math.sign(dx) * Math.min(Math.abs(dx), 12 * dt); st.aFace = Math.sign(dx); }
-      if (st.snatched && !angry && !st.aMoving) st.snatched = false;
+      const angry = st.grab || t - st.snatchT < 6, target = angry || st.bellT > 0 && st.bellSaid < 9 && b > 4 && b < 20 ? DESK : HH;
+      const dx = target - st.ax, v = st.grab || st.snatched ? 36 : 12; st.aMoving = Math.abs(dx) > 0.5; if (st.aMoving) { st.ax += Math.sign(dx) * Math.min(Math.abs(dx), v * dt); st.aFace = Math.sign(dx); }
+      if (st.grab && !st.aMoving) Object.assign(st, { grab: false, snatched: true, snatchT: t });
+      if (st.snatched && !angry && !st.aMoving) Object.assign(st, { snatched: false, kept: true });
       if (b < 20 && st.bellSaid === 1 && !st.aMoving && Math.abs(st.ax - DESK) < 1) { st.bellSaid = 2; st.dearT = t; g.say('Yes, dear?', st.ax, 104, 2.5); }
       if (st.bellSaid === 2 && t - st.dearT > 2.6) { st.bellSaid = 3;
         if (g.carry('coat') === 'puffer') g.say('Still wearing it? Good.', st.ax, 104, 2.5);
@@ -293,11 +296,11 @@
         return true;
       }
       if (id === 'bell') {
-        if (st.snatched) { g.say('Where did the bell go?', Math.round(g.heroX()), 128, 2); return true; }
+        if (st.grab || st.snatched || st.kept) { g.say('No more bell, dear.', Math.round(st.ax), 104, 2); return true; }
         st.rings = st.rings.filter(r => t - r < 3).concat(t); st.bellT = t;
         if (st.rings.length >= 5) {
-          Object.assign(st, { rings: [], snatched: true, snatchT: t, bellSaid: 9, ax: DESK, aFace: -1 });
-          g.say('I HEARD YOU THE FIRST TIME!', DESK, 100, 3); g.egg('cloakbell', 'The attendant took the bell'); return true;
+          Object.assign(st, { rings: [], grab: true, bellSaid: 9 });
+          g.say('I HEARD YOU THE FIRST TIME!', Math.round(st.ax), 100, 3); g.egg('cloakbell', 'The attendant took the bell'); return true;
         }
         st.bellSaid = 0; g.say('Yes? How can I help?', ADA, 104, 2.2); return true;
       }
@@ -311,10 +314,11 @@
     draw(st, ev) {
       const t = time(), k = kNow, live = !ev.walking, s = ev.stepT, on = id => cur === id && live;
       room(t, st, k);
-      humanAlcove(t, st); robotAlcove(t, st, k, ev);
-      const pop = Math.round(14 * (1 - k01((t - st.snatchT) / 0.25)));
-      person(LOOKS.att, st.ax, 126 + pop, t, st.aMoving ? st.aFace : 1, st.aMoving);
-      if (st.snatched) bellArt(Math.round(st.ax) + 7, 112 + pop, t - st.snatchT < 1.5 ? Math.round(Math.sin(t * 60)) : 0);
+      humanAlcove(t, st); robotAlcove(t, st, k, ev); board();
+      const face = st.aMoving ? st.aFace : 1;
+      person(LOOKS.att, st.ax, 126, t, face, st.aMoving);
+      if (st.snatched) bellArt(Math.round(st.ax) + 7 * face, 112, t - st.snatchT < 1.5 ? Math.round(Math.sin(t * 60)) : 0);
+      if (st.kept) bellArt(HH - 14, 119, 0);
       const push = on('skills') && s < 0.8;
       person(look('agents'), ADA + (push ? 2 : Math.round(Math.sin(t * 0.9) * 2)), 126, t, 1, false);
       counter(t, st);
