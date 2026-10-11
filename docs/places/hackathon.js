@@ -54,7 +54,7 @@
   // seconds since a beat started; 1e3 once it has passed; -1 if not reached
   const age = (st, id) => { const i = IDS.indexOf(id); return i < 0 || i > st.cur ? -1 : i === st.cur ? time() - st.t0 : 1e3; };
   // quarter-years since spring 2018; the clock beat runs it up to autumn 2026
-  const quarters = st => { const a = age(st, 'time'); return a < 0 ? 1 : Math.min(34, 1 + a / 0.75); };
+  const quarters = st => { const a = age(st, 'time'), k = c01(a / 2.6); return a < 0 ? 1 : 1 + 33 * k * k * (3 - 2 * k); };
 
   function view(x0, y0, w, h, s, t) {
     const S = SEASONS[s];
@@ -243,10 +243,10 @@
       /* clock, calendar, window: you can't rush it */
       const ta2 = A('time'), spin = ta2 >= 0 && q < 34;
       disc(990, 36, 10, '#3a4450'); disc(990, 36, 9, '#ffffff'); for (let k = 0; k < 12; k++) R(990 + Math.round(Math.cos(k * Math.PI / 6) * 7), 36 + Math.round(Math.sin(k * Math.PI / 6) * 7), 1, 1, '#8a8f94');
-      const mh = spin ? ta2 * 9 : t * 0.1, hh = spin ? ta2 * 0.75 : t * 0.01;
+      const mh = spin ? (q - 1) * 6.75 : t * 0.1, hh = spin ? (q - 1) * 0.5625 : t * 0.01;
       line(990, 36, 990 + Math.round(Math.sin(mh) * 7), 36 - Math.round(Math.cos(mh) * 7), INK); line(990, 36, 990 + Math.round(Math.sin(hh) * 4), 36 - Math.round(Math.cos(hh) * 4), '#d03a3a');
       R(976, 52, 28, 28, '#c8ccd2'); R(977, 53, 26, 26, '#ffffff'); R(977, 53, 26, 7, '#d03a3a'); T(['SPRING', 'SUMMER', 'AUTUMN', 'WINTER'][Math.floor(q) % 4], 990, 54, 4, '#ffffff', 'center'); T(String(year), 990, 63, 7, INK, 'center');
-      if (spin && (ta2 % 0.75) < 0.25) { R(977, 60, 26, 3, '#e8e8e8'); }
+      if (spin && (q % 1) < 0.33) { R(977, 60, 26, 3, '#e8e8e8'); }
       ctx.save(); ctx.beginPath(); ctx.rect(1014, 26, 76, 72); ctx.clip();
       const s0 = Math.floor(q) % 4, f = c01(((q % 1) - 0.6) / 0.4); view(1014, 26, 76, 72, s0, t); if (f > 0) { ctx.globalAlpha = f; view(1014, 26, 76, 72, (s0 + 1) % 4, t); ctx.globalAlpha = 1; } ctx.restore();
       R(1010, 22, 84, 4, '#f7f7f2'); R(1010, 98, 84, 4, '#f7f7f2'); R(1010, 22, 4, 80, '#f7f7f2'); R(1090, 22, 4, 80, '#f7f7f2'); R(1050, 26, 2, 72, '#f7f7f2'); R(1014, 60, 76, 2, '#f7f7f2'); R(1006, 101, 92, 3, '#d8d8d0');
