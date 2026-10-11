@@ -43,7 +43,8 @@
     const edge = mix(H.top, '#ffffff', 0.55);
     for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) map2d(rows, x0 + ox, y0 + oy, { h: edge, d: edge, k: edge }, s);
     map2d(rows, x0, y0, pal, s);
-    map2d(['lll....lll', '..ll..ll..', '...l..l...', '...l..l...', '..ll..ll..', 'lll....lll'], Math.round(x) - 5, y0 + 3 * s + 1, { l: H.logoColour || '#0dc09d' });
+    if (H === look('phil')) map2d(['lll....lll', '..ll..ll..', '...l..l...', '...l..l...', '..ll..ll..', 'lll....lll'], Math.round(x) - 5, y0 + 3 * s + 1, { l: H.logoColour });
+    else if (H === look('lukas')) map2d(['....llllllll', '..ll..llllll', '.l..ll..llll', 'l..l..l..lll', 'l..l.ll..lll', '.l..ll..llll', '..ll...lllll', '....llllllll'], Math.round(x) - 6, y0 + 3 * s, { l: H.logoColour });
     if (Math.sin(g.time() * 5) > 0.3) { R(x0 - 3, y0 + 2, 1, 3, '#ffffff'); R(x0 - 4, y0 + 3, 3, 1, '#ffffff'); }
   };
   const callout = (cx, y, w, h, bg, edge, tailX, tailY, a) => {
