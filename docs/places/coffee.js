@@ -162,6 +162,8 @@
     R(x - 11, y - 16, 22, 2, '#4a3aa0'); R(x - 4, y - 15, 2, 4, '#1b1b1b'); disc(x - 3, y - 16, 2, '#e85d5d'); disc(x + 4, y - 14, 2, '#ffd166'); disc(x + 8, y - 14, 2, '#3cc8d6');
     R(x - 3, y - 7, 6, 1, '#0b0b12'); R(x - 12, y - 4, 24, 3, '#1b1440'); disc(x - 8, y - 1, 1, '#555555'); disc(x + 8, y - 1, 1, '#555555');
   };
+  const ZOOM = 5, zooming = st => st.zoom != null && time() - st.zoom < ZOOM - 1 / 3;
+  const endZoom = st => { st.zoom = time() - ZOOM + 1 / 3; };
   const camX = () => clamp(g.heroX() - 160, 0, W - 320);
 
   function scene(st, depth) {
@@ -251,6 +253,7 @@
       q: ORDER.map((_, i) => { const [x, y, face] = target(i, -1); return { x, y, face, mv: false }; }) }); },
     update(dt, st, ev) {
       const t = time(), act = actOf(ev);
+      if ((ev.walking || act !== st.act) && zooming(st)) endZoom(st);
       if (act !== st.act) { st.act = act; st.chgT = t; }
       if (act !== st.shown && !ev.walking) { st.shown = act; st.showT = t; }
       st.q.forEach((p, i) => { const [tx, ty, face] = target(i, act), dx = tx - p.x, slot = i - act - 1;
@@ -271,6 +274,7 @@
     },
     poke(id, st) {
       const t = time();
+      if (zooming(st)) { endZoom(st); return true; }
       if (id === 'host') { g.say(['Flat white?', 'One at a time, please', 'Oat milk is extra', 'That is a lot of coffee'][st.said++ % 4], HOST, 100); return true; }
       if (id === 'urn') {
         if (st.flood != null) { g.say('Mind the floor', URN, 84); return true; }
@@ -284,8 +288,8 @@
     },
     draw(st) { scene(st, 0); },
     drawFront(st) {
-      const t = time(), z = st.zoom != null ? t - st.zoom : 99; if (z > 5) return;
-      const m = ctx.getTransform(), vx = -m.e / m.a, vw = ctx.canvas.width / m.a, fx = Math.round(vx + vw / 2 - 106), a = c01(Math.min(z * 3, (5 - z) * 3));
+      const t = time(), z = st.zoom != null ? t - st.zoom : 99; if (z > ZOOM) return;
+      const m = ctx.getTransform(), vx = -m.e / m.a, vw = ctx.canvas.width / m.a, fx = Math.round(vx + vw / 2 - 106), a = c01(Math.min(z * 3, (ZOOM - z) * 3));
       ctx.save(); ctx.globalAlpha = a; R(fx, 14, 212, 126, '#0b0b12'); R(fx + 4, 18, 204, 118, '#2b2160'); R(fx + 8, 22, 196, 110, '#0b0b12');
       ctx.beginPath(); ctx.rect(fx + 10, 24, 192, 106); ctx.clip(); ctx.translate(fx + 10, 24); ctx.scale(0.6, 0.6); ctx.translate(-camX(), 0); scene(st, 1);
       ctx.restore(); ctx.save(); ctx.globalAlpha = a; R(fx + 50, 138, 112, 11, '#0b0b12'); T('THIS ROOM, AGAIN', fx + 106, 140, 7, '#ffffff', 'center'); ctx.restore();
