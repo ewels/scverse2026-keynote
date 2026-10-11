@@ -27,7 +27,6 @@
 //   beats     the talk, in order; Right steps to the next one. Each beat:
 //     at       focus id in the place; the hero walks there
 //     say      optional caption (one short line, under ~60 characters)
-//     who      'host' puts the host's name on the caption
 //     big      optional huge text card for this beat
 //     feature  optional featurette id from the place; its steps are extra Right presses
 //     steps    optional captions, one per featurette step
@@ -99,7 +98,7 @@ const TOPICS = {
                 { at:'tables', id:'workplace', say:'Make it a nice place to be: good tools, credit, fun' },
                 { at:'tables', id:'trust', say:'Trust people to get on with it' },
                 { at:'tables', id:'welcomes', say:'Put real time into welcomes' },
-                { at:'photos', id:'cats', say:'Cat photos', who:'host' },
+                { at:'photos', id:'cats', say:'Cat photos' },
                 { at:'stamp', id:'bureaucracy', say:'Only as much bureaucracy as you need' },
                 { at:'clock', id:'time', say:'You can’t rush it' },
               ] },
@@ -138,7 +137,7 @@ const TOPICS = {
                 { at:'features', feature:'poster', say:'What’s new',
                   steps:['Config builder','Licences and DOIs','ECharts: interactive plots, static exports without Chromium','Parquet and preprocessing'] },
                 { at:'empty', id:'logs', say:'Write nice logs, with filename suffixes' },
-                { at:'empty', id:'modules', say:'More MultiQC modules, please!', who:'host' },
+                { at:'empty', id:'modules', say:'More MultiQC modules, please!' },
               ] },
   side:     { title:'Side projects', short:'SIDE', colour:'#b28dff', icon:'pad', place:'coffee', size:'thin',
               blurb:'AI means you can build the crazy ideas: contributor graphs, nf-docs, nf-metro, Stream Deck plugins and gfm-tidy.',
@@ -150,7 +149,7 @@ const TOPICS = {
                 { at:'metro', say:'nf-metro: pipelines as metro maps' },
                 { at:'deck', say:'Stream Deck plugins, like DeckCal' },
                 { at:'tidy', say:'gfm-tidy: unwrap what the AI wrote' },
-                { at:'game', say:'And this game, obviously', who:'host' },
+                { at:'game', say:'And this game, obviously' },
               ] },
   docs:     { title:'Building awesome docs sites', short:'DOCS', colour:'#2ec4d6', icon:'sign', place:'corridor', size:'thin',
               blurb:'Documentation sites people actually enjoy, built on Astro Starlight: starlight-quiz, starlight-pydocs and starlight-codeblocks.',

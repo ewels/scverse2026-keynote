@@ -719,7 +719,7 @@ const Game = {
     const f=b.feature&&pl.d.features&&pl.d.features[b.feature], beat=()=>pl.d.beat&&pl.d.beat(b.id||b.at,pl.st);
     // start a featurette's beat under the fade, or the place flashes its new state first
     if(f) return Fade.go(()=>{ beat(); pl.feat={ step:0, f }; pl.stepT=0; this.featCaption(); });
-    if(b.say) Caption.show(b.say,b.who==='host'?pl.t.host.name:'',pl.t.colour);
+    if(b.say) Caption.show(b.say,'',pl.t.colour);
     if(b.big) Big.show(b.big);
     beat(); },
   featCaption(){ const pl=this.pl, b=pl.t.beats[pl.idx], s=(b.steps&&b.steps[pl.feat.step])||b.say; if(s) Caption.show(s,'',pl.t.colour); },
