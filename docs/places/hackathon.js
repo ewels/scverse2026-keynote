@@ -271,9 +271,6 @@
       /* exit */
       R(EXIT - 12, 92, 24, 48, '#7f9a86'); R(EXIT - 9, 95, 18, 45, '#1b2030'); R(EXIT - 12, 80, 24, 9, '#2fb67c'); T('EXIT', EXIT, 81.5, 5, '#ffffff', 'center');
 
-      /* docs: arrows on the floor to the free seat */
-      if (da >= 0) for (let i = 0; i < 14; i++) { if (da < 1.6 + i * 0.12) break; const x = 488 + i * 18, y = 149; for (let k = 0; k < 4; k++) { R(x + k, y - 3 + k, 2, 1, LIGHT); R(x + k, y + 3 - k, 2, 1, LIGHT); } }
-
       /* Mo the Maintainer, and the welcome */
       let mo = MO_X, moFace = -1, moMv = false;
       if (wa >= 0 && wa < 1e3) { if (wa < 4.6) { mo = Math.min(552, MO_X + Math.max(0, wa - 0.2) * 90); moMv = mo < 552; moFace = 1; } else { mo = Math.max(MO_X, 552 - (wa - 4.6) * 90); moMv = mo > MO_X; moFace = moMv ? -1 : -1; } }
