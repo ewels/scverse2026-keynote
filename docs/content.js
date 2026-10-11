@@ -161,7 +161,7 @@ const TOPICS = {
                 { at:'map', say:'starlight-pydocs: the map fills in from code' },
                 { at:'board', say:'starlight-codeblocks: 26 features for code' },
                 { at:'board', feature:'codeblocks', say:'starlight-codeblocks',
-                  steps:['Focus: blur the lines that don’t matter','Word-level diffs show exactly what changed','Callouts and annotations point at the code','Code tabs, synced across the page','Run Python right in the page'] },
+                  steps:['Focus: blur the lines that don’t matter','Word-level diffs show exactly what changed','Callouts and annotations point at the code','Run Python right in the page','…and 21 more: ewels.github.io/starlight-codeblocks'] },
               ] },
 };
 const GREETER = { name:'Greeter', colour:'#ff8fa3', look:{ skin:'#c98e62', hair:'#2b2b2b', hairStyle:'long', top:'#e85d75', topStyle:'tee', pants:'#394257' } };

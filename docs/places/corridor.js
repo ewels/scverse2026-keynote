@@ -136,19 +136,6 @@
       if (a > 0.5) { R(150, 127, 136, 19, '#2b3050'); R(150, 127, 136, 1, '#8b5cf6'); T('ANNOTATIONS OPEN', 156, 130, 5, '#c9c2ff'); T('IN A POPOVER', 156, 138, 5, '#c9c2ff'); }
       if (a < 0.6) cursor(282, y + 8, a > 0.3 ? (0.6 - a) / 0.3 : 0); }
   };
-  const TABS = [['pip', '#3776ab', 'pip install scanpy'], ['conda', '#3cc87a', 'conda install -c conda-forge scanpy'], ['uv', '#b28dff', 'uv add scanpy']];
-  const fTabs = t => {
-    fFrame(':::code-tabs{sync="pm"}', t);
-    const cur = Math.floor(t / 1.8) % 3; let x = 36;
-    R(32, 46, 256, 16, '#23263a');
-    TABS.forEach(([n, c], i) => { const w = tw(n, 6) + 18; if (i === cur) { R(x - 4, 46, w, 16, '#1f2230'); R(x - 4, 60, w, 2, '#8b5cf6'); }
-      R(x, 51, 6, 6, c); R(x + 1, 52, 2, 2, '#ffffff'); T(n, x + 10, 51, 6, i === cur ? '#ffffff' : '#7f8aab'); x += w + 2; });
-    const tt = t % 1.8, ok = tt > 1.1 && tt < 1.6; R(246, 49, 38, 11, ok ? '#2fb67c' : '#3b4252'); T(ok ? 'COPIED' : 'COPY', 265, 52, 5, '#ffffff', 'center');
-    T('$', 40, 74, 6, '#7f8aab'); code(TABS[cur][2], 52, 74);
-    R(32, 96, 256, 66, '#1a1c28'); T('SAME CHOICE, EVERY BLOCK:', 40, 102, 5, '#7f8aab');
-    T('$', 40, 116, 6, '#7f8aab'); code(TABS[cur][0] === 'uv' ? 'uv add anndata' : TABS[cur][0] + ' install anndata', 52, 116);
-    T('COPY COMMANDS SKIPS THE $ PROMPT', 40, 140, 5, '#7f8aab');
-  };
   const fRun = t => {
     fFrame('```py runnable', t);
     const k = t % 7, L = ['import numpy as np', 'x = np.arange(1, 6)', 'print(x ** 2)'];
@@ -158,6 +145,14 @@
     R(32, 116, 256, 46, '#0e1020'); T('OUTPUT', 40, 120, 5, '#4a5068');
     if (k > 1.5 && k < 2.2) T('RUNNING' + '.'.repeat(Math.floor(k * 6) % 4), 40, 134, 6, '#7f8aab');
     if (k >= 2.2) T('[ 1  4  9 16 25]'.slice(0, Math.floor((k - 2.2) * 24)), 40, 134, 6, '#a9e34b');
+  };
+
+  const MORE = ['SCROLLYCODING', 'FOOTNOTES', 'CODE TABS', 'FILE ICONS', 'API AUTO-LINKING', 'PLAYGROUND'];
+  const fMore = t => {
+    fFrame('npm install starlight-codeblocks', t);
+    T('+21 MORE', 160, 52, 16, '#ffd166', 'center');
+    MORE.forEach((s, i) => { if (t < 0.4 + i * 0.25) return; const x = 37 + (i % 3) * 84, y = 80 + Math.floor(i / 3) * 18; R(x, y, 78, 13, '#2b3050'); R(x, y, 2, 13, '#8b5cf6'); T(s, x + 40, y + 4, 5, '#c9c2ff', 'center'); });
+    R(32, 124, 256, 38, '#0e1020'); T('DOCS AND LIVE EXAMPLES', 160, 130, 5, '#7f8aab', 'center'); T('ewels.github.io/starlight-codeblocks', 160, 143, 7, '#2ec4d6', 'center');
   };
 
   return {
@@ -172,7 +167,7 @@
       { id: 'quiz', x: QX, label: 'Answer the quiz', r: 22 },
       { id: 'map', x: MAPX, label: 'Check the map', r: 18 },
     ],
-    features: { codeblocks: { steps: 5, draw(step, t) { [fFocus, fDiff, fCallout, fTabs, fRun][step](t); } } },
+    features: { codeblocks: { steps: 5, draw(step, t) { [fFocus, fDiff, fCallout, fRun, fMore][step](t); } } },
     enter(st) { st.sd = [0, 1, 2].map(() => ({ dir: 1, t0: null })); st.pick = []; st.qi = 0; st.hereT = null; st.lost = null; st.said = 0; st.launch = null; dotX = 150; lastX = 14; },
     update(dt, st, ev) {
       const t = time(); if (ev.beat && !ev.walking) lastX = this.focus[ev.beat.at] ?? lastX;
