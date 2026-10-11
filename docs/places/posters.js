@@ -28,35 +28,27 @@
 
   /* ---------- the ten messy tool posters ---------- */
   const TOOLS = [
-    { n: 'FASTQC', bg: '#ffffff', hd: '#e85d5d', k: 'traffic' }, { n: 'SAMTOOLS', bg: '#fff3c4', hd: '', k: 'hbars' },
-    { n: 'STAR', bg: '#1b2332', hd: '#ffd166', k: 'pie' }, { n: 'SALMON', bg: '#fde2e4', hd: '#ff8fa3', k: 'scatter' },
-    { n: 'PICARD', bg: '#e6eeff', hd: '#3b5bdb', k: 'table' }, { n: 'QUALIMAP', bg: '#e9f6e9', hd: '#2f9e44', k: 'line' },
-    { n: 'CUTADAPT', bg: '#ffffff', hd: '#9b59b6', k: 'hist' }, { n: 'KRAKEN', bg: '#2b2140', hd: '#b28dff', k: 'stack' },
-    { n: 'BOWTIE2', bg: '#efe4d2', hd: '#8b5a2b', k: 'text' }, { n: 'BCFTOOLS', bg: '#dff6f8', hd: '#1098ad', k: 'heat' },
+    { n: 'FASTQC', bg: '#ffffff', hd: '#e85d5d' }, { n: 'SAMTOOLS', bg: '#fff3c4', hd: '' },
+    { n: 'STAR', bg: '#1b2332', hd: '#ffd166' }, { n: 'SALMON', bg: '#fde2e4', hd: '#ff8fa3' },
+    { n: 'PICARD', bg: '#e6eeff', hd: '#3b5bdb' }, { n: 'QUALIMAP', bg: '#e9f6e9', hd: '#2f9e44' },
+    { n: 'CUTADAPT', bg: '#ffffff', hd: '#9b59b6' }, { n: 'KRAKEN', bg: '#2b2140', hd: '#b28dff' },
+    { n: 'BOWTIE2', bg: '#efe4d2', hd: '#8b5a2b' }, { n: 'BCFTOOLS', bg: '#dff6f8', hd: '#1098ad' },
   ];
   const JIT = [[0, 1], [2, -1], [-1, 2], [1, 0], [-2, 1], [0, -2], [2, 2], [-1, -1], [1, 1], [-2, 0]];
   const src = i => { const p = Math.floor(i / 2), b = i % 2, [jx, jy] = JIT[i]; return { x: 60 + p * 40 + jx, y: (b ? 74 : 34) + jy, w: 31 + (i % 3), h: 34 + (i % 2) * 2 }; };
   const dst = i => ({ x: REP.x + 4, y: REP.y + 32 + i * 6.3, w: REP.w - 8, h: 5 });
 
   const posterArt = (tl, x, y, w, h, t, i) => {
-    const dark = tl.bg === '#1b2332' || tl.bg === '#2b2140', ink = dark ? '#e6e9f0' : '#3a3f4a';
     R(x, y, w, h, tl.bg); R(x, y + h, w, 1, 'rgba(0,0,0,0.25)');
     if (tl.hd) R(x, y, w, 6, tl.hd);
     T(tl.n, x + w / 2, y + 1, 4, tl.hd ? (tl.hd === '#ffd166' ? INK : '#ffffff') : '#c0392b', 'center');
-    const cx = x + 3, cy = y + 9, cw = w - 6, ch = h - 12;
-    if (tl.k === 'traffic') { for (let r = 0; r < 5; r++) { R(cx, cy + r * 5, 3, 3, ['#2fb67c', '#2fb67c', '#f5a623', '#2fb67c', '#e85d5d'][r]); R(cx + 5, cy + r * 5 + 1, 8, 1, '#c8ccd2'); }
-      for (let k = 0; k < 12; k++) R(cx + 16 + k, cy + 18 - Math.round(Math.sin(k * 0.5) * 6 + k * 0.4), 1, 2, '#e85d5d'); }
-    if (tl.k === 'hbars') for (let r = 0; r < 6; r++) R(cx, cy + r * 4, Math.round(cw * (0.3 + hash(r + 3) * 0.7)), 3, '#3b6fb6');
-    if (tl.k === 'pie') { const px = x + w / 2, py = cy + ch / 2, r = Math.min(cw, ch) / 2 - 1;
-      for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) { if (dx * dx + dy * dy > r * r) continue;
-        const a = (Math.atan2(dy, dx) + Math.PI) / 6.2832; R(Math.round(px + dx), Math.round(py + dy), 1, 1, a < 0.55 ? '#ffd166' : a < 0.8 ? '#e85d5d' : '#6c8cff'); } }
-    if (tl.k === 'scatter') for (let k = 0; k < 16; k++) R(cx + Math.floor(hash(k * 3) * cw), cy + Math.floor(hash(k * 7) * ch), 2, 2, k % 3 ? '#e8590c' : '#5c7cfa');
-    if (tl.k === 'table') for (let r = 0; r < 6; r++) { R(cx, cy + r * 4, cw, 1, '#9aa7d8'); for (let c = 0; c < 3; c++) R(cx + 1 + c * (cw / 3), cy + r * 4 + 2, cw / 3 - 3, 1, r ? '#5a6478' : '#3b5bdb'); }
-    if (tl.k === 'line') { R(cx, cy, 1, ch, '#8a9a8a'); R(cx, cy + ch - 1, cw, 1, '#8a9a8a'); for (let k = 0; k < cw - 2; k++) R(cx + 2 + k, cy + 2 + Math.round((1 - Math.exp(-k / 6)) * (ch - 6)), 1, 1, '#2f9e44'); }
-    if (tl.k === 'hist') for (let k = 0; k < 7; k++) { const hh = Math.round((ch - 2) * Math.exp(-((k - 3) ** 2) / 4)); R(cx + k * 4, cy + ch - hh, 3, hh, '#9b59b6'); }
-    if (tl.k === 'stack') for (let k = 0; k < 5; k++) { let yy = cy + ch; [['#b28dff', 0.4], ['#ffd166', 0.3], ['#2ec4b6', 0.3]].forEach(([c, f], j) => { const hh = Math.round((ch - 2) * f * (0.6 + hash(k * 3 + j) * 0.5)); yy -= hh; R(cx + 1 + k * 5, yy, 4, hh, c); }); }
-    if (tl.k === 'text') for (let r = 0; r < 8; r++) R(cx, cy + r * 3, Math.round(cw * (0.5 + hash(r + 9) * 0.5)), 1, '#7a6a55');
-    if (tl.k === 'heat') for (let r = 0; r < 5; r++) for (let c = 0; c < 6; c++) { const v = hash(r * 6 + c + 40); R(cx + c * 4, cy + r * 4, 4, 4, v > 0.66 ? '#1098ad' : v > 0.33 ? '#66d9e8' : '#e3fafc'); }
+    const sw = w - 12, sh = h - 15;
+    for (let f = 2; f >= 0; f--) {
+      const sx = x + 3 + f * 3, sy = y + 8 + f * 2;
+      R(sx, sy, sw, sh, '#ffffff'); R(sx, sy + sh, sw, 1, '#9aa0a6'); R(sx + sw, sy, 1, sh + 1, '#9aa0a6');
+    }
+    T('S1', x + 5, y + 9, 4, '#e8590c');
+    for (let r = 0; r < 5; r++) { const ry = y + 16 + r * 3; R(x + 5, ry, 3 + Math.floor(hash(i * 7 + r) * 6), 1, '#9aa0a6'); const vw = 2 + Math.floor(hash(i * 5 + r + 50) * 4); R(x + 3 + sw - 2 - vw, ry, vw, 1, '#3a3f4a'); }
     R(x + w / 2 - 1, y - 1, 2, 2, ['#e85d5d', '#2fb67c', '#6c8cff'][i % 3]);
   };
 
@@ -369,7 +361,7 @@
       st.fallen.forEach(f => { if (f.y < 145) { f.vy += 260 * dt; f.x += f.vx * dt; f.y = Math.min(145, f.y + f.vy * dt); } else if (Math.abs(f.vx) > 2) { f.x += f.vx * dt; f.vx *= 1 - dt * 3; } });
       if (st.throwT != null && t - st.throwT > BIN_P * 0.9 && !st.thrown) { st.thrown = true; if (st.pile.length < 9) st.pile.push(st.throwKind); }
     },
-    beat(id, st) { if (id === 'messy') g.say('Which plot is which?', 112, 126, 2.4); if (id === 'inputs') { st.pile = []; st.binN = 0; } },
+    beat(id, st) { if (id === 'messy') g.say('So many files, not one plot', 112, 126, 2.4); if (id === 'inputs') { st.pile = []; st.binN = 0; } },
     poke(id, st) {
       const t = time();
       if (id === 'presenter') { const P = st.pres; if (t - P.talkT < 15) { g.say('I am getting to the good bit', P.x, 126, 2); return true; } P.talkT = t; P.said = -1; return true; }

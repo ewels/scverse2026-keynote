@@ -126,7 +126,7 @@ const TOPICS = {
               blurb:'What MultiQC does, what is new (config builder, licences and DOIs, ECharts, Parquet), and how you can help.',
               host:{ name:'Rita the Reporter', look:{ skin:'#e8b894', hair:'#8b2f2f', hairStyle:'long', top:'#f5a623', topStyle:'sweat', pants:'#2e3a4f' } },
               beats:[
-                { at:'messy', id:'messy', say:'Every tool reports differently' },
+                { at:'messy', id:'messy', say:'Tools print a file per sample: no overview, no plots' },
                 { at:'messy', id:'merge', say:'MultiQC: one report for all of them' },
                 { at:'bin', id:'inputs', say:'Works with any inputs' },
                 { at:'features', feature:'poster', say:'What’s new',
