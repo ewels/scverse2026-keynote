@@ -202,13 +202,19 @@
     R(cx - 15, 112, 3, 36, '#3b3f47'); R(cx + 12, 112, 3, 36, '#3b3f47'); R(cx - 18, 146, 9, 2, '#2b2e31'); R(cx + 9, 146, 9, 2, '#2b2e31');
     if (!posters) { R(cx - 1, 33, 2, 2, '#e85d5d'); R(cx + 3, 74, 2, 2, '#2fb67c'); }
   };
-  const signEasel = () => {
-    ctx.save(); ctx.translate(-6, 0);
-    line(26, 100, 20, 148, '#5a3a22'); line(46, 100, 52, 148, '#5a3a22'); line(36, 100, 36, 146, '#4a2e1a');
-    R(20, 96, 32, 34, '#3b3f47'); R(22, 98, 28, 30, PAPER); R(22, 98, 28, 7, OR);
-    T('POSTERS', 36, 99, 4, '#ffffff', 'center'); T('A1-A20', 36, 108, 5, INK, 'center');
-    R(28, 118, 14, 2, INK); R(42, 116, 1, 6, INK); R(43, 117, 1, 4, INK); R(44, 118, 1, 2, INK);
-    ctx.restore();
+  const signEasel = (st, t) => { ctx.save(); ctx.translate(-6, 0); signEasel0(st, t); ctx.restore(); };
+  const signEasel0 = (st, t) => {
+    const dt = st.easelT != null ? t - st.easelT : 99, down = st.easelDown;
+    if (down) {
+      const fall = clamp01(dt / 0.35);
+      if (fall < 1) { const tilt = fall * 26; R(22 + tilt * 0.4, 100 + tilt, 30, 32 - tilt * 0.6, '#3b3f47'); return; }
+      R(16, 141, 40, 6, '#5a3a22'); R(18, 140, 34, 5, PAPER); R(18, 140, 34, 1, OR); return;
+    }
+    const wob = dt < 1.2 ? Math.round(Math.sin(dt * 22) * 3 * (1.2 - dt) * (1 + st.easelN * 0.5)) : 0;
+    line(26 + wob, 100, 20, 148, '#5a3a22'); line(46 + wob, 100, 52, 148, '#5a3a22'); line(36 + wob, 100, 36, 146, '#4a2e1a');
+    R(20 + wob, 96, 32, 34, '#3b3f47'); R(22 + wob, 98, 28, 30, PAPER); R(22 + wob, 98, 28, 7, OR);
+    T('POSTERS', 36 + wob, 99, 4, '#ffffff', 'center'); T('A1-A20', 36 + wob, 108, 5, INK, 'center');
+    R(28 + wob, 118, 14, 2, INK); R(42 + wob, 116, 1, 6, INK); R(43 + wob, 117, 1, 4, INK); R(44 + wob, 118, 1, 2, INK);
   };
   const coffeeTable = (st, t) => {
     R(TABLE - 20, 124, 40, 3, '#f7f3ea'); R(TABLE - 20, 127, 40, 8, OR); R(TABLE - 20, 134, 40, 1, ORD);
@@ -335,17 +341,18 @@
     get host() { return hx; },
     focus: F,
     props: [
+      { id: 'easel', x: 30 },
       { id: 'presenter', get x() { return Math.round(this.st ? this.st.pres.x : PRES); }, label: 'Ask about the poster' },
       { id: 'bin', x: MACH - 14, label: 'Throw something in' },
       { id: 'coffee', x: TABLE, label: 'Stack another cup' },
       { id: 'board', x: BOARD, label: 'Look at the board' },
     ],
     enter(st) {
-      hx = 66; st.cups = 3; st.fallen = []; st.pile = []; st.binN = 0; st.hostN = 0; st.viewC = 160;
+      hx = 66; st.cups = 3; st.fallen = []; st.easelN = 0; st.easelDown = false; st.pile = []; st.binN = 0; st.hostN = 0; st.viewC = 160;
       st.pres = { x: PRES, face: 1, talkT: -99, said: -1, moving: false };
       st.wander = { x: 300, face: 1, moving: false };
       st.crew = [{ L: LOOKS.c1, x: 800, q: 698, c: '#6c8cff' }, { L: LOOKS.c2, x: 830, q: 714, c: '#e85d5d' }, { L: LOOKS.c3, x: 860, q: 730, c: '#2ec4b6' }];
-      this.props[0].st = st;
+      this.props[1].st = st;
     },
     update(dt, st, ev) {
       const t = time(), id = cur(ev);
@@ -367,6 +374,10 @@
     beat(id, st) { if (id === 'messy') g.say('So many files, not one plot', 112, 126, 2.4); if (id === 'inputs') { st.pile = []; st.binN = 0; } },
     poke(id, st) {
       const t = time();
+      if (id === 'easel') {
+        if (st.easelDown) { st.easelDown = false; st.easelN = 0; st.easelT = t; return 'Back on its feet'; }
+        st.easelT = t; st.easelN++; if (st.easelN >= 3) { st.easelDown = true; g.say('Oops', 30, 92, 1.5); } return true;
+      }
       if (id === 'presenter') { const P = st.pres; if (t - P.talkT < 15) { g.say('I am getting to the good bit', P.x, 126, 2); return true; } P.talkT = t; P.said = -1; return true; }
       if (id === 'bin') { if (st.throwT != null && t - st.throwT < BIN_P) return true; const L = ['sock', 'banana', 'duck', 'cup', 'shoe']; st.throwKind = L[(st.thrN = (st.thrN || 0) + 1) % L.length]; st.throwT = t; st.thrown = false; return true; }
       if (id === 'coffee') {
@@ -384,7 +395,7 @@
       R(479, 14, 1, 6, '#6f7a80'); R(593, 14, 1, 6, '#6f7a80');
       R(471, 20, 130, 11, OR); R(471, 30, 130, 1, ORD); for (let x = 471; x < 601; x += 10) R(x, 31, 5, 2, OR);
       shadowT('POSTER SESSION', 536, 22, 7, '#ffffff', 'center', ORD);
-      signEasel();
+      signEasel(st, t);
       const land = landing(ev);
       for (let p = 0; p < 5; p++) panel(74 + p * 40, !land || land[p * 2] < 0.01 || land[p * 2 + 1] < 0.01);
       reportFrame(ev);

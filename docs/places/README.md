@@ -9,7 +9,7 @@ One classic script per place (no modules: `index.html` must run from `file://`).
   spawn: 24, exit: 460,       // hero start x, exit x (after the last beat, Right walks here)
   host: 420,                  // x of the host NPC, for Action and the default speech bubble
   focus: { podium: 96, screen: 330 },                 // beat `at` id -> x the hero walks to
-  props: [{ id: 'glass', x: 112, label: 'Drink some water' }],   // Action within 14px pokes it
+  props: [{ id: 'glass', x: 112, label: 'Drink some water' }],   // Action within 14px pokes it; no label, no prompt
   enter(st) {},               // st: this visit's state object (fresh each visit)
   update(dt, st, ev) {},
   draw(st, ev) {},            // draw the whole place in world coordinates; the engine draws the hero after
