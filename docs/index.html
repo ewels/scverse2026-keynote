@@ -825,8 +825,8 @@ const Game = {
     if(f){ if(a<3.6) this.drawCloud(f.x+Math.round(Math.sin(a*3)*8),feet,a);
       for(let i=0;i<2;i++){ const gx=this.guardX(i); person(GUARDS[i],gx,feet,this.time,a<3.6?-1:-1,a>1.2,1); R(Math.round(gx)-4,feet-9,8,1,'#f4f4f4'); } }
     this.drawFx();
-    for(const b of this.bubbles){ const w=Math.ceil(tw(b.s,5))+6, vx=this.camX+CX, x=Math.round(clamp(b.x-w/2,vx+2,vx+VW-CROP-w-2)), y=Math.round(b.y)-12, bx=Math.round(b.x);
-      R(x-1,y-1,w+2,11,'#1b2332'); R(x,y,w,9,'#ffffff'); R(bx-2,y+9,5,1,'#ffffff'); R(bx-1,y+10,3,1,'#ffffff'); R(bx,y+11,1,1,'#ffffff'); T(b.s,x+3,y+2,5,'#1b2332'); } },
+    for(const b of this.bubbles){ const L=b.s.split('\n'), h=2+7*L.length, w=Math.ceil(Math.max(...L.map(l=>tw(l,5))))+6, vx=this.camX+CX, x=Math.round(clamp(b.x-w/2,vx+2,vx+VW-CROP-w-2)), y=Math.round(b.y)-3-h, bx=Math.round(b.x);
+      R(x-1,y-1,w+2,h+2,'#1b2332'); R(x,y,w,h,'#ffffff'); R(bx-2,y+h,5,1,'#ffffff'); R(bx-1,y+h+1,3,1,'#ffffff'); R(bx,y+h+2,1,1,'#ffffff'); L.forEach((l,i)=>T(l,x+3,y+2+i*7,5,'#1b2332')); } },
   drawHero(feet){ if(this.jumpT>0) feet-=Math.round(Math.sin(Math.PI*(1-this.jumpT/0.6))*9); const p=this.p,
       x=p.x+(this.jit?(Math.floor(this.time*12)%2?1:-1)*0.6:0), drink=!p.moving&&this.time-this.drinkT<1.2, crouch=!p.moving&&this.time-this.strokeT<1.2, moon=p.moving&&this.moonT>0;
     person(this.hero().look,x,feet,p.t,p.face,p.moving&&!moon,1,this.kickT>0.12&&this.kickT<0.42?'kick':drink?'drink':crouch?(Math.floor(this.time*6)%2?'strokeA':'strokeB'):moon?(Math.floor(p.t*3)%2?'mwA':'mwB'):null);

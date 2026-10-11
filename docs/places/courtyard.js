@@ -35,7 +35,7 @@
     founder: { skin: '#f2c8a8', hair: '#f4f4f4', hairStyle: 'short', beard: true, top: '#f2efe6', topStyle: 'sweat', pants: '#e8e4d8', shoes: '#8a6a4a' },
   };
   const MAL = 172, HAM = 154;
-  const QUOTE = [[0, MAL, 'Your scientists were so preoccupied'], [2.6, MAL, 'with whether or not they could,'], [5.2, MAL, 'they didn’t stop to think if they should'], [8.4, HAM, 'Spared no expense!']];
+  const QUOTE = [[0, MAL, 'Your scientists were so preoccupied\nwith whether or not they could,\nthey didn’t stop to think if they should', 5.5], [5.7, HAM, 'Spared no expense!', 2.6]];
   let fx = 122;
   const cur = ev => (ev.beat ? ev.beat.id || ev.beat.at : '');
 
@@ -233,7 +233,7 @@
       if (flee && !st.yelled) { st.yelled = true; st.npcs.forEach((n, i) => g.say(['Run!', 'Aaah!', 'Not again!'][i], n.x, 128, 1.6)); }
       if (rT > 7) st.yelled = false;
       if (st.quote == null && g.heroX() > 90) st.quote = t;
-      while (st.quote != null && st.said < QUOTE.length && t - st.quote >= QUOTE[st.said][0]) { const [, x, s] = QUOTE[st.said++]; g.say(s, x, 128, 2.6); }
+      while (st.quote != null && st.said < QUOTE.length && t - st.quote >= QUOTE[st.said][0]) { const [, x, s, secs] = QUOTE[st.said++]; g.say(s, x, 128, secs); }
       if (st.flock != null && t - st.flock > 14) { st.flock = null; st.bread = 0; st.gulls = []; st.crumbs = []; }
       // the first few gulls drop to the water, eat a floating chunk and fly off again
       for (const c of st.crumbs) if (!c.claimed && t - c.t > 0.7) { const q = st.gulls.find((q, i) => i < 4 && !q.c && t - q.at > 1.6); if (q) { c.claimed = true; q.c = c; q.dive = t; } }
