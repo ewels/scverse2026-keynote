@@ -527,13 +527,13 @@ const CAT_WASH=['.....f..f','.....ffff','.....ffff','.....ffww','....ffwww','...
 const HEART=['.r.r.','rrrrr','.rrr.','..r..'];
 const REACT={ heart:{ rows:['.rr.rr.','rrrrrrr','rrrrrrr','.rrrrr.','..rrr..','...r...'], pal:{r:'#ff6b81'} },
   star:{ rows:['...y...','..yyy..','yyyyyyy','.yyyyy.','.yy.yy.','y.....y'], pal:{y:'#ffd166'} },
-  clap:{ rows:['y.....y.....y','..y...y...y..','.............','.....d.d.....','....dsdsd....','...dssdssd...','..dsssdsssd..','.dsssd.dsssd.','dssssd.dssssd','.dssd...dssd.','..bb.....bb..'], pal:{s:'#f2c9a0',d:'#b9805a',y:'#ffd166',b:'#6c8cff'} },
-  laugh:{ rows:['....yyyyy....','..yyyyyyyyy..','.yyykyyykyyy.','tyykykykykyyt','ttyyyyyyyyytt','t.ykkkkkkky.t','..ykrrrrrky..','...ykkkkky...','....yyyyy....'], pal:{y:'#ffd166',k:'#1b2332',r:'#e85d75',t:'#7ec8ff'} },
-  coffee:{ rows:['..w...w....','.w...w.....','..w...w....','ccccccccc..','cbbbbbbbc..','cmmmmmmmccc','cmmmmmmmc.c','cmmmmmmmc.c','cmmmmmmmccc','.cmmmmmc...','ppppppppppp'], pal:{c:'#5a3a22',m:'#ffffff',b:'#6b4423',w:'#ffffff',p:'#c8ccd2'} } };
+  thumbs:{ rows:['...kk.....','..kyyk....','..kyyk....','..kyyk....','.kyykkkkk.','kyyykyyyyk','kyyykkkkkk','kyyykyyyyk','kyyykkkkkk','kyyykyyyyk','kyyykkkkkk','kkyyykyyk.','..kkkkkk..'], pal:{k:'#10140f',y:'#e8b04a'} },
+  tada:{ rows:['...b..r..y..r.','y..bb...yy.r..','.y..b..yy.....','.......y...bb.','...kk.....bb..','..kyyk...bb...','..kyyyk.....y.','.krryyyk..r...','.kyrryyyk....b','.kyyrrykk.bb..','krryykk....bb.','kyrkk.........','kkk...........'], pal:{k:'#10140f',y:'#e3a64c',r:'#c84e28',b:'#599dc4'} },
+  laugh:{ rows:['....kkkk....','..kkyyyykk..','.kyyyyyyyyk.','.kykyyyykyk.','kyyykyykyyyk','kykyyyyyykyk','kyyyyyyyyyyk','kykkkkkkkkyk','kyykkkkkkyyk','.kyykrrkyyk.','..kkyyyykk..','....kkkk....'], pal:{k:'#10140f',y:'#ffd166',r:'#e85d75'} } };
 const NOT_PHIL=["You're not Phil.","Wait, where's Phil?","Organiser badge, then?","Did Phil get lost?","You'll do, I suppose."];
 const flip=m=>m.map(r=>[...r].reverse().join(''));
 const shadow=m=>m.map(r=>r.replace(/[^.]/g,'k'));
-for(const m of Object.values(REACT)) m.shadow=shadow(m.rows);
+for(const k of ['heart','star']) REACT[k].shadow=shadow(REACT[k].rows);
 const Game = {
   reset(){
     token++; this.tm=timers(); this.time=0; this.scene='menu'; this.sel=0; this.chosen=null; this.flash=0;
@@ -863,7 +863,7 @@ const Game = {
   react(kind,n=1){ for(let i=0;i<Math.min(n,12) && this.reacts.length<40;i++) this.reacts.push({ k:kind, x:24+Math.random()*(VW-CROP-48), t:-i*0.18 }); },
   victory(){ this.jumpT=0.6; this.egg('star','Golden badge');
     for(let i=0;i<5;i++) this.fx.push({ k:'spark', x:this.p.x-6+i*3, y:this.feet()-18, vx:(i-2)*5, vy:-8, t:0, life:0.9 }); },
-  ovation(){ this.ovT=4; this.react('clap',12); },
+  ovation(){ this.ovT=4; this.react('tada',12); },
   kickPlant(pl){ const p=this.p; p.face=pl.x>=p.x?1:-1; pl.dir=p.face; this.kickT=0.5; Prompt.clear();
     this.tm.after(0.14,()=>{ pl.state='falling'; }); },
 
@@ -926,7 +926,7 @@ const Game = {
       else { R(x,y-1,1,3,f.t%0.3<0.15?'#ffd166':'#ffffff'); R(x-1,y,3,1,'#ffd166'); } } ctx.globalAlpha=1; },
   drawReacts(){ if(!this.reacts.length) return; ctx.setTransform(S,0,0,S,-CX*S,0);
     for(const r of this.reacts){ if(r.t<0) continue; const m=REACT[r.k]||REACT.star, x=Math.round(CX+r.x+Math.sin(r.t*3+r.x)*4), y=Math.round(VH-16-r.t*38);
-      ctx.globalAlpha=clamp((3-r.t)*2,0,1); map2d(m.shadow,x+1,y+1,{k:'#1b2332'}); map2d(m.rows,x,y,m.pal); } ctx.globalAlpha=1; },
+      ctx.globalAlpha=clamp((3-r.t)*2,0,1); if(m.shadow) map2d(m.shadow,x+1,y+1,{k:'#1b2332'}); map2d(m.rows,x,y,m.pal); } ctx.globalAlpha=1; },
   drawEggCount(){ if(['menu','select','over'].includes(this.scene)) return; ctx.setTransform(S,0,0,S,-CX*S,0);
     const x=CX+4, s=`${this.eggs.size}/${this.eggTotal()}`, w=Math.ceil(tw(s,5));
     R(x,4,w+15,11,'rgba(27,35,50,.75)'); map2d(['.ww.','wwww','wwww','wwww','.ww.'],x+3,7,{w:'#fff6dc'}); R(x+4,8,1,1,'#ffffff');

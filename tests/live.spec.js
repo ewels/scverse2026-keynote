@@ -82,17 +82,17 @@ test('stage, phones and moderator stay in sync', async ({ browser }) => {
     window.__open = open;
     return open('presenter').then(ws => { ws.onmessage = e => { const m = JSON.parse(e.data); if (m.t === 'react') window.__reacts.push(m); }; });
   });
-  await stage.evaluate(async () => { const ws = await window.__open('mod'); ws.send(JSON.stringify({ t: 'react', kind: 'clap' })); });
+  await stage.evaluate(async () => { const ws = await window.__open('mod'); ws.send(JSON.stringify({ t: 'react', kind: 'thumbs' })); });
   await stage.waitForTimeout(600);
   expect(await stage.evaluate(() => window.__reacts)).toEqual([]);
   await stage.evaluate(() => { const g = window.__game, f = g.react; window.__rc = 0; g.react = function (...a) { window.__rc++; return f.apply(this, a); }; });
   await ana.locator('#reacts [data-k=heart]').click();
   await bea.locator('#reacts [data-k=heart]').click();
-  await bea.locator('#reacts [data-k=clap]').click();
+  await bea.locator('#reacts [data-k=thumbs]').click();
   await expect.poll(() => stage.evaluate(() => window.__reacts.reduce((n, m) => n + (m.counts.heart || 0), 0))).toBe(2);
   expect(await stage.evaluate(() => window.__rc)).toBeGreaterThan(0);
   const batches = await stage.evaluate(() => window.__reacts);
-  expect(batches.reduce((n, m) => n + (m.counts.clap || 0), 0)).toBe(0);
+  expect(batches.reduce((n, m) => n + (m.counts.thumbs || 0), 0)).toBe(0);
   expect(batches[0].phones).toBeGreaterThanOrEqual(1);
   expect(batches[0].connected).toBe(2);
 

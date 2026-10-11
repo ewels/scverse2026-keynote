@@ -31,7 +31,7 @@ There are easter eggs hidden around the venue. Have fun finding them!
 
 - 🗳️ **Live ranking.** The audience scanned a QR code and ranked the topics on their phones. Bars beside the game showed which room was most wanted next.
 - 🙋 **Questions.** People sent and upvoted questions. When I put a question on screen, a character in the game walked up with a "?" to ask it.
-- 👏 **Reactions.** Claps, hearts and coffees from phones floated up over the game. When enough came in at once, the pixel crowd stood up.
+- 🎉 **Reactions.** Thumbs, hearts and party poppers from phones floated up over the game. When enough came in at once, the pixel crowd stood up.
 
 All of the code was written by Claude Opus 5.5. It is plain HTML, CSS and JavaScript, and all the art is drawn in code. There is no build step and there are no image files. A small [Cloudflare Worker](https://developers.cloudflare.com/workers/) synced the votes and questions during the talk. Now the game runs on GitHub Pages with the live features off.
 

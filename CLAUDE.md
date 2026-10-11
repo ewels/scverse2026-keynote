@@ -47,7 +47,7 @@ npx playwright test offline      # one file
 **Message types** (the `t` field) are the contract between the pages and `worker/src/worker.js` — change both sides together:
 - presenter → `config`, `visited`, `asked`, `ended`, `reset`
 - mod → `promote`, `unpromote`, `restore`, `answered`, `dismiss`, `reset`
-- audience → `rank`, `upvote`, `ask`, `react` (clap, heart, laugh, coffee or star; not stored, one per second per phone)
+- audience → `rank`, `upvote`, `ask`, `react` (thumbs, heart, tada, laugh or star; not stored, one per second per phone)
 - server → `react` to presenters only (`counts` per kind, `phones` in the batch, `recent` phones in the last five seconds, `connected` audience sockets; at most four a second), `state` (plus `pong` for the `ping` keepalive, auto-answered by the Durable Object)
 
 **Topics are defined once, on stage.** `TOPICS` in `docs/content.js` is the source of truth. When the stage connects it sends a `config` message with titles, colours, blurbs and pixel icons, and the worker stores and re-broadcasts that, so the phone pages render topics from server state and never hard-code them. Any new topic field the phones need must also be added to the worker's `config` sanitiser, which drops unknown fields.

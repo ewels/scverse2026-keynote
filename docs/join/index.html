@@ -245,7 +245,7 @@ $('#send').addEventListener('click', () => {
 });
 
 // Reactions: one per second per phone, same as the server's cooldown.
-const REACTS = [['clap','👏','Clap'],['heart','❤️','Love it'],['laugh','😂','Laugh'],['coffee','☕','Coffee']];
+const REACTS = [['thumbs','👍','Thumbs up'],['heart','❤️','Love it'],['tada','🎉','Celebrate'],['laugh','😄','Laugh']];
 let lastReact = 0;
 function react(kind, btn){
   const now = Date.now();
