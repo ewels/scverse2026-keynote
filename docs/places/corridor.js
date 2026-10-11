@@ -154,6 +154,7 @@
     MORE.forEach((s, i) => { if (t < 0.4 + i * 0.25) return; const x = 37 + (i % 3) * 84, y = 80 + Math.floor(i / 3) * 18; R(x, y, 78, 13, '#2b3050'); R(x, y, 2, 13, '#8b5cf6'); T(s, x + 40, y + 4, 5, '#c9c2ff', 'center'); });
     R(32, 124, 256, 38, '#0e1020'); T('DOCS AND LIVE EXAMPLES', 160, 130, 5, '#7f8aab', 'center'); T('ewels.github.io/starlight-codeblocks', 160, 143, 7, '#2ec4d6', 'center');
   };
+  const url = (ev, i, x, s) => { if (ev.beatIdx !== i) return; const w = Math.round(tw(s, 6)) + 12; R(x - w / 2, 122, w, 11, '#1b2332'); R(x - w / 2, 122, w, 1, '#2ec4d6'); T(s, x, 124.5, 6, '#ffffff', 'center'); };
 
   return {
     width: W, floor: 154, spawn: 14, exit: EXIT,
@@ -199,6 +200,7 @@
       for (let i = 0; i < 3; i++) sign(st, i, t, litF);
       starlight(st, ev, t);
       [[quiz, QDX], [map, MDX], [board, BDX]].forEach(([f, dx]) => { ctx.save(); ctx.translate(dx, 0); f(st, ev, t, hx); ctx.restore(); });
+      url(ev, 1, SL, 'starlight.astro.build'); url(ev, 2, QX, 'ewels.github.io/starlight-quiz'); url(ev, 3, MAPX, 'ewels.github.io/starlight-pydocs');
       // fire door and extinguisher
       R(239, 60, 2, 30, '#d8402a'); R(238, 58, 4, 3, '#1b2332');
       // floor
