@@ -1465,10 +1465,7 @@ const Splash = { el:$('#splash'), on:false, t0:0,
   draw(){ const c=this.el, d=devicePixelRatio||1, W=c.width=Math.round(c.clientWidth*d), H=c.height=Math.round(c.clientHeight*d), x=c.getContext('2d'), u=H/100, L=W*0.08;
     const txt=(s,y,px,col,bold,align)=>{ x.font=`${bold?'bold ':''}${px*u}px Calibri, Carlito, Arial, Helvetica, sans-serif`; x.fillStyle=col; x.textAlign=align||'left'; x.fillText(s,align?W-L:L,y*u); };
     x.fillStyle='#fff'; x.fillRect(0,0,W,H); x.fillStyle='#2f5597'; x.fillRect(0,0,W,1.2*u);
-    x.font=`bold ${6*u}px Calibri, Carlito, Arial, Helvetica, sans-serif`; const lines=[];
-    for(const w of 'Building bioinformatics software in the age of AI'.split(' ')){
-      const l=lines.length&&lines[lines.length-1]+' '+w; if(l&&x.measureText(l).width<=W-2*L) lines[lines.length-1]=l; else lines.push(w); }
-    lines.forEach((s,i)=>txt(s,40-(lines.length-1-i)*7.2,6,'#1f1f1f',true));
+    txt('Building bioinformatics software',31.6,7,'#1f1f1f',true); txt('in the age of AI',40,7,'#1f1f1f',true);
     x.fillStyle='#2f5597'; x.fillRect(L,46*u,W*0.12,0.5*u);
     txt('Phil Ewels',56,4,'#404040'); txt('phil.ewels@seqera.io',61.5,3.2,'#2f5597');
     txt('Senior product manager for open source software at Seqera',67,3.2,'#7f7f7f');
