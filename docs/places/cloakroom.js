@@ -230,6 +230,7 @@
       bot(bx, 158, t, BOTS[2], { armsUp: true, moving: true, agent: true });
       out('511 CHARS', Math.round(bx), 124, 6, '#bfffd4', '#14532d');
     }
+    if (s > 2.2) { ctx.globalAlpha = k01((s - 2.2) / 0.4); out('SAME TOKENS', (LANE0 + LANE1) / 2, 32, 7, '#ffd166', '#1b2332'); ctx.globalAlpha = 1; }
   };
 
   const eggBot = (t, st) => {
@@ -355,36 +356,34 @@
         const row = i => Y + (i + 1.4) * H;
         if (step === 0) {
           const g0 = '#b0b6c0';
-          ['Usage: mytool [OPTIONS] INPUT', '', '  Count the cells in a sample.', '', 'Options:', '  -o, --output PATH   Where to save results', '  -t, --threads INT   Threads to use', '  --help              Show this message and exit.']
+          ['Usage: mytool [OPTIONS] COMMAND [ARGS]...', '', '  Count and plot cells.', '', 'Options:', '  --help  Show this message and exit.', '', 'Commands:', '  count  Count the cells in a sample.', '  plot   Plot the counts.']
             .forEach((s, i) => V(s, X, row(i), H, g0));
         }
         if (step === 1) {
           const seg = (parts, y, x0 = X) => { let x = x0; for (const [s, c] of parts) { V(s, x, y, H, c); x += vw(s, H); } };
-          seg([[' Usage: ', '#e5c07b'], ['mytool ', '#ffffff'], ['[OPTIONS] INPUT', '#e5c07b']], row(0));
-          V(' Count the cells in a sample.', X, row(2), H, '#dfe7f1');
-          const bx0 = X, bx1 = 300, by0 = row(4) + 5, by1 = row(8) + 5, p = k01((t - 0.35) / 0.5), bc = '#5c6370';
+          seg([[' Usage: ', '#e5c07b'], ['mytool ', '#ffffff'], ['[OPTIONS] COMMAND [ARGS]...', '#e5c07b']], row(0));
+          V(' Count and plot cells.', X, row(2), H, '#dfe7f1');
+          const bx0 = X, bx1 = 300, by0 = row(4) + 5, by1 = row(7) + 5, p = k01((t - 0.35) / 0.5), bc = '#5c6370';
           const wx = Math.round(bx0 + (bx1 - bx0) * p);
           R(bx0 + 2, by0, wx - bx0 - 2, 1, bc); R(bx0 + 2, by1, wx - bx0 - 2, 1, bc);
           if (p > 0) { R(bx0, by0 + 2, 1, by1 - by0 - 3, bc); R(bx0 + 1, by0 + 1, 1, 1, bc); R(bx0 + 1, by1 - 1, 1, 1, bc); }
           if (p >= 1) { R(bx1, by0 + 2, 1, by1 - by0 - 3, bc); R(bx1 - 1, by0 + 1, 1, 1, bc); R(bx1 - 1, by1 - 1, 1, 1, bc); }
-          R(bx0 + 4, by0 - 3, vw(' Options ', H), 7, '#0d1117'); V(' Options ', bx0 + 4, by0 - 5, H, '#9aa3b2');
+          R(bx0 + 4, by0 - 3, vw(' Commands ', H), 7, '#0d1117'); V(' Commands ', bx0 + 4, by0 - 5, H, '#9aa3b2');
           const c = k01((t - 0.6) / 0.4);
           ctx.globalAlpha = c;
-          [['--output ', '-o ', 'PATH ', 'Where to save results'], ['--threads', '-t ', 'INT  ', 'Threads to use'], ['--help   ', '   ', '     ', 'Show this message and exit.']].forEach((r, i) => {
-            const y = row(5 + i) + 2; seg([[r[0] + ' ', '#56d4e8'], [r[1], '#7ee787'], [r[2], '#e5c07b'], [r[3], '#dfe7f1']], y, bx0 + 6); });
+          [['count', 'Count the cells in a sample.'], ['plot ', 'Plot the counts.']].forEach((r, i) => {
+            const y = row(5 + i) + 2; seg([[r[0] + '  ', '#56d4e8'], [r[1], '#dfe7f1']], y, bx0 + 6); });
           ctx.globalAlpha = 1;
           if (t > 1.2) { const tag = 'import rich_click as click', w = vw(tag, 10) + 10; R(bx1 - w, 134, w, 12, '#1d2738'); R(bx1 - w, 134, w, 1, '#6c8cff'); V(tag, bx1 - w + 5, 135, 10, '#bfe0ff'); }
         }
         if (step === 2) {
-          const c = '#c8f7d6';
-          V('# mytool — Count the cells in a sample.', X, row(0), H, c);
-          V('*INPUT PATH', X, row(1), H, c);
-          V('--output, -o PATH   Where to save results', X, row(2), H, c);
-          V('--threads, -t INT   Threads to use', X, row(3), H, c);
+          const lines = ['# mytool — Count and plot cells.', '# mytool count — Count the cells in a sample.', 'usage: mytool count INPUT', '--output, -o PATH  Where to save results', 'examples:', '- mytool count s1.bam -o s1.csv',
+            '# mytool plot — Plot the counts.', '--format png|svg  Image format', 'examples:', '- mytool plot s1.csv --format svg'];
+          lines.forEach((s, i) => { if (t > 0.05 * i) V(s, X, Y + (i + 1.2) * 10, 10, s[0] === '#' ? '#7ee787' : s[0] === '-' && s[1] === ' ' || s === 'examples:' ? '#ffd166' : '#c8f7d6'); });
           const bx = 270, look = Math.round(Math.sin(t * 2) * 1);
           bot(bx, 148, t, BOTS[0], { s: 3, agent: true, blink: Math.sin(t * 1.7) > 0.96 });
           R(bx - 8 + look * 3, 112, 3, 3, '#bfffd4'); R(bx + 4 + look * 3, 112, 3, 3, '#bfffd4');
-          if (t > 0.9) { const w = vw('no boxes · no colour · just facts', 10) + 10; R(X, 134, w, 12, '#14532d'); V('no boxes · no colour · just facts', X + 5, 135, 10, '#bfffd4'); }
+          if (t > 0.9) { const tag = 'every subcommand · with examples · one call', w = vw(tag, 10) + 10; R(X, 137, w, 12, '#14532d'); V(tag, X + 5, 138, 10, '#bfffd4'); }
         }
       } },
     },
