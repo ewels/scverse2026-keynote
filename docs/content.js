@@ -147,13 +147,16 @@ const TOPICS = {
                 { at:'game', say:'And this game, obviously', who:'host' },
               ] },
   docs:     { title:'Building awesome docs sites', short:'DOCS', colour:'#2ec4d6', icon:'sign', place:'corridor', size:'thin',
-              blurb:'Documentation sites people actually enjoy: starlight-quiz, starlight-pydocs and starlight-codeblocks.',
+              blurb:'Documentation sites people actually enjoy, built on Astro Starlight: starlight-quiz, starlight-pydocs and starlight-codeblocks.',
               host:{ name:'Dot the Docent', look:{ skin:'#a86f4c', hair:'#1f1f1f', hairStyle:'short', top:'#2ec4d6', topStyle:'hoodie', pants:'#263042' } },
               beats:[
                 { at:'signs', say:'Good docs are signposts' },
-                { at:'board', say:'starlight-codeblocks: 26 features for code' },
-                { at:'map', say:'starlight-pydocs: the map fills in from code' },
+                { at:'starlight', say:'Astro Starlight: fast, accessible docs sites' },
                 { at:'quiz', say:'starlight-quiz: quizzes in plain markdown' },
+                { at:'map', say:'starlight-pydocs: the map fills in from code' },
+                { at:'board', say:'starlight-codeblocks: 26 features for code' },
+                { at:'board', feature:'codeblocks', say:'starlight-codeblocks',
+                  steps:['Focus: blur the lines that don’t matter','Word-level diffs show exactly what changed','Callouts and annotations point at the code','Code tabs, synced across the page','Run Python right in the page'] },
               ] },
 };
 const GREETER = { name:'Greeter', colour:'#ff8fa3', look:{ skin:'#c98e62', hair:'#2b2b2b', hairStyle:'long', top:'#e85d75', topStyle:'tee', pants:'#394257' } };
