@@ -150,7 +150,7 @@
       const k = st.lk0 == null ? 0 : t - st.lk0;
       R(BX + 4, BY + 4, BW - 8, BH - 8, PAPER);
       T('OUT.TXT', BOARD, BY + 8, 6, '#9aa0a6', 'center'); if (k > 0.3) { const w = tw('OUT.TXT', 6); R(Math.round(BOARD - w / 2 - 2), BY + 11, Math.min(w + 4, (k - 0.3) * 120), 2, '#e03131'); }
-      ['S1', 'S2', 'S3'].forEach((s, i) => { if (k > 0.6 + i * 0.3) { const e = suffixLine(s, '.mytool.log', BOARD - 4, BY + 19 + i * 9, 5, INK); tick(e + 2, BY + 19 + i * 9, '#2fb67c'); } });
+      ['S1', 'S2', 'S3'].forEach((s, i) => { if (k > 0.6 + i * 0.3) { const e = suffixLine(s, '.mytool.json', BOARD - 4, BY + 19 + i * 9, 5, INK); tick(e + 2, BY + 19 + i * 9, '#2fb67c'); } });
       if (k > 1.6) {
         R(BX + 6, BY + 46, BW - 12, 26, '#1b2332');
         const L = ['MYTOOL V2.1', 'SAMPLE   S1', 'READS  1.2M', 'PASSED  98%'], n = Math.floor((k - 1.6) * 30);
