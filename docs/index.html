@@ -584,7 +584,7 @@ const Game = {
         this.tm.after(1.4,()=>{ if(tok===token && this.pl && this.pl.key===key) this.say(NOT_PHIL[Object.keys(TOPICS).indexOf(key)%NOT_PHIL.length],d.host,(d.floor||154)-26,3); }); } };
     Prompt.clear(); if(now) f(); else Fade.go(f); },
   leavePlace(){ const key=this.pl.key; Prompt.clear();
-    Fade.go(()=>{ this.go('foyer',key===OPENER?DESK_X+DESK_DOOR:HALL.find(h=>h.key===key).x);
+    Fade.go(()=>{ const { d, st }=this.pl; d.leave&&d.leave(st); this.go('foyer',key===OPENER?DESK_X+DESK_DOOR:HALL.find(h=>h.key===key).x);
       this.pl=null; this.topic=null; }); },
   update(dt){
     if(this.scene==='toilets' && this.time-this.loo.dryT<0.8) this.p.x=Math.max(30,this.p.x-dt*70);
@@ -806,7 +806,7 @@ const Game = {
     if(a>=3.6){ p.x=f.x-(a-3.6)*42; p.face=-1; p.moving=true; p.t+=dt; }
     if(a>=6.2) Fade.go(()=>this.ejected());
     this.camX+=(clamp(p.x-VW/2,this.minX(),this.width()-VW)-this.camX)*(1-Math.exp(-dt*6)); },
-  ejected(){ const pl=this.pl; if(pl){ this.saved[pl.key]={ st:pl.st, idx:pl.idx }; this.resume=pl.key; }
+  ejected(){ const pl=this.pl; if(pl){ this.saved[pl.key]={ st:pl.st, idx:pl.idx }; this.resume=pl.key; pl.d.leave&&pl.d.leave(pl.st); }
     this.pl=null; this.topic=null; this.badge=false; this.revoked=true; Dlg.close();
     this.go('outside',ENTRANCE-24); this.toast('BADGE REVOKED'); },
   idleChat(){ const sc=this.scene, pl=this.pl, p=this.p, run=this.idleRun, tok=token;

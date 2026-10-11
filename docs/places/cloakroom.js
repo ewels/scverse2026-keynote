@@ -286,6 +286,7 @@
       const e = t - st.eggT;
       if (st.eggT > 0 && e > 2.4 && !st.eggSaid) { st.eggSaid = true; g.say('Ticket 10. Yours, I think?', DISP + 18, 108, 3); g.egg('hoodie', 'Your own hoodie'); }
     },
+    leave() { g.carry('coat', null); },
     poke(id, st) {
       const t = time();
       if (id === 'tickets') {

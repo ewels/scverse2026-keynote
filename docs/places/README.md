@@ -11,6 +11,7 @@ One classic script per place (no modules: `index.html` must run from `file://`).
   focus: { podium: 96, screen: 330 },                 // beat `at` id -> x the hero walks to
   props: [{ id: 'glass', x: 112, label: 'Drink some water' }],   // Action within 14px pokes it; no label, no prompt
   enter(st) {},               // st: this visit's state object (fresh each visit)
+  leave(st) {},               // optional: the hero left (walked out, or was thrown out by a fight)
   update(dt, st, ev) {},
   draw(st, ev) {},            // draw the whole place in world coordinates; the engine draws the hero after
   drawFront(st, ev) {},       // optional: drawn over the hero and NPCs
@@ -32,7 +33,7 @@ One classic script per place (no modules: `index.html` must run from `file://`).
 - `toast(text)`: a banner at the top. `egg(id, label)`: records an easter egg once and toasts `EASTER EGG: label`.
 - `heroX()`: the hero's x in world coordinates.
 - `visited(topic)`: true once that topic's place has been entered this game.
-- `carry(key, value)` / `carry(key)`: a value that lasts for the rest of the game, across scenes. The engine draws the cloakroom's carried `coat` (`true`, or `'puffer'`) on the hero everywhere; `null` takes it off.
+- `carry(key, value)` / `carry(key)`: a value that lasts for the rest of the game, across scenes. The engine draws the cloakroom's carried `coat` (`true`, or `'puffer'`) on the hero; `null` takes it off, which the cloakroom does in `leave`.
 
 A new egg id must also be added to `EGGS` in `index.html`, with a name and a hint, or the end screen's total and list will be short (`?debug` warns in the console).
 
