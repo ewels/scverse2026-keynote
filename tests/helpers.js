@@ -5,7 +5,7 @@ export async function stubFonts(context) {
   await context.route(/fonts\.(googleapis|gstatic)\.com/, r => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
 }
 
-export const ENTRANCE = 420, DESK_GREETER = -170, DESK_DOOR = -28, QA_DOOR = 784;
+export const ENTRANCE = 420, DESK_GREETER = -170, DESK_DOOR = -28, QA_DOOR = 688;
 
 // Keys pressed during a fade are dropped, so keep pressing until the game reacts.
 export async function pressUntil(page, key, cond, arg) {
