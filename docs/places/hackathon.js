@@ -169,7 +169,6 @@
 
       /* tables, people, laptops */
       const ha = A('hackathon'), wa = A('welcomes'), ka = A('workplace');
-      if (ka >= 0) { const rug = c01(ka / 0.6); R(Math.round(596 - 118 * rug), 141, Math.round(236 * rug), 6, '#c86a5a'); for (let x = 480; x < 712; x += 8) if (Math.abs(x - 596) < 118 * rug) R(x, 143, 4, 2, '#e8c36a'); }
       for (const sx of SEATS) { R(sx - 4, 125, 9, 11, '#5a3a22'); R(sx - 3, 126, 7, 9, '#6b4a2f'); }
       const seated = [], walkers = [];
       if (ha >= 0) FOLK.forEach((L, i) => { const si = 6 - i, sx = SEATS[si], s0 = 0.1 + i * 0.5, arrive = s0 + (sx - ENTER_X) / 90;
@@ -210,6 +209,17 @@
         const grow = c01((ka - 0.8) / 1.2);
         for (const [px, big] of [[498, 0], [760, 1]]) { R(px - 5, 128, 11, 12, '#b0603a'); R(px - 6, 127, 13, 2, '#c8724a'); const h = Math.round((big ? 22 : 14) * grow * (1 + ag));
           for (let k = 0; k < h; k += 3) { R(px, 127 - k, 1, 3, '#3f7a3a'); R(px + (k % 6 ? 1 : -4), 126 - k, 4, 2, k % 6 ? '#4f9c49' : '#3f8a3a'); } }
+        // balloons tied to the banner poles, then the toolbench and the shout-out board
+        [[512, 22, '#e85d5d', 528], [520, 30, '#ffd166', 528], [506, 32, '#6c8cff', 528], [684, 22, '#9b59b6', 668], [676, 30, '#3cc8b4', 668], [690, 32, '#f5a623', 668]].forEach(([bx, by, c, tx], k) => {
+          if (ka < 0.3 + k * 0.15) return; const y = by + Math.round(Math.sin(t * 1.6 + k * 1.3) * 1.5), x = bx + Math.round(Math.sin(t * 0.9 + k) * 1);
+          line(x, y + 5, tx, 40, '#9aa3a8'); disc(x, y, 4, fade(c)); R(x - 2, y - 2, 1, 2, '#ffffff'); R(x - 1, y + 4, 3, 1, mix(c, '#000000', 0.3)); });
+        if (ka > 0.6) { R(502, 58, 62, 34, '#6b4f36'); R(504, 60, 58, 30, '#c9a46a'); for (let x = 507; x < 560; x += 5) R(x, 62, 1, 1, '#8a6a48');
+          R(509, 61, 2, 6, '#8a8f94'); R(508, 61, 4, 2, '#8a8f94'); R(518, 61, 1, 6, '#6c7fa4'); R(517, 61, 3, 2, '#c8322c'); R(527, 61, 5, 2, '#5a6270'); R(529, 63, 1, 4, '#8a6a48');
+          [['TEMPLATE', GREEN], ['LINT', '#2a5ad0'], ['CI', '#d08a1a']].forEach(([s, c], i) => { if (ka < 0.8 + i * 0.3) return; const y = 69 + i * 7;
+            R(506, y, 54, 6, fade(c)); R(554, y + 2, 4, 2, '#ffffff'); T(s, 509, y + 1, 5, '#ffffff'); }); }
+        if (ka > 1.6) { R(672, 58, 64, 34, '#8a6a3f'); R(674, 60, 60, 30, '#e8d8b0'); R(698, 57, 4, 3, '#d03a3a');
+          map2d(['..y..', '.yyy.', 'yyyyy', '.yyy.', '.y.y.'], 678, 63, { y: '#ffd166' }); T('THANKS', 709, 64, 6, '#c02a2a', 'center');
+          T('@newcontributor!', 704, 76, 4, INK, 'center'); for (let k = 0; k < 6; k++) R(676 + Math.floor(hash(k * 11) * 56), 84 + Math.floor(hash(k * 5) * 4), 2, 1, STICK[k]); }
         if (ka > 1.2) { R(740, 42, 34, 44, fade('#3cc87a')); R(742, 44, 30, 40, PAPER); T('BE', 757, 48, 6, GREEN, 'center'); T('KIND', 757, 57, 6, GREEN, 'center'); for (let k = 0; k < 4; k++) R(746, 68 + k * 4, 22 - (k % 2) * 6, 1, '#9aa3a8'); } }
 
       /* trust: merges land without anyone hovering */

@@ -90,7 +90,7 @@ const TOPICS = {
                 { at:'screen', id:'chat', say:'A place to talk online' },
                 { at:'start', id:'docs', say:'Docs and onboarding' },
                 { at:'tables', id:'hackathon', say:'Hackathons: meet real people' },
-                { at:'tables', id:'workplace', say:'Make it somewhere people want to work' },
+                { at:'tables', id:'workplace', say:'Make it a nice place to be: good tools, credit, fun' },
                 { at:'tables', id:'trust', say:'Trust people to get on with it' },
                 { at:'tables', id:'welcomes', say:'Put real time into welcomes' },
                 { at:'photos', id:'cats', say:'Cat photos', who:'host' },
