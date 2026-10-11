@@ -296,7 +296,6 @@
       person(LOOKS.chaos, MAL, 154, t, -1, false); R(MAL - 1, 143, 2, 2, LOOKS.chaos.skin);
       const clicking = st.clickT != null && t - st.clickT < 1.2, fr = Math.round(fx) + (st.fMoving ? 0 : Math.round(Math.sin(t * 1.5) * 2));
       crab(fr, 154, 2, t, st.fMoving || Math.sin(t * 1.5) > 0.9, clicking ? Math.floor(t * 8) % 2 : Math.sin(t * 0.8) > 0.97);
-      if (st.row) { R(fr - 6, 124, 14, 5, '#1b2a4a'); R(fr - 6, 127, 14, 1, '#ffd166'); R(fr - 9, 129, 20, 2, '#111a30'); }
       R(EXIT - 12, 100, 24, 50, '#f7f3ea'); R(EXIT - 9, 103, 18, 47, '#1b2030'); R(EXIT - 12, 88, 24, 9, '#2fb67c'); T('EXIT', EXIT, 89.5, 5, '#ffffff', 'center');
       R(812, 24, 8, 126, '#c2b393');
       const gull = (x, y, i) => { const f = Math.sin(t * 9 + i * 1.3) > 0 ? 1 : 0, xx = Math.round(x), yy = Math.round(y); line(xx - 3, yy - f, xx, yy + 1, '#f7f7f7'); line(xx, yy + 1, xx + 3, yy - f, '#f7f7f7'); };
