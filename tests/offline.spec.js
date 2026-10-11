@@ -59,6 +59,9 @@ test('a fight throws you out and the place resumes; the cat follows from the cat
   await settle(page);
   const idx = await page.evaluate(() => { const g = window.__game; g.pl.st.mark = 7; g.p.x = g.pl.d.host; return g.beatIdx; });
   for (let i = 0; i < 6; i++) { await page.keyboard.press('b'); await page.waitForTimeout(150); }
+  // The fight runs on capped game time, which crawls on slow CI runners, so skip to its end.
+  await page.waitForFunction(() => window.__game.fight);
+  await page.evaluate(() => { window.__game.fight.t -= 6; });
   await page.waitForFunction(() => window.__game.scene === 'outside', null, { timeout: 15_000 });
   expect(await page.evaluate(() => [window.__game.eggs.has('fight'), window.__game.badge, window.__game.resume])).toEqual([true, false, 'agents']);
 
