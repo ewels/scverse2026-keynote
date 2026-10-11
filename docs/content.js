@@ -78,7 +78,7 @@ const TOPICS = {
                   steps:['Same input, same output, every time','Reusable: validate once, use everywhere','Understandable: read once, trust everywhere','Comparable: same tool, comparable results','Small, tested, composable'] },
                 { at:'screen', id:'assemble', say:'Agents assemble, blocks execute' },
                 { at:'front', id:'pool', say:'Pool AI effort into shared community tools' },
-                { at:'screen', id:'review', say:'Someone else always finds more' },
+                { at:'screen', id:'review', say:'More eyes on shared tools: bugs fixed for everyone' },
               ] },
   nfcore:   { title:'Community building with nf-core', short:'NF-CORE', colour:'#3cc87a', icon:'core', place:'hackathon', size:'thick',
               blurb:'What building nf-core taught us about growing an open-source community: a shared problem, real welcomes, and patience.',

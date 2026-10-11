@@ -145,10 +145,11 @@
     review(t, s) { R(SX, SY, SW, SH, '#132544'); for (let x = 0; x < SW; x += 10) R(SX + x, SY, 1, SH, '#1a3058'); for (let y = 0; y < SH; y += 10) R(SX, SY + y, SW, 1, '#1a3058');
       R(SX, SY + 92, SW, 8, '#0d1b33');
       const rx = SX - 10 + s * 60, cracks = [[0, rx > slotX(0) + 10], [2, rx > slotX(2) + 14], [3, rx > slotX(3) + 14]], found = cracks.filter(c => c[1]).length;
-      pipeline(5, cracks, t);
-      const happy = found < 3; robot(SX + SW - 18, SY + 28 + Math.sin(t * 2) * 2, t, happy ? '' : 'oh');
-      const bub = happy ? 'LGTM!' : 'oh.'; const bw = tw(bub, 5) + 6; R(SX + SW - 26 - bw, SY + 16, bw, 9, '#ffffff'); T(bub, SX + SW - 23 - bw, SY + 18, 5, happy ? '#2fb67c' : '#e85d5d');
-      shadowT(`ISSUES FOUND: ${found}`, SX + 8, SY + 6, 7, found ? '#ff8a8a' : '#ffffff', 'left', '#0a1428');
+      const fixed = s > 4.2; pipeline(5, fixed ? null : cracks, t);
+      if (fixed) for (const [i] of cracks) { const x = slotX(i) + 12, y = PIPE_Y + 18; for (const d of [0, 1]) { line(x, y + d, x + 2, y + 2 + d, '#3cc87a'); line(x + 2, y + 2 + d, x + 6, y - 2 + d, '#3cc87a'); } }
+      const happy = found < 3 || fixed; robot(SX + SW - 18, SY + 28 + Math.sin(t * 2) * 2, t, happy ? '' : 'oh');
+      const bub = fixed ? 'thanks!' : happy ? 'LGTM!' : 'oh.'; const bw = tw(bub, 5) + 6; R(SX + SW - 26 - bw, SY + 16, bw, 9, '#ffffff'); T(bub, SX + SW - 23 - bw, SY + 18, 5, happy ? '#2fb67c' : '#e85d5d');
+      shadowT(fixed ? 'FIXED FOR EVERYONE' : `ISSUES FOUND: ${found}`, SX + 8, SY + 6, 7, fixed ? '#3cc87a' : found ? '#ff8a8a' : '#ffffff', 'left', '#0a1428');
       const walking = rx < SX + SW + 20, px = Math.min(rx, SX + SW - 40);
       person(REVIEWER, px, SY + 98, t, 1, walking && rx < SX + SW - 40);
       const gx = px + 9, gy = PIPE_Y + 18; line(px + 4, SY + 86, gx - 2, gy + 3, '#5a3a22'); line(px + 5, SY + 86, gx - 1, gy + 3, '#5a3a22');
