@@ -187,7 +187,7 @@
     const bx = 446 + ((t * 9) % 100); R(Math.round(bx), 46, 2, 1, INK); R(Math.round(bx) + 2, Math.floor(t * 8) % 2 ? 45 : 47, 2, 1, INK); ctx.restore();
     R(487, 25, 2, 54, '#8a6a4a'); R(451, 51, 74, 2, '#8a6a4a'); R(444, 82, 88, 3, '#d8d8d0');
     /* the screen */
-    screen(st, t, act);
+    screen(st, t, st.shown);
     /* queue sign */
     R(186, 112, 2, 30, '#6f7a80'); R(178, 104, 18, 12, '#2b2140'); T('QUEUE', 187, 106, 4, '#ffffff', 'center'); T('HERE', 187, 111, 4, '#ffd166', 'center'); R(182, 141, 10, 2, '#6f7a80');
     /* barista and counter */
@@ -247,11 +247,12 @@
       { id: 'queue', x: 236, label: 'Skip the queue' },
       { id: 'game', x: place._cab || QX + GAP * 5, label: 'Poke the arcade cabinet' },
     ]; },
-    enter(st) { Object.assign(st, { cups: 0, side: [true, true, true], refill: null, sip: null, toss: null, bis: 8, flood: null, stare: null, pourT: null, zoom: null, arcade: false, said: 0, act: -1, showT: time(), chgT: time(),
+    enter(st) { Object.assign(st, { cups: 0, side: [true, true, true], refill: null, sip: null, toss: null, bis: 8, flood: null, stare: null, pourT: null, zoom: null, arcade: false, said: 0, act: -1, shown: -1, showT: time(), chgT: time(),
       q: ORDER.map((_, i) => { const [x, y, face] = target(i, -1); return { x, y, face, mv: false }; }) }); },
     update(dt, st, ev) {
       const t = time(), act = actOf(ev);
-      if (act !== st.act) { st.act = act; st.showT = t; st.chgT = t; }
+      if (act !== st.act) { st.act = act; st.chgT = t; }
+      if (act !== st.shown && !ev.walking) { st.shown = act; st.showT = t; }
       st.q.forEach((p, i) => { const [tx, ty, face] = target(i, act), dx = tx - p.x, slot = i - act - 1;
         if (slot > 0 && dx < 0 && t - st.chgT < slot * 0.2) { p.mv = false; return; }
         p.mv = Math.abs(dx) > 0.5; if (p.mv) { p.face = Math.sign(dx); p.x += Math.sign(dx) * Math.min(Math.abs(dx), Math.max(30, Math.min(130, Math.abs(dx) * 2)) * dt); } else { p.x = tx; p.face = face; }
