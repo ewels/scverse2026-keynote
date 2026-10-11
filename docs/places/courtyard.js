@@ -1,8 +1,8 @@
-// Outdoor courtyard: rewrites.bio. Park gates, a three-armed signpost and a race track.
+// Outdoor courtyard: rewrites.bio. Park gates, a three-armed signpost and a departures board.
 (window.KEYNOTE_PLACES = window.KEYNOTE_PLACES || {}).courtyard = g => {
   const { R, T, disc, line, map2d, tri, blob, cumulus, person, hash, time, ctx } = g;
-  const W = 820, EXIT = 798, GX = 114, POST = 244, S0 = 620, S1 = 752, DX = 592, DB = 104;
-  const RACES = ['rustqc', 'rustar', 'fastqc'], SIGNS = ['rewrite', 'upstream', 'combine'];
+  const W = 820, EXIT = 798, GX = 114, POST = 244, DX = 560, DB = 104, BX = 627;
+  const SIGNS = ['rewrite', 'upstream', 'combine'];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const ORANGE = '#e0602e';
 
@@ -14,16 +14,6 @@
     const body = shut ? CRAB.slice(0, 3).concat(SHUT, CRAB.slice(4)) : CRAB;
     map2d(body.concat(LEGS[moving ? Math.floor(t * 14) % 2 : 0]), Math.round(x) - 11 * s, Math.round(feet) - 12 * s, CRAB_PAL, s);
   };
-  const TORT = ['....ssssss......', '..ssSSssSSss....', '.sSSssSSssSSs.hk', '.sssssssssssshhh', 'hddddddddddddhh.'];
-  const TLEG = [['..hh...hh...hh..'], ['.hh...hh....hh..']];
-  const TORT_PAL = { s: '#3f7a3a', S: '#6aa84f', h: '#9bb36a', k: '#1b1b1b', d: '#c9b46a' };
-  const tortoise = (x, feet, t, moving, kind) => {
-    const x0 = Math.round(x) - 8, y0 = Math.round(feet) - 6;
-    map2d(TORT.concat(TLEG[moving ? Math.floor(t * 4) % 2 : 0]), x0, y0, TORT_PAL);
-    if (kind === 'star') { R(x0 + 6, y0, 1, 3, '#ffd166'); R(x0 + 5, y0 + 1, 3, 1, '#ffd166'); }
-    if (kind === 'java') { R(x0 + 5, y0 - 3, 4, 3, '#f7f3ea'); R(x0 + 9, y0 - 2, 1, 1, '#f7f3ea'); R(x0 + 6, y0 - 2, 2, 1, '#6b4a2f'); if (Math.sin(t * 3) > 0) R(x0 + 6, y0 - 5, 1, 1, '#dfe7f1'); else R(x0 + 7, y0 - 6, 1, 1, '#dfe7f1'); }
-  };
-  const medal = (x, y, c) => { line(x - 3, y - 5, x, y, '#2f6fd6'); line(x + 3, y - 5, x, y, '#d8402a'); disc(x, y + 2, 2, c); R(x, y + 1, 1, 1, '#ffffff'); };
   const tick = (x, y, c) => { line(x, y + 2, x + 2, y + 4, c); line(x + 2, y + 4, x + 6, y, c); line(x + 1, y + 2, x + 2, y + 3, c); };
   const outlined = (s, x, y, size, col, out, align) => { for (const [a, b] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, 1], [1, -1], [-1, 1]]) T(s, x + a, y + b, size, out, align); T(s, x, y, size, col, align); };
 
@@ -154,7 +144,7 @@
     if (face > 0) ctx.restore();
   };
 
-  // Once it leaves it turns, so it is drawn in front of the race board from then on.
+  // Once it leaves it turns, so it is drawn in front of the departures board from then on.
   const HOP = 1.7, LAND = 2.3, WALK = 2.6, FEET = 140;
   const dino = (st, t, front) => {
     const k = st.leave != null ? t - st.leave : -1, pk = st.dinoT != null ? t - st.dinoT : 99;
@@ -177,54 +167,40 @@
     if (ox < W + 30) dinoBody(ox, FEET, 1, Math.floor(k * 8) % 4, 0, true, false);
   };
 
-  const board = (rs, t) => {
-    R(662, 98, 3, 30, '#3b3f47'); R(758, 98, 3, 30, '#3b3f47');
-    R(650, 48, 120, 54, '#1b2332'); R(652, 50, 116, 50, '#0e1424'); R(650, 48, 120, 1, '#ffd166');
-    if (!rs) { T('RACE DAY', 710, 58, 7, '#ffd166', 'center'); crab(676, 92, 1, t, false); tortoise(744, 92, t, false); T('VS', 710, 80, 5, '#ffffff', 'center'); return; }
-    const L = rs.labels;
-    T(`RACE ${rs.n} OF 3`, 710, 52, 5, '#ffd166', 'center'); R(654, 60, 112, 1, '#2b3550');
-    if (rs.k < 1.5) { const n = rs.k < 0.5 ? '3' : rs.k < 1 ? '2' : '1'; T(n, 710, 66, 20, '#ffd166', 'center'); return; }
-    if (rs.k < 2.1) { T('GO!', 710, 70, 14, '#2fb67c', 'center'); return; }
-    crab(662, 74, 1, t, false); T(L[0], 676, 66, 5, '#ffffff'); T(rs.cDone ? L[2] : '...', 766, 66, 5, rs.cDone ? '#2fb67c' : '#7f8aab', 'right');
-    tortoise(662, 90, t, false, rs.kind); T(L[1], 676, 83, 5, '#ffffff'); T(rs.tShow ? L[3] : '...', 766, 83, 5, rs.tShow ? '#ff9a7a' : '#7f8aab', 'right');
-    if (rs.foot) T(rs.foot, 710, 92, 5, '#ffd166', 'center');
-  };
-
-  const track = t => {
-    R(S0 - 16, 128, S1 - S0 + 40, 18, '#b9533e'); R(S0 - 16, 128, S1 - S0 + 40, 1, '#f7f3ea'); R(S0 - 16, 137, S1 - S0 + 40, 1, '#f7f3ea'); R(S0 - 16, 145, S1 - S0 + 40, 1, '#f7f3ea');
-    R(S0, 128, 2, 18, '#f7f3ea');
-    for (let j = 0; j < 6; j++) for (let i = 0; i < 2; i++) R(S1 + i * 3, 128 + j * 3, 3, 3, (j + i) % 2 ? '#1b1b1b' : '#f7f3ea');
-    T('1', S0 - 9, 129, 5, '#f7f3ea'); T('2', S0 - 9, 138, 5, '#f7f3ea');
-  };
-
-  const initRace = (id, idx) => ({
-    id, idx, k: 0, n: RACES.indexOf(id) + 1, cx: S0 + 6, tx: S0 + 4, cFace: 1, cDone: false, tDone: false, tShow: false, phase: 'run', ride: false, tMedal: false,
-    kind: id === 'rustar' ? 'star' : id === 'fastqc' ? 'java' : '',
-    tSpeed: (S1 - S0) / (id === 'rustqc' ? 24 : id === 'rustar' ? 16 : 20),
-    tags: id === 'rustqc' ? ['RUSTQC', '14+ QC TOOLS'] : id === 'rustar' ? ['RUSTAR', 'STAR'] : ['FASTQC-RUST', 'FASTQC'],
-    labels: id === 'rustqc' ? ['RUSTQC', '14+ TOOLS', '15 MIN', '15+ HRS'] : id === 'rustar' ? ['RUSTAR', 'STAR', '1ST', '2ND'] : ['FASTQC-RS', 'FASTQC', '1ST', 'FASTER'],
-    foot: '',
-  });
-
-  const stepRace = (rs, dt) => {
-    rs.k += dt; if (rs.k < 1.5) return;
-    const tMove = !rs.tDone;
-    if (tMove) { rs.tx += (rs.ride ? 90 : rs.tSpeed) * dt; if (rs.tx >= S1 + 4) { rs.tx = S1 + 4; rs.tDone = true; rs.tShow = true; if (rs.id === 'fastqc') { rs.tMedal = true; rs.foot = 'PR SENT UPSTREAM'; } } }
-    if (rs.phase === 'run') { rs.cx += 150 * dt; if (rs.cx >= S1 + 8) { rs.cx = S1 + 8; rs.cDone = true; rs.phase = 'won'; rs.wonK = rs.k; if (rs.id === 'rustqc') rs.foot = 'SAME OUTPUT'; } }
-    else if (rs.phase === 'won') { if (rs.k - rs.wonK > 1.2) rs.tShow = true; if (rs.id === 'fastqc' && rs.k - rs.wonK > 1.6) { rs.phase = 'back'; rs.cFace = -1; } }
-    else if (rs.phase === 'back') { rs.cx -= 140 * dt; if (rs.cx <= rs.tx + 2) { rs.phase = 'ride'; rs.ride = true; } }
-    else if (rs.phase === 'ride') { rs.cx = rs.tx; }
+  // Rows follow the signpost arms' order: rewrite, upstream, combine.
+  const ROWS = { rustar: ['RUSTAR', 'REWRITE', 'FASTER'], fastqc: ['FASTQC-RUST', 'UPSTREAM', 'PR SENT'], rustqc: ['RUSTQC', 'COMBINE', '15 MIN'] };
+  const BOARD = Object.keys(ROWS), COLS = [[0, 11, '#f7f3ea'], [12, 8, '#ffd166'], [21, 7, '#2fb67c']], FLAPS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-';
+  const board = (st, t) => {
+    R(BX + 12, 96, 3, 32, '#3b3f47'); R(BX + 142, 96, 3, 32, '#3b3f47');
+    R(BX, 38, 157, 60, '#1b2332'); R(BX + 2, 40, 153, 56, '#0e1424'); R(BX, 38, 157, 1, '#ffd166');
+    T('DEPARTURES', BX + 6, 43, 7, '#ffd166');
+    const hh = (10 + Math.floor(t / 60)) % 24, mm = Math.floor(t) % 60;
+    T(`${String(hh).padStart(2, '0')}${Math.floor(t * 2) % 2 ? ':' : ' '}${String(mm).padStart(2, '0')}`, BX + 151, 44, 5, '#f7f3ea', 'right');
+    ['TOOL', 'ROUTE', 'STATUS'].forEach((s, i) => T(s, BX + 6 + COLS[i][0] * 5, 54, 5, '#7f8aab'));
+    BOARD.forEach((key, r) => {
+      const y = 61 + r * 11, f = st.row && r === st.row.p ? t - st.row.at : st.row && r < st.row.p ? 99 : -1;
+      COLS.forEach(([c0, n, col], i) => { const word = ROWS[key][i];
+        for (let j = 0; j < n; j++) {
+          const x = BX + 6 + (c0 + j) * 5, ch = word[j] || ' ', due = 0.2 + (c0 + j) * 0.05, flip = f >= 0 && f < due;
+          R(x, y, 4, 9, '#232c40'); R(x, y + 4, 4, 1, '#0a0f1a');
+          if (f < 0) continue;
+          const c = flip ? FLAPS[Math.floor(hash(j + r * 31 + Math.floor(t * 18)) * FLAPS.length)] : ch;
+          if (c !== ' ') T(c, x + 2, y + 1.5, 5, flip ? '#9aa3bd' : col, 'center');
+          if (flip && Math.floor(t * 18 + j) % 2) R(x, y, 4, 4, '#2e3953');
+        }
+      });
+    });
   };
 
   return {
     width: W, floor: 154, spawn: 24, exit: EXIT,
     get host() { return fx; },
-    focus: { gates: GX, sign: 266, track: 774 },
+    focus: { gates: GX, sign: 266, board: 740 },
     props: [
       { id: 'palm', x: 36, label: 'Shake the palm tree' },
       { id: 'pond', x: 278, label: 'Throw bread in the pond' },
       { id: 'pair', x: MAL, label: 'Listen in' },
-      { id: 'dino', x: 628, label: 'Poke the dinosaur' },
+      { id: 'dino', x: DX + 36, label: 'Poke the dinosaur' },
     ],
     enter(st) {
       fx = 122; st.quote = null; st.said = 0; st.bread = 0; st.gulls = []; st.crumbs = []; st.flock = null; st.gate = 0; st.torch = false; st.cocos = []; st.shakes = 0; st.palmFall = null; st.dinoN = 0; st.clicks = 0; st.npcs = [
@@ -238,7 +214,7 @@
       const open = rT < 8 ? 0 : ev.beatIdx > 0 || (ev.beatIdx === 0 && !ev.walking) ? 1 : 0;
       if (open) st.torch = true;
       st.gate += clamp(open - st.gate, -dt * (rT < 8 ? 2.5 : 0.7), dt * 0.7);
-      const ft = flee ? 900 : RACES.includes(id) ? 612 : SIGNS.includes(id) ? 300 : 122;
+      const ft = flee ? 900 : BOARD.includes(id) ? 652 : SIGNS.includes(id) ? 300 : 122;
       const fdx = ft - fx; st.fMoving = Math.abs(fdx) > 0.5; fx += Math.sign(fdx) * Math.min(Math.abs(fdx), (flee ? 170 : 80) * dt);
       for (const n of st.npcs) {
         const tg = flee ? 900 + n.home(t) : n.home(t), dx = tg - n.x, sp = flee ? 120 : rT < 12 && n.x > n.home(t) + 2 ? 60 : 28;
@@ -254,10 +230,9 @@
       for (const q of st.gulls) if (q.c) { const ph = t - q.dive; if (ph > 1.8) q.c.bite = true; if (ph > 2.4) q.c.gone = true; if (ph > 3.6) q.c = null; }
       st.crumbs = st.crumbs.filter(c => !c.gone);
       st.cocos.forEach(c => { if (c.y < 148) { c.vy += 300 * dt; c.y = Math.min(148, c.y + c.vy * dt); } else if (Math.abs(c.vx) > 1) { c.x += c.vx * dt; c.vx *= 1 - dt * 2; } });
-      const race = RACES.includes(id) && !ev.walking;
-      if (!race) st.race = null;
-      else if (!st.race || st.race.idx !== ev.beatIdx || ev.stepT < st.race.k - 0.2) st.race = initRace(id, ev.beatIdx);
-      if (st.race) stepRace(st.race, dt);
+      const p = BOARD.indexOf(id);
+      if (p < 0) { if (ev.beat) st.row = null; }
+      else if (!ev.walking && (!st.row || st.row.p !== p)) st.row = { p, at: t };
     },
     poke(id, st) {
       const t = time();
@@ -292,9 +267,8 @@
       }
       R(0, 108, W, 20, '#3f7a3a'); for (let x = 0; x < W; x += 14) blob(x + 7, 110 + (x % 3), 7, '#3f7a3a', '#58a852', '#2f6e2f');
       dino(st, t);
-      board(st.race, t);
+      board(st, t);
       R(0, 128, W, 18, '#d9cdb4'); for (let x = 0; x < W; x += 16) { R(x, 128, 1, 18, '#c4b79c'); R(x + 8, 137, 1, 9, '#c4b79c'); } R(0, 137, W, 1, '#c4b79c');
-      track(t);
       dino(st, t, true);
       R(0, 146, W, 34, '#c9b48a'); R(0, 146, W, 1, '#b39d72'); for (let x = 0; x < W; x += 12) { R(x, 146, 1, 34, '#b8a275'); R(x + 6, 156, 6, 1, '#b39d72'); }
       R(0, 24, 30, 126, '#c2b393'); R(0, 24, 30, 3, '#d8cbb0'); R(4, 70, 22, 80, '#2b3a4f'); R(6, 72, 18, 78, '#9cc3dd'); R(14, 72, 2, 78, '#2b3a4f'); R(8, 76, 2, 20, '#d6ecf8');
@@ -320,22 +294,9 @@
       }
       person(LOOKS.founder, HAM, 154, t, 1, false); R(HAM - 4, 133, 8, 1, '#e8dcb5'); R(HAM - 3, 130, 6, 3, '#e8dcb5'); R(HAM - 3, 132, 6, 1, '#8a6a4a'); line(HAM + 5, 144, HAM + 6, 153, '#6b4a2f'); disc(HAM + 5, 143, 1, '#d9a53a');
       person(LOOKS.chaos, MAL, 154, t, -1, false); R(MAL - 1, 143, 2, 2, LOOKS.chaos.skin);
-      const rs = st.race;
-      if (rs) {
-        if (rs.id === 'rustqc') for (let i = 13; i >= 0; i--) { const x = Math.min(rs.tx, S1 + 4) - i * 18; if (x > S0 - 120) tortoise(x, 145, t + i * 0.3, rs.k > 1.5 && !rs.tDone, ''); }
-        else tortoise(rs.tx, 145, t, rs.k > 1.5 && !rs.tDone, rs.kind);
-        if (rs.tMedal) medal(Math.round(rs.tx) + 4, 131, '#c0c6cc');
-        const ride = rs.phase === 'ride', cy = ride ? 140 : 136;
-        crab(rs.cx, cy, 1, t, rs.phase === 'run' && rs.k > 1.5 || rs.phase === 'back', false);
-        if (rs.cDone) medal(Math.round(rs.cx), cy - 14, '#ffd166');
-        if (rs.phase === 'back') { const ex = Math.round(rs.cx) - 10; R(ex, 126, 8, 6, '#f7f3ea'); line(ex, 126, ex + 4, 129, '#7f8aab'); line(ex + 7, 126, ex + 4, 129, '#7f8aab'); T('PR', ex + 4, 118, 5, '#2f6fd6', 'center'); }
-        if (rs.id === 'rustar' && rs.cDone) for (let i = 0; i < 5; i++) { const a = i * 1.257 + t, r = 9 + Math.sin(t * 2 + i) * 2; R(Math.round(S1 + 8 + Math.cos(a) * r), Math.round(126 + Math.sin(a) * r * 0.6), 2, 2, '#ffd166'); }
-        outlined(rs.tags[1], clamp(Math.round(Math.min(rs.tx, S1 + 4)), 632, 790), 124, 5, '#d8f0c0', '#1b2332', 'center');
-        outlined(rs.tags[0], clamp(Math.round(rs.cx), 632, 790), cy - 30, 5, '#ffffff', '#1b2332', 'center');
-      }
-      const clicking = st.clickT != null && t - st.clickT < 1.2, flag = !!rs && rs.k > 1.5 && !rs.cDone;
-      crab(fx + (st.fMoving ? 0 : Math.round(Math.sin(t * 1.5) * 2)), 154, 2, t, st.fMoving || !flag && Math.sin(t * 1.5) > 0.9, clicking ? Math.floor(t * 8) % 2 : Math.sin(t * 0.8) > 0.97);
-      if (rs && rs.k > 0) { const fxx = Math.round(fx) + 14, fy = 112 + (flag ? Math.round(Math.sin(t * 10) * 2) : 6); R(fxx, fy, 1, 24, '#3b3f47'); for (let y = 0; y < 8; y++) for (let x = 0; x < 10; x++) R(fxx + 1 + x, fy + y + (flag ? Math.round(Math.sin(t * 8 + x) * 0.6) : 0), 1, 1, ((x >> 1) + (y >> 1)) % 2 ? '#1b1b1b' : '#f7f3ea'); }
+      const clicking = st.clickT != null && t - st.clickT < 1.2, fr = Math.round(fx) + (st.fMoving ? 0 : Math.round(Math.sin(t * 1.5) * 2));
+      crab(fr, 154, 2, t, st.fMoving || Math.sin(t * 1.5) > 0.9, clicking ? Math.floor(t * 8) % 2 : Math.sin(t * 0.8) > 0.97);
+      if (st.row) { R(fr - 6, 124, 14, 5, '#1b2a4a'); R(fr - 6, 127, 14, 1, '#ffd166'); R(fr - 9, 129, 20, 2, '#111a30'); }
       R(EXIT - 12, 100, 24, 50, '#f7f3ea'); R(EXIT - 9, 103, 18, 47, '#1b2030'); R(EXIT - 12, 88, 24, 9, '#2fb67c'); T('EXIT', EXIT, 89.5, 5, '#ffffff', 'center');
       R(812, 24, 8, 126, '#c2b393');
       const gull = (x, y, i) => { const f = Math.sin(t * 9 + i * 1.3) > 0 ? 1 : 0, xx = Math.round(x), yy = Math.round(y); line(xx - 3, yy - f, xx, yy + 1, '#f7f7f7'); line(xx, yy + 1, xx + 3, yy - f, '#f7f7f7'); };
