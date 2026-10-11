@@ -191,7 +191,6 @@ kbd{ font-family:inherit; font-weight:700; border:1px solid var(--line); border-
 <script src="places/posters.js"></script>
 <script src="places/coffee.js"></script>
 <script src="places/corridor.js"></script>
-<script src="places/photobooth.js"></script>
 <script src="vendor/qrcode.js"></script>
 <script>
 (() => {
@@ -479,7 +478,7 @@ const GUARDS=[{ skin:'#c98e62', hair:'#1b1b1b', hairStyle:'bald', top:'#d6dc3c',
   { skin:'#f2c9a0', hair:'#5a3d2b', hairStyle:'short', top:'#d6dc3c', topStyle:'tee', pants:'#1b1f2a' }];
 // Every egg in the venue, engine and places; the end screen counts against this, so add new ids here.
 const EGGS=['sea','plant','organiser','bell','printer','cow','cat','fight','moonwalk','dance','sweep','rain','coffee',
-  'star','theatre-title','triplicate','dino','hoodie','poster','arcade','lost','photobooth','palm','toilet','mirror','dryer','knock','gulls','cats'];
+  'star','theatre-title','triplicate','dino','hoodie','poster','arcade','lost','palm','toilet','mirror','dryer','knock','gulls','cats'];
 // the venue cat from the hackathon's photos (ginger, white chest), side on, facing right
 const CAT_PAL={ f:'#e8913a', s:'#c06a22', w:'#f6efe2', e:'#3d8a3a', n:'#e88aa0' };
 const CAT_PALS=[{ f:'#2b2b2b', s:'#1b1b1b', w:'#f6efe2', e:'#e8c547', n:'#e88aa0' }, { f:'#9aa0a6', s:'#6d737a', w:'#e8e8e8', e:'#3d8a3a', n:'#e88aa0' },
@@ -502,7 +501,7 @@ const Game = {
   reset(){
     token++; this.tm=timers(); this.time=0; this.scene='menu'; this.sel=0; this.chosen=null; this.flash=0;
     this.ended=false; this.badge=false; this.badgeT=0; this.visited=new Set(); this.done=new Set(); this.eggs=new Map(); this.toasts=[]; this.bubbles=[];
-    this.plants=[{x:72,ang:0,state:'up',dir:1},{x:QA_DOOR-48,ang:0,state:'up',dir:1}]; this.kickT=0; this.asker=null;
+    this.plants=[{x:72,ang:0,state:'up',dir:1},{x:QA_DOOR+48,ang:0,state:'up',dir:1}]; this.kickT=0; this.asker=null;
     this.loo={ knocks:0, tries:0, mirrorT:-9, dryT:-9, tapT:-9 }; this.dk={ door:0, fdoor:0, rings:0, ringT:-9, glareT:-9, jamT:-9, totesT:-9, totesDown:false }; this.fy={ waves:0, wave:null }; this.askerScene=null; this.pl=null; this.topic=null;
     this.p={x:40,face:1,t:0,moving:false}; this.camX=0;
     Object.assign(this,{ cat:null, herd:null, fx:[], reacts:[], annoy:{who:null,n:0,t:0}, fight:null, saved:{}, resume:null, revoked:false, visitor:false,
@@ -844,12 +843,7 @@ const Game = {
       R(x-17,f-3,35,4,c); R(x-18,f,37,1,d); for(const fx of [-13,-7,6,12]) R(x+fx,f-4,1,4,d);
       R(x-8,f-19,3,8,l); R(x+6,f-19,3,8,l); line(x-5,f-12,x,f-4,d); line(x+5,f-12,x,f-4,d);
       R(x-1,f-3,1,1,'#3a2a1a'); R(x-10,f-8,21,2,'#5a4026'); R(x-1,f-9,3,4,'#c9a24a');
-      R(x-13,f-11,4,12,c); R(x-13,f-11,1,12,d); R(x+10,f-11,4,12,c); R(x+13,f-11,1,12,d); R(x-14,f-1,6,2,l); R(x+9,f-1,6,2,l); }
-    const h=this.carried.hat, hx=x0+6;
-    if(h==='tophat'){ R(hx-4,top-6,8,7,'#1b1b1b'); R(hx-6,top+1,12,2,'#1b1b1b'); R(hx-4,top-1,8,1,'#d8402a'); }
-    else if(h==='beret'){ R(hx-5,top-2,10,3,'#c0392b'); R(hx-3,top-3,6,1,'#c0392b'); R(hx-1,top-4,2,1,'#c0392b'); }
-    else if(h==='party') for(let i=0;i<8;i++) R(hx-4+(i>>1),top+1-i,8-i,1,i%2?'#ffd166':'#b28dff');
-    else if(h==='shades'){ R(hx-5,top+4,3,2,'#1b1b1b'); R(hx,top+4,3,2,'#1b1b1b'); R(hx-2,top+4,2,1,'#1b1b1b'); } },
+      R(x-13,f-11,4,12,c); R(x-13,f-11,1,12,d); R(x+10,f-11,4,12,c); R(x+13,f-11,1,12,d); R(x-14,f-1,6,2,l); R(x+9,f-1,6,2,l); } },
   drawCat(feet){ const c=this.cat; if(!c) return;
     if(this.herd&&this.carried.cats) this.herd.forEach((h,i)=>{ const m=h.moving?CAT_WALK[Math.floor(this.time*7+i)%2]:CAT_SIT, r=h.face<0?flip(m):m;
       map2d(r,Math.round(h.x)-(r[0].length>>1),Math.round(feet)-r.length,h.pal); });
@@ -1229,7 +1223,7 @@ const Game = {
     for(const x of FOYER_WIN){ R(x-14,15,28,2,'#4a4f55'); R(x-14,15,2,66,'#4a4f55'); R(x+12,15,2,66,'#4a4f55'); R(x-1,17,2,63,'#4a4f55'); R(x-12,40,24,2,'#4a4f55');
       R(x-16,80,32,3,'#cfc3ad'); R(x-16,83,32,1,'#b3a68e'); line(x-9,76,x-3,22,'rgba(255,255,255,.25)'); }
     // hanging banners
-    for(const [i,x] of [0,2,4,6].map(i=>HALL[i].x).entries()){ const c=['#ff6f91','#3cc87a','#6c8cff','#f5a623'][i], sw=Math.round(Math.sin(t*1.2+i*1.7)*0.8);
+    for(const [i,x] of [...[0,2,4].map(i=>HALL[i].x),QA_DOOR].entries()){ const c=['#ff6f91','#3cc87a','#6c8cff','#f5a623'][i], sw=Math.round(Math.sin(t*1.2+i*1.7)*0.8);
       R(x,13,1,4,'#6f6a62'); R(x-8+sw,17,17,2,'#4a4f55');
       for(let y=0;y<22;y++){ const notch=y>17?y-17:0; R(x-7+sw,19+y,15,1,c); if(notch) R(x-1+sw-notch+1,19+y,2*notch-1,1,'#e4d9c5'); }
       disc(x+sw,27,4,'#ffffff'); R(x+sw-2,26,1,1,'#e85d75'); R(x+sw+1,25,1,1,'#6c8cff'); R(x+sw,28,1,1,'#3cc87a'); R(x+sw+2,28,1,1,'#f5a623');
@@ -1341,14 +1335,6 @@ const Game = {
       const a=(t*0.25)%1.6; if(a<1) { const fx=Math.round(cx-6+a*12); R(fx,121,3,8,'#4a5563'); R(fx,118,3,3,'#e8b894'); }
       for(let i=0;i<3;i++){ const y=136+i*3, w=6-i*1.5; R(Math.round(cx-w/2),y,Math.round(w),1,'#ffd166'); }
       R(cx-12,103,9,4,col); tri(cx-5,105,1,'#ffffff'); R(cx+4,106,7,3,mix(col,'#ffffff',0.2)); R(cx+5,107,3,1,'#ffffff'); R(cx-8,99,1,4,'#9aa1a8'); R(cx+7,99,1,7,'#9aa1a8'); return; }
-    if(id==='photobooth'){ R(cx-17,100,34,7,'#ffd43b'); T('PHOTO',cx,101,4,'#1b2332','center');
-      for(let i=0;i<8;i++) R(cx-16+i*4,99+(i%2?0:0),2,1,Math.floor(t*4+i)%2?'#fff3b0':'#c9a227');
-      R(cx-16,107,32,39,'#3776ab'); R(cx-16,107,1,39,'#4a8cc4');
-      const fl=(t%6)<0.18; R(cx-13,110,14,36,fl?'#fff6d8':'#1b2030');
-      for(let x=0;x<9;x++) R(cx-13+x,110,1,36,x%3===0?'#8a1f2c':'#b02a3a');
-      R(cx+4,110,9,12,'#ffffff'); R(cx+5,111,7,10,'#e8e4dc'); disc(cx+8,115,2,'#efc6a3'); R(cx+6,119,5,2,'#3776ab');
-      R(cx+4,126,9,2,'#1b2332'); R(cx+6,128,5,11,'#ffffff'); for(let i=0;i<3;i++) R(cx+7,129+i*3,3,2,'#c9ced6');
-      if(fl) spills.push(()=>{ ctx.fillStyle='rgba(255,246,216,.25)'; ctx.fillRect(cx-16,150,20,4); }); return; }
     R(cx-14,100,28,46,col); R(cx-11,103,22,43,'#1b2030');
   },
 

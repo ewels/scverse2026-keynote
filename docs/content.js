@@ -155,13 +155,6 @@ const TOPICS = {
                 { at:'map', say:'starlight-pydocs: the map fills in from code' },
                 { at:'quiz', say:'starlight-quiz: quizzes in plain markdown' },
               ] },
-  python:   { title:'Python tooling', short:'PYTHON', colour:'#ffd43b', icon:'snake', place:'photobooth', size:'thin',
-              blurb:'Small Python tools that make a big difference: rich-click and starlight-pydocs.',
-              host:{ name:'Pip the Photographer', look:{ skin:'#efc6a3', hair:'#3a2a1f', hairStyle:'long', top:'#3776ab', topStyle:'tee', pants:'#2b3445' } },
-              beats:[
-                { at:'booth', id:'richclick', say:'rich-click: command-line help in colour' },
-                { at:'printer', id:'pydocs', say:'starlight-pydocs: API docs from your code' },
-              ] },
 };
 const GREETER = { name:'Greeter', colour:'#ff8fa3', look:{ skin:'#c98e62', hair:'#2b2b2b', hairStyle:'long', top:'#e85d75', topStyle:'tee', pants:'#394257' } };
 const OUTRO = ['THANKS!','Questions?'];
@@ -173,7 +166,6 @@ const ICONS = {
   brick:['.aa..aa..aa.','.oo..oo..oo.','oooooooooooo','oaaaaaaaaaao','oooooooooooo','oooooooooooo','oooooooooooo'],
   crab:['oo........oo','o.o.w..w.o.o','oo..k..k..oo','.o.oooooo.o.','..oooooooo..','.oooaaaaooo.','.oooooooooo.','o.o.o..o.o.o'],
   sign:['.....ww.....','oooooooooo..','oowwwwwwooo.','oooooooooo..','.....ww.....','..aaaaaaaaaa','.aaawwwwwwaa','..aaaaaaaaaa','.....ww.....','.....ww.....'],
-  snake:['..oooo......','.owoooo.....','.oooooo.....','....ooo.....','..aaaaoo....','.aaa...ooo..','.aa.....oo..','.aaaaaaaoo..','..aaaaaaa...'],
   chip:['..w.w.w.w..','.ooooooooo.','woaaaaaaaow','.oakkkkkao.','woakkkkkaow','.oakkkkkao.','woaaaaaaaow','.ooooooooo.','..w.w.w.w..'],
 };
 const LOGOS = { chip:{ r:10, c:5, rows:['lll','l.l','lll'] }, nfcore:{ r:10, c:3, rows:['l....l','.l..l.','..ll..','.l..l.','l....l'] } };
