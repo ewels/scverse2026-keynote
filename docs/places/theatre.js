@@ -76,7 +76,10 @@
     R(x - 3, y + 1, 6, 1, '#6c8cff'); R(x - 7, y - 2, 1, 4, '#8a95a5'); R(x + 6, y - 2, 1, 4, '#8a95a5');
     R(x - 3, y + 4, 2, 2, '#8a95a5'); R(x + 1, y + 4, 2, 2, '#8a95a5');
   };
-  const modBrick = (i, x, y, hot) => { brick(x, y, 30, 12, hot ? mix(PIPE_C[i], '#ffffff', 0.45) : PIPE_C[i], 4); T(PIPE[i], x + 15, y + 3.5, 4, '#1b2332', 'center'); };
+  const nameBrick = (name, c, x, y, hot) => { brick(x, y, 30, 12, hot ? mix(c, '#ffffff', 0.45) : c, 4); T(name, x + 15, y + 3.5, 4, '#1b2332', 'center'); };
+  const modBrick = (i, x, y, hot) => nameBrick(PIPE[i], PIPE_C[i], x, y, hot);
+  const grid = () => { R(SX, SY, SW, SH, '#132544'); for (let x = 0; x < SW; x += 10) R(SX + x, SY, 1, SH, '#1a3058'); for (let y = 0; y < SH; y += 10) R(SX, SY + y, SW, 1, '#1a3058'); };
+  const tick = (x, y) => { for (const d of [0, 1]) { line(x, y + d, x + 2, y + 2 + d, '#3cc87a'); line(x + 2, y + 2 + d, x + 6, y - 2 + d, '#3cc87a'); } };
   const pipeline = (n, cracks, t, lit) => {
     for (let i = 0; i < 4; i++) if (i < n - 1) { const x0 = slotX(i) + 30, x1 = slotX(i + 1); R(x0, PIPE_Y + 5, x1 - x0, 2, '#4a6a9a'); }
     for (let i = 0; i < n; i++) modBrick(i, slotX(i), PIPE_Y, lit && lit(i));
@@ -119,7 +122,7 @@
       if (s < 1.2) fly(v => [SX + 170 - v * 120, SY + 60 + Math.sin(v * 8) * 5], clamp01(s / 1.2), 2); },
     table(t) { R(SX, SY, SW, SH, '#141018'); shadowT('BUILDING', SX + SW / 2, SY + 14, 12, '#ffffff'); shadowT('BLOCKS', SX + SW / 2, SY + 30, 12, '#ffffff');
       for (let i = 0; i < 5; i++) brick(SX + 44 + i * 22, SY + 72 - (i % 2) * 10 - Math.round(Math.max(0, Math.sin(t * 3 + i)) * 2), 20, 9, BRICK[i], 3); },
-    assemble(t, s) { R(SX, SY, SW, SH, '#132544'); for (let x = 0; x < SW; x += 10) R(SX + x, SY, 1, SH, '#1a3058'); for (let y = 0; y < SH; y += 10) R(SX, SY + y, SW, 1, '#1a3058');
+    assemble(t, s) { grid();
       shadowT('AGENT, MEET MODULES', SX + SW / 2, SY + 6, 7, '#ffffff', 'center', '#0a1428');
       R(SX + 8, SY + 84, 38, 14, '#5a3a22'); R(SX + 8, SY + 84, 38, 2, '#7d5230'); T('nf-core', SX + 27, SY + 90, 4, '#ffd166', 'center');
       const per = 1.1, done = Math.min(5, Math.floor(s / per)), k = (s % per) / per;
@@ -142,11 +145,11 @@
       for (let i = 0; i < WALL.length; i++) { const w = WALL[i], c = i < 3 ? '#8a8f94' : BRICK[i % BRICK.length];
         if (i < 3 || s >= THROW_T(i - 3) + 1.2) brick(w.x, w.y, 17, 9, c, 3); }
       if (s > THROW_T(THROWERS.length) + 1.2) { const k = 0.5 + 0.5 * Math.sin(t * 3); for (let i = 0; i < 6; i++) { const a = i + t * 0.5; R(Math.round(SX + 62 + Math.cos(a) * 64), Math.round(SY + 70 + Math.sin(a) * 26), 2, 2, mix('#ffd166', '#ffffff', k)); } } },
-    review(t, s) { R(SX, SY, SW, SH, '#132544'); for (let x = 0; x < SW; x += 10) R(SX + x, SY, 1, SH, '#1a3058'); for (let y = 0; y < SH; y += 10) R(SX, SY + y, SW, 1, '#1a3058');
+    review(t, s) { grid();
       R(SX, SY + 92, SW, 8, '#0d1b33');
       const rx = SX - 10 + s * 60, cracks = [[0, rx > slotX(0) + 10], [2, rx > slotX(2) + 14], [3, rx > slotX(3) + 14]], found = cracks.filter(c => c[1]).length;
       const fixed = s > 4.2; pipeline(5, fixed ? null : cracks, t);
-      if (fixed) for (const [i] of cracks) { const x = slotX(i) + 12, y = PIPE_Y + 18; for (const d of [0, 1]) { line(x, y + d, x + 2, y + 2 + d, '#3cc87a'); line(x + 2, y + 2 + d, x + 6, y - 2 + d, '#3cc87a'); } }
+      if (fixed) for (const [i] of cracks) tick(slotX(i) + 12, PIPE_Y + 18);
       const happy = found < 3 || fixed; robot(SX + SW - 18, SY + 28 + Math.sin(t * 2) * 2, t, happy ? '' : 'oh');
       const bub = fixed ? 'thanks!' : happy ? 'LGTM!' : 'oh.'; const bw = tw(bub, 5) + 6; R(SX + SW - 26 - bw, SY + 16, bw, 9, '#ffffff'); T(bub, SX + SW - 23 - bw, SY + 18, 5, happy ? '#2fb67c' : '#e85d5d');
       shadowT(fixed ? 'FIXED FOR EVERYONE' : `ISSUES FOUND: ${found}`, SX + 8, SY + 6, 7, fixed ? '#3cc87a' : found ? '#ff8a8a' : '#ffffff', 'left', '#0a1428');
@@ -155,6 +158,39 @@
       const gx = px + 9, gy = PIPE_Y + 18; line(px + 4, SY + 86, gx - 2, gy + 3, '#5a3a22'); line(px + 5, SY + 86, gx - 1, gy + 3, '#5a3a22');
       for (let a = 0; a < 20; a++) { const ang = a / 20 * 6.283; R(Math.round(gx + Math.cos(ang) * 5), Math.round(gy + Math.sin(ang) * 5), 1, 1, '#d4a017'); }
       R(gx - 3, gy - 3, 6, 6, 'rgba(200,230,255,.35)'); R(gx - 2, gy - 3, 2, 1, '#ffffff'); },
+    chores(t, s) { grid(); shadowT('AGENTS ON CHORES', SX + 8, SY + 6, 7, '#ffffff', 'left', '#0a1428');
+      const at = clamp01(s / 2) * 4, merged = s > 2.8, bx = SX + 124, by = SY + 84;
+      const k = ease(clamp01((s - 2) / 0.4)), rx = lerp(slotX(Math.round(at)) + 15, SX + SW - 10, k), ry = PIPE_Y - 14 - Math.sin(k * 3.14) * 6;
+      // drawn first, so it falls behind the bricks and into the box
+      if (s > 2 && !merged) { const py = lerp(ry + 7, by - 2, ease(clamp01((s - 2.4) / 0.4)));
+        R(rx - 10, py, 20, 9, '#3cc87a'); R(rx - 10, py, 20, 1, '#9ff0c4'); T('PR', rx, py + 2, 5, '#0d2a1a', 'center'); }
+      pipeline(5, null, t, i => s < 2 && i === Math.round(at));
+      for (let i = 0; i < 5; i++) if (s > 0.15 && at >= i - 0.05) { const x = slotX(i) + 4; tick(x, PIPE_Y + 18);
+        R(x + 12, PIPE_Y + 14, 6, 7, '#ffffff'); R(x + 13, PIPE_Y + 16, 4, 1, '#8f9ab0'); R(x + 13, PIPE_Y + 18, 3, 1, '#8f9ab0'); }
+      R(bx, by, 74, 13, merged ? '#2fb67c' : '#1d3a5c'); R(bx, by, 74, 1, merged ? '#7fe0b0' : '#4a6a9a');
+      T(merged ? 'MERGED!' : 'shared repo', bx + 37, by + 4, merged ? 5 : 4, '#ffffff', 'center');
+      robot(rx, ry + (s < 2 ? Math.sin(t * 8) : 0), t); },
+    shelf(t, s) { R(SX, SY, SW, SH, '#1a1220'); shadowT('LOOK FOR A BLOCK FIRST', SX + 8, SY + 5, 7, '#ffffff', 'left', '#0a0610');
+      const scan = Math.min(FOUND, Math.floor(s / 0.15)), got = s > 1.5, k = ease(clamp01((s - 1.5) / 0.5));
+      SHELVES.forEach(([name, mods, cols], r) => { const y = SY + 22 + r * 28;
+        R(SX + 8, y + 12, SW - 16, 3, '#7d5230'); R(SX + 8, y + 12, SW - 16, 1, '#a87a4a'); T(name, SX + 14, y + 16, 4, '#ffd166');
+        mods.forEach((m, i) => { if (r * 5 + i !== FOUND || !got) nameBrick(m, cols[i], slotX(i), y, r * 5 + i === scan); }); });
+      if (!got && Math.sin(t * 16) > -0.5) { const x = slotX(scan % 5), y = SY + 22 + Math.floor(scan / 5) * 28; R(x - 2, y - 3, 34, 1, '#ffd166'); R(x - 2, y + 13, 34, 1, '#ffd166'); R(x - 2, y - 3, 1, 17, '#ffd166'); R(x + 31, y - 3, 1, 17, '#ffd166'); }
+      const rx = SX + 100, ry = SY + 78, [, mods, cols] = SHELVES[1], i = FOUND % 5;
+      if (got) nameBrick(mods[i], cols[i], lerp(slotX(i), rx - 15, k), lerp(SY + 50, ry + 7, k) - Math.sin(k * 3.14) * 8);
+      R(SX + 14, SY + 80, 58, 11, '#ffffff'); T('new_tool.py', SX + 43, SY + 83, 4, '#1b2332', 'center'); R(SX + 74, SY + 83, 3, 3, '#ffffff'); R(SX + 80, SY + 82, 2, 2, '#ffffff');
+      if (got) { line(SX + 12, SY + 90, SX + 74, SY + 81, '#e85d5d'); line(SX + 12, SY + 91, SX + 74, SY + 82, '#e85d5d'); }
+      robot(rx, ry, t, got ? '' : 'oh');
+      if (s > 2) shadowT('FOUND ONE!', SX + 160, SY + 82, 6, '#3cc87a', 'center', '#0a0610'); },
+    recap(t, s) { R(SX, SY, SW, SH, '#141018'); shadowT('THREE THINGS', SX + SW / 2, SY + 7, 9, '#ffd166');
+      RECAP.forEach((l, i) => { if (s < 0.2 + i * 0.5) return; const y = SY + 30 + i * 22;
+        brick(SX + 8, y, 14, 11, BRICK[i], 2); T(String(i + 1), SX + 15, y + 3, 5, '#1b2332', 'center'); T(l, SX + 28, y + 3, 5, '#ffffff'); }); },
+    answer(t, s) { R(SX, SY, SW, SH, '#141018');
+      for (const b of ANSWER) { const k = b.t0 < 0 ? 1 : clamp01((s - b.t0) / 0.2); if (k > 0) brick(b.x, b.y - (1 - ease(k)) * 14, 22, 9, b.c, 3); }
+      if (s < 1.6) { const k = 0.5 + 0.5 * Math.sin(t * 1.5); return shadowT('WHY?', SX + SW / 2, SY + 18, 30, mix('#ff6f91', '#ffd166', k)); }
+      ctx.globalAlpha = ease(clamp01((s - 1.6) / 0.3)); shadowT('SHARED', SX + SW / 2, SY + 8, 16, '#ffd166'); shadowT('BLOCKS', SX + SW / 2, SY + 28, 16, '#ffffff'); ctx.globalAlpha = 1;
+      for (let i = 0; i < 8; i++) if (Math.sin(t * 3 + i * 1.7) > 0) R(SX + 4 + (i % 2) * 156 + Math.floor(hash(i * 3) * 36), SY + 4 + Math.floor(hash(i * 7) * 44), 2, 2, i % 2 ? '#ffd166' : '#ffffff'); },
+    close(t, s) { SCREENS.answer(t, s + 9); },
     nosig(t) { R(SX, SY, SW, SH, '#1f3fbf'); T('HDMI 1', SX + 6, SY + 5, 5, '#c8d4ff');
       const x = SX + 50 + Math.round(Math.sin(t * 0.9) * 40), y = SY + 40 + Math.round(Math.sin(t * 1.3) * 22); shadowT('NO SIGNAL', x + 50, y, 10, '#ffffff', 'center', '#10208a'); },
     title(t) { const sk = ['#121a33', '#172240', '#1e2c50', '#273a62', '#344b74', '#476186', '#627d9d'];
@@ -167,6 +203,11 @@
   };
   const REVIEWER = { skin: '#a86f4c', hair: '#1f1f1f', hairStyle: 'long', top: '#f5a623', topStyle: 'sweat', pants: '#2b3445' };
   const WALL = []; for (let r = 0; r < 4; r++) for (let i = 0; i < 6 - (r % 2); i++) if (WALL.length < 17) WALL.push({ x: SX + 8 + i * 18 + (r % 2) * 9, y: SY + 86 - r * 10 });
+  const SHELVES = [['nf-core', PIPE, PIPE_C], ['scverse', ['anndata', 'squidpy', 'scanpy', 'muon', 'scvi'], ['#b28dff', '#2ec4b6', '#ff6f91', '#f5a623', '#6c8cff']]], FOUND = 7;
+  const RECAP = ['DETERMINISTIC BUILDING BLOCKS', 'AGENTS ASSEMBLE, BLOCKS EXECUTE', 'POOL EFFORT INTO SHARED TOOLS'];
+  // Row 0, slots 2-5 are the podium screen's bricks, so the wall builds on the opening slide.
+  const ANSWER = []; for (let r = 0, n = 0; r < 3; r++) for (let i = 0; i < 8 + r % 2; i++) { const old = r === 0 && i >= 2 && i <= 5;
+    ANSWER.push({ x: SX + (r % 2 ? -8 : 4) + i * 24, y: SY + 74 - r * 10, c: old ? BRICK[i - 2] : BRICK[(i * 3 + r * 2) % BRICK.length], t0: old ? -1 : 0.1 + 0.06 * n++ }); }
   const THROW_T = i => i < 5 ? 0.3 + i * 0.6 : 3.3 + (i - 5) * 0.3;
 
   /* ---------- room pieces ---------- */
