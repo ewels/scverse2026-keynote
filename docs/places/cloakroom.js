@@ -1,7 +1,7 @@
 // Cloakroom: building tools for agents. One counter, two queues: humans on the left, robots on the right.
 (window.KEYNOTE_PLACES = window.KEYNOTE_PLACES || {}).cloakroom = g => {
   const { R, T, disc, line, map2d, mix, person, look, hash, time, ctx } = g;
-  const W = 600, EXIT = 584, DISP = 50, HH = 126, ADA = 290, BELL = 206, DESK = BELL + 16, STAND = 368, PILE = 436, LANE0 = 478, LANE1 = 570;
+  const W = 600, EXIT = 584, DISP = 50, HH = 126, ADA = 290, BELL = 206, DESK = BELL + 16, STAND = 368, LANE0 = 478, LANE1 = 570;
   const ORDER = ['two', 'llms', 'env', 'skills', 'context', 'richclick', 'tokens'];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), k01 = v => clamp(v, 0, 1);
   const COAT = ['#8b2f2f', '#2b3445', '#3f6b4c', '#d9a441', '#6c8cff', '#4a3a2a', '#b8b8b8', '#7a4a8c', '#c8643c']
@@ -108,18 +108,10 @@
     R(150, 117, 12, 4, '#f7f3ea'); R(150, 117, 12, 1, '#e85d75'); R(170, 118, 14, 3, '#2b3445'); R(171, 118, 12, 1, '#c9a24a');
   };
 
-  const pile = (t, st, live) => {
-    for (let j = 0; j < 12; j++) { const w = Math.round(84 * Math.sqrt(1 - (j / 12) ** 2)), y = 148 - j * 4;
-      for (let i = 0; i * 7 < w; i++) { const n = j * 17 + i, c = COAT[n % COAT.length], x = PILE - w / 2 + i * 7 + Math.floor(hash(n + 70) * 4) - 2;
-        const wig = live && j > 7 ? Math.sin(t * 9 + i) * 1.2 : 0;
-        ctx.save(); ctx.translate(x + 5, y - 1 + wig); ctx.rotate((hash(n + 5) - 0.5) * 0.9);
-        R(-5, -3, 10, 6, c.c); R(-5, -3, 10, 1, c.l); R(-3 + (n % 5), -1, 1, 3, c.d); if (hash(n + 9) > 0.8) R(4, -2, 5, 2, c.d); ctx.restore(); } }
-    R(PILE - 26, 64, 52, 12, '#f7f3ea'); R(PILE - 26, 64, 52, 1, '#c9a24a'); T('LOST PROPERTY', PILE, 67, 5, '#6b1f2a', 'center');
-  };
-
-  const rightWall = t => {
+  const railCoat = i => ({ x: 482 + i * 9, k: i * 5 + 2, len: 24 + Math.floor(hash(i + 40) * 10) });
+  const rightWall = (t, gone) => {
     R(476, 44, 92, 2, '#c9a24a');
-    for (let i = 0; i < 10; i++) coat(482 + i * 9, 45, i * 5 + 2, 24 + Math.floor(hash(i + 40) * 10), true);
+    for (let i = 0; i < 10; i++) { if (gone.includes(i)) continue; const c = railCoat(i); coat(c.x, 45, c.k, c.len, true); }
     R(EXIT - 12, 100, 24, 46, '#f7f3ea'); R(EXIT - 9, 103, 18, 43, '#1b2030'); R(EXIT - 12, 88, 24, 9, '#2fb67c'); T('EXIT', EXIT, 89.5, 5, '#ffffff', 'center');
   };
 
@@ -206,16 +198,34 @@
     ctx.globalAlpha = 1;
   };
 
-  const digger = (t, st, s) => {
-    const n = Math.floor(st.checked);
-    R(PILE - 34, 30, 68, 24, '#0b0f1c'); R(PILE - 34, 30, 68, 1, '#ff4d4d'); R(PILE - 34, 53, 68, 1, '#ff4d4d');
-    T('COATS CHECKED', PILE, 33, 5, '#ff9a7a', 'center'); T(n.toLocaleString('en-GB'), PILE, 41, 9, '#ff4d4d', 'center');
+  const PICKS = [0, 3, 1], RIGHT = 8, FEET = 152, HOOK = 47;
+  const briefGone = s => PICKS.filter((_, j) => s > 1.45 + j).concat(s > 2.2 ? [RIGHT] : []);
+  const folder = (x, y) => { R(x, y + 1, 9, 7, '#e2b65a'); R(x, y, 4, 2, '#e2b65a'); R(x, y + 1, 9, 1, '#f2d38a'); ['#6c8cff', '#f5a623', '#e85d75'].forEach((c, i) => R(x + 9, y + 2 + i * 2, 2, 1, c)); };
+  const lying = (x, k) => { const c = COAT[k % COAT.length]; R(x - 7, 147, 15, 4, c.c); R(x - 7, 147, 15, 1, c.l); R(x - 1, 148, 1, 3, c.d); };
+  const grab = (x, u, i) => {
+    const c = railCoat(i), top = 108 - c.len - 5, y = u < 0.2 ? FEET - 28 - (FEET - 28 - HOOK) * k01(u / 0.2) : HOOK + (top - 45) * k01((u - 0.2) / 0.2);
+    R(x, Math.round(y), 1, FEET - 28 - Math.round(y), '#9aa0a6'); R(x - 2, Math.round(y) - 1, 5, 1, '#dfe7f1');
+    if (u >= 0.2) coat(x, Math.round(y) - 2, c.k, c.len, true);
   };
-  const diggerBot = (t, s) => {
-    const found = s > 4.5, pop = found ? 1 : Math.max(0, Math.sin(t * 5)), x = PILE + (found ? 0 : Math.round(Math.sin(t * 1.3) * 12));
-    bot(x, 120 - pop * 16, t, BOTS[0], { s: 2, armsUp: found || Math.sin(t * 10) > 0 });
-    if (found) for (let i = 0; i < 22; i++) R(x - 16 + Math.round(i * 1.5), Math.round(76 + Math.sin(t * 8 + i * 0.7) * 2 + Math.abs(i - 11) * 0.5), 2, 3, i % 2 ? '#ff7ab6' : '#ffb3d6');
-    else for (let i = 0; i < 2; i++) { const q = (t * 0.9 + i * 0.5) % 1; ctx.globalAlpha = 1 - q; T('?', x + (i ? 16 : -16), Math.round(90 - q * 16), 9, '#ffd166', 'center'); ctx.globalAlpha = 1; }
+  const briefing = (t, s) => {
+    const ax0 = 368, X = i => railCoat(i).x;
+    let ax = s < 1 ? ax0 + (X(PICKS[0]) - ax0) * k01(s) : X(PICKS[Math.min(2, Math.floor(s - 1))]), j = Math.floor(s - 1), u = s - 1 - j;
+    if (j > 0 && j < 3 && u < 0.25) ax = X(PICKS[j - 1]) + (X(PICKS[j]) - X(PICKS[j - 1])) * (u / 0.25);
+    PICKS.forEach((i, n) => { const v = s - 2 - n; if (v < 0) return;
+      const x = X(i) + (n % 2 ? 16 : -16) * k01(v / 0.4); if (v < 0.4) { const c = railCoat(i); coat(Math.round(x), Math.round(108 - c.len - 5 + (40 + c.len) * (v / 0.4) ** 2), c.k, c.len, false); } else lying(Math.round(x), railCoat(i).k); });
+    const working = j >= 0 && j < 3, holding = working && u >= 0.25 && u < 1, gaveUp = s >= 4;
+    bot(ax, FEET, t, BOTS[0], { s: 2, moving: s < 1 || working && u < 0.25, armsUp: holding });
+    if (holding) grab(ax, u - 0.25, PICKS[j]);
+    if (holding && u > 0.6) out('?', ax + 12, 82 - Math.round(Math.abs(Math.sin(t * 6)) * 2), 9, '#ffd166', '#1b2332');
+    if (gaveUp) out('???', ax, 96 - Math.round(Math.abs(Math.sin(t * 3)) * 2), 9, '#ffd166', '#1b2332');
+    const bx0 = 352, bx = s < 0.8 ? bx0 : bx0 + (X(RIGHT) - bx0) * k01((s - 0.8) / 1.2), w = s - 2;
+    if (s < 0.8 || s > 2 || Math.abs(ax - bx) > 44) out('NO BRIEFING', ax, 112, 6, '#ffb08a', '#4a1c14');
+    bot(bx, FEET, t, BOTS[2], { s: 2, agent: true, moving: s > 0.8 && s < 2, armsUp: w >= 0 });
+    if (s < 0.8) { const p = k01(s / 0.8); folder(Math.round(340 + (bx0 + 6 - 340) * p), Math.round(116 + 22 * p - Math.sin(p * Math.PI) * 10)); }
+    else { folder(Math.round(bx) + 6, 138); out('AGENTS.md', bx, 112, 6, '#bfffd4', '#14532d'); }
+    if (w >= 0) grab(bx, w, RIGHT);
+    if (w > 0.6) { const y = 84 - Math.round(Math.abs(Math.sin(t * 4)) * 2); disc(bx - 14, y, 6, '#1b2332'); disc(bx - 14, y, 5, '#2f8f5a'); tick(Math.round(bx) - 17, y, '#ffffff'); }
+    if (s > 4.3) { ctx.globalAlpha = k01((s - 4.3) / 0.4); out('GIVE AGENTS THE BRIEFING', 470, 28, 7, '#ffd166', '#1b2332'); ctx.globalAlpha = 1; }
   };
 
   const tokens = (t, s) => {
@@ -246,14 +256,13 @@
   let cur = '', kNow = -1;
   return {
     width: W, floor: 154, spawn: 20, exit: EXIT, host: ADA,
-    focus: { counter: BELL + 10, rail: 304, pile: 400, coats: 452 },
+    focus: { counter: BELL + 10, rail: 304, rack: 420, coats: 452 },
     props: [
       { id: 'tickets', x: DISP, label: 'Take a ticket' },
       { id: 'bell', x: BELL, r: 10, label: 'Ring the bell' },
       { id: 'coat', x: STAND, r: 6, label: 'Try on the big coat' },
     ],
-    enter(st) { Object.assign(st, { tix: 0, tixT: -99, bellT: -99, bellSaid: 0, rings: [], snatched: false, snatchT: -99, dearT: -99, ax: HH, eggT: -99, eggSaid: false, hostN: 0, checked: 0, fly: [], floorTix: [], saidBoa: false }); },
-    beat(id, st) { if (id === 'context') { st.checked = 0; st.saidBoa = false; } },
+    enter(st) { Object.assign(st, { tix: 0, tixT: -99, bellT: -99, bellSaid: 0, rings: [], snatched: false, snatchT: -99, dearT: -99, ax: HH, eggT: -99, eggSaid: false, hostN: 0, fly: [], floorTix: [] }); },
     update(dt, st, ev) {
       const t = time(); cur = ev.beat ? ev.beat.id || ev.beat.at : ''; kNow = ev.beat ? ORDER.indexOf(cur) : ev.beatIdx >= 0 ? ORDER.length : -1;
       const live = !ev.walking;
@@ -262,13 +271,6 @@
       st.fly.forEach(p => { if (p.done) st.floorTix.push(p); });
       st.fly = st.fly.filter(p => !p.done && p.age < 3.5);
       if (st.floorTix.length > 48) st.floorTix.splice(0, st.floorTix.length - 48);
-      if (cur === 'context' && live) {
-        st.checked += dt * (40 + ev.stepT * 30);
-        st.dig = (st.dig || 0) + dt;
-        while (st.dig > 0.14 && ev.stepT < 4.5) { st.dig -= 0.14; const dir = Math.random() > 0.5 ? 1 : -1;
-          st.fly.push({ kind: 'coat', x: PILE + (Math.random() - 0.5) * 16, y: 100, vx: dir * (30 + Math.random() * 50), vy: -110 - Math.random() * 60, floor: 146 + Math.random() * 6, c: Math.floor(Math.random() * 9), age: 0 }); }
-        if (ev.stepT > 4.6 && !st.saidBoa) { st.saidBoa = true; g.say('This one?', PILE, 70, 2.5); }
-      }
       const b = t - st.bellT;
       if (st.bellT > 0 && b > 3.5 && st.bellSaid === 0) { st.bellSaid = 1; g.say('Coming...', HH, 104, 2.2); }
       const angry = t - st.snatchT < 6, target = angry || st.bellT > 0 && st.bellSaid < 9 && b > 4 && b < 20 ? DESK : HH;
@@ -319,9 +321,7 @@
       if (st.bellSaid === 2) puffer(DESK - 2, 114);
       if (on('skills') && s < 1) { const p = k01(s / 0.6); R(ADA - 2 + Math.round(p * 6), 116 - Math.round(p * 6), 7, 5, '#2f8f5a'); R(ADA - 2 + Math.round(p * 6), 116 - Math.round(p * 6), 7, 1, '#ffd166'); }
       floor();
-      rightWall(t);
-      if (on('context')) diggerBot(t, ev.stepT);
-      pile(t, st, on('context'));
+      rightWall(t, on('context') ? briefGone(s) : []);
       for (const p of st.floorTix) R(Math.round(p.x), Math.round(p.y), 4, 2, p.c ? '#f7f3ea' : '#ffb3c0');
       stanchion(72); stanchion(140); rope(72, 140, '#a01c2c');
       stanchion(282); stanchion(350); for (let x = 282; x <= 350; x++) R(x, Math.round(134 + Math.sin((x - 282) / 68 * Math.PI) * 5), 1, 1, Math.sin(t * 8 - x * 0.4) > 0.6 ? '#bfe0ff' : '#6c8cff');
@@ -342,10 +342,7 @@
       });
       coatStand(t, st);
       dispenser(t, st);
-      for (const p of st.fly) {
-        if (p.kind === 'tix') R(Math.round(p.x), Math.round(p.y), 4, 2, p.c ? '#f7f3ea' : '#ffb3c0');
-        else { const c = COAT[p.c]; ctx.save(); ctx.translate(Math.round(p.x), Math.round(p.y)); ctx.rotate(p.age * 6); R(-4, -3, 9, 6, c.c); R(-4, -3, 9, 1, c.l); ctx.restore(); }
-      }
+      for (const p of st.fly) R(Math.round(p.x), Math.round(p.y), 4, 2, p.c ? '#f7f3ea' : '#ffb3c0');
       if (on('two')) {
         const a = k01((s - 0.7) / 0.3);
         if (a > 0) { ctx.globalAlpha = a; out('HUMAN', 124, 118 - Math.round(Math.abs(Math.sin(t * 3)) * 2), 7, '#ffd166', '#1b2332'); out('AGENT', 294, 118 - Math.round(Math.abs(Math.sin(t * 3 + 1)) * 2), 7, '#bfe0ff', '#1b2332'); ctx.globalAlpha = 1; }
@@ -354,7 +351,7 @@
       if (on('llms')) { const a = k01(s / 0.4), r = Math.round((1 - a) * 12); humanTicket(124, 58 + r, a, t); if (s > 0.6) robotTicket(294, 58 + Math.round((1 - k01((s - 0.6) / 0.4)) * 12), k01((s - 0.6) / 0.4)); }
       if (on('env')) envPanel(s, k01((s - 0.6) / 0.3));
       if (on('skills')) { if (s > 0.6) welcomePack(s - 0.6, k01((s - 0.6) / 0.3)); if (s > 1.4) humanPack(s - 1.4, k01((s - 1.4) / 0.3)); }
-      if (on('context')) digger(t, st, s);
+      if (on('context')) briefing(t, s);
       if (on('tokens')) tokens(t, s);
     },
     features: {

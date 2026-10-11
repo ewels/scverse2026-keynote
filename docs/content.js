@@ -118,7 +118,7 @@ const TOPICS = {
                 { at:'counter', id:'llms', say:'llms.txt and .md URLs: plain text for agents' },
                 { at:'rail', id:'env', say:'Agents announce themselves: env vars' },
                 { at:'counter', id:'skills', say:'Welcome packs: docs and visuals, AGENTS.md and skills' },
-                { at:'pile', id:'context', say:'Context is everything' },
+                { at:'rack', id:'context', say:'Context is everything' },
                 { at:'rail', id:'richclick', feature:'richclick', say:'The rich-click help story',
                   steps:['Plain click --help','rich-click: help that people enjoy reading','Agent mode: every subcommand, with examples, in one go'] },
                 { at:'coats', id:'tokens', say:'Fewer characters, same tokens: it fits the output window' },
