@@ -161,15 +161,14 @@
     get host() { return dotX; },
     focus: { signs: 62, starlight: SL, quiz: QX - 12, map: MAPX, board: 136 + BDX },
     props: [
-      { id: 's0', x: SX[0], label: 'Spin the sign', r: 15 },
-      { id: 's1', x: SX[1], label: 'Spin the sign', r: 15 },
-      { id: 's2', x: SX[2], label: 'Spin the sign', r: 15 },
+      // the hero only stands at spawn or a beat's focus, so one wide prop spins the signs in turn
+      { id: 'signs', x: SX[1], label: 'Spin a sign', r: 50 },
       { id: 'rocket', x: SL, label: 'Launch the rocket', r: 18 },
       { id: 'quiz', x: QX, label: 'Answer the quiz', r: 22 },
       { id: 'map', x: MAPX, label: 'Check the map', r: 18 },
     ],
     features: { codeblocks: { steps: 5, draw(step, t) { [fFocus, fDiff, fCallout, fRun, fMore][step](t); } } },
-    enter(st) { st.sd = [0, 1, 2].map(() => ({ dir: 1, t0: null })); st.pick = []; st.qi = 0; st.hereT = null; st.lost = null; st.said = 0; st.launch = null; dotX = 150; lastX = 14; },
+    enter(st) { st.sd = [0, 1, 2].map(() => ({ dir: 1, t0: null })); st.si = 0; st.pick = []; st.qi = 0; st.hereT = null; st.lost = null; st.said = 0; st.launch = null; dotX = 150; lastX = 14; },
     update(dt, st, ev) {
       const t = time(); if (ev.beat && !ev.walking) lastX = this.focus[ev.beat.at] ?? lastX;
       const goal = DOT[dotEnd], d = goal - dotX; dotMoving = Math.abs(d) > 0.5 && t > dotRest;
@@ -180,7 +179,7 @@
     poke(id, st) {
       const t = time();
       if (id === 'host') { g.say(['Follow the signs', 'Good docs point somewhere', 'Which way is it, again?'][st.said++ % 3], dotX, 126); return true; }
-      if (id[0] === 's' && id.length === 2) { const i = +id[1], s = st.sd[i]; s.dir = -s.dir; s.t0 = t; lastX = SX[i]; return true; }
+      if (id === 'signs') { const i = st.si++ % 3, s = st.sd[i]; s.dir = -s.dir; s.t0 = t; lastX = SX[i]; return true; }
       if (id === 'map') { st.hereT = t; lastX = g.heroX ? g.heroX() : MAPX; g.say('YOU ARE HERE', MAPX, 82, 1.8); return true; }
       if (id === 'rocket') { st.launch = t; lastX = SL; return true; }
       if (id === 'quiz') {

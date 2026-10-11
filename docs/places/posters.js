@@ -376,7 +376,7 @@
         if (st.cups >= 10) { for (let i = 0; i < 10; i++) st.fallen.push({ x: TABLE - 4 + (i % 4) * 5, y: 104 + Math.floor(i / 4) * 5, vx: (hash(i + t) - 0.5) * 120, vy: -40 - hash(i * 3 + t) * 60 }); st.cups = 0; g.say('Oh no', TABLE, 100, 1.5); return true; }
         st.cups++; if (st.cups === 10) g.say('A perfect pyramid', TABLE, 100, 2); return true;
       }
-      if (id === 'board') { if (st.selfie == null) g.egg('poster', 'You are the poster now'); else g.say('Looking good', BOARD, 26, 1.6); st.selfie = t; return true; }
+      if (id === 'board') { if (st.selfie == null) g.egg('poster', 'You are the poster now'); else g.say(['Looking good', 'Peer review: approved', 'Best in show', 'Needs more bar charts', 'Frame-worthy', 'Hire this poster'][st.selfieN = ((st.selfieN ?? -1) + 1) % 6], BOARD, 26, 1.6); st.selfie = t; return true; }
       if (id === 'host') { g.say(['I file a report on everything', 'One report. Not forty tabs.', 'Got a log file? I will take it.', 'Rita. The Reporter. Yes, really.'][st.hostN++ % 4], hx, 128); return true; }
     },
     draw(st, ev) {

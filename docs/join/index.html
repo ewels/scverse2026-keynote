@@ -113,7 +113,6 @@ footer .dot{ color:#ff6b6b; } footer.on .dot{ color:var(--good); }
     <h2>React</h2>
     <p class="hint">Tell the room how it's going. The reactions float up on the big screen.</p>
     <div class="react" id="reacts"></div>
-    <p class="status" id="badge" role="status" aria-live="polite"></p>
   </section>
 
   <section id="ask">
@@ -256,14 +255,6 @@ function react(kind, btn){
 }
 $('#reacts').innerHTML = REACTS.map(([k, e, l]) => `<button type="button" data-k="${k}" aria-label="${l}">${e}</button>`).join('');
 $('#reacts').addEventListener('click', e => { const b = e.target.closest('button'); if (b) react(b.dataset.k, b); });
-// Seven taps on the title send the hidden golden star.
-let taps = 0, tapTimer = null;
-$('#logo').addEventListener('click', () => {
-  clearTimeout(tapTimer); tapTimer = setTimeout(() => { taps = 0; }, 1500);
-  if (++taps < 7) return;
-  taps = 0; lastReact = 0;
-  if (react('star')) { $('#badge').textContent = '★ Golden badge unlocked'; setTimeout(() => { $('#badge').textContent = ''; }, 4000); }
-});
 
 // With no backend (before or after the talk), point people at the game instead.
 let failures = 0;

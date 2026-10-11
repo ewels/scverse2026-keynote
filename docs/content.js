@@ -12,7 +12,7 @@
 //   bars      [label, 0-100] stat bars on the card
 //   lore      bullet points on the card
 //   special   "Special move: ..." line on the card
-//   cameo     what they say in the foyer
+//   cameo     what they say in the foyer, one line per poke in turn
 //
 // TOPICS      One place each, keyed by a short id. The stage sends these to the phones.
 //   title     place name, shown on entrances, prompts and phones
@@ -49,21 +49,21 @@ const CHARACTERS = [
     bars:[['Organising',99],['Green-ness',100],['Keynote slot',0]],
     lore:['Co-organises this conference','Would happily give this talk','Is not giving this talk'],
     special:'Accelerate everything',
-    cameo:'Bold choice. I would have picked me.' },
+    cameo:['Bold choice. I would have picked me.','This talk would run faster on a GPU.','I have slides ready, just in case.','Have you ranked the rooms yet?','I am not jealous. I am organising.','Everything is faster on a GPU. Even keynotes.'] },
   { id:'luca', name:'Luca', handle:'@LucaMarconato', accent:'#ef5a4f',
     look:{ skin:'#eec39d', hair:'#2a1f18', hairStyle:'messy', beard:false, top:'#c8322c', topStyle:'sweat', pants:'#2f3a4f', shoes:'#1b1b1b' },
     facts:[['Name','Luca Marconato'],['Class','Spatial explorer'],['Guild','scverse'],['Quest','spatialdata'],['Status','Not presenting today']],
-    bars:[['Spatial awareness',99],['Jumper redness',100],['Keynote slot',0]],
+    bars:[['Spatial awareness',99],['Coordinate transforms',100],['Keynote slot',0]],
     lore:['Co-organises this conference','Knows where everything is','Still not on stage'],
     special:'Map the room',
-    cameo:'Good luck up there!' },
+    cameo:['Good luck up there!','I know where every room is. Ask me.','Shh. Deep work session.','Lost? I can transform your coordinates.','Nice jumper. Not as red as mine.','Everything is better as spatialdata.'] },
   { id:'phil', name:'Phil', handle:'@ewels', accent:'#2ec4b6',
     look:{ skin:'#f6d3bd', hair:'#4a403a', hairStyle:'messy', beard:false, top:'#111111', topStyle:'hoodie', logo:'nfcore', logoColour:'#3cc8b4', pants:'#2f3a55', shoes:'#1b1b1b' },
     facts:[['Name','Phil Ewels'],['Class','Product Manager, Open Source'],['Guild','Seqera'],['Base','Stockholm, via the UK']],
     bars:[['Open source',99],['Community',96],['QC reports',100],['Slide decks',0]],
     lore:['Co-founded nf-core','Created MultiQC','Works on Nextflow and nf-core','Makes the Nextflow Podcast'],
     special:'Summon a MultiQC report',
-    cameo:"Hey, that's my talk!" },
+    cameo:["Hey, that's my talk!",'Want to see a MultiQC report?','I made this game. Please be gentle.','Have you found the easter eggs?','Who let you in here?'] },
 ];
 
 const TOPICS = {
@@ -123,7 +123,7 @@ const TOPICS = {
                 { at:'rail', id:'env', say:'Agents announce themselves: env vars' },
                 { at:'counter', id:'skills', say:'Welcome packs: docs and visuals, AGENTS.md and skills' },
                 { at:'rack', id:'context', say:'Context is everything' },
-                { at:'rail', id:'richclick', feature:'richclick', say:'The rich-click help story',
+                { at:'rack', id:'richclick', feature:'richclick', say:'The rich-click help story',
                   steps:['Plain click --help','rich-click: help that people enjoy reading','Agent mode: every subcommand, with examples, in one go'] },
                 { at:'coats', id:'tokens', say:'Fewer characters, same tokens: it fits the output window' },
               ] },

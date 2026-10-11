@@ -37,12 +37,13 @@
     if (tag) { R(x + 2, y + 9, 3, 4, '#f7f3ea'); R(x + 3, y + 10, 1, 2, '#c8322c'); }
   };
   const hoodie = (x, y, s) => {
-    const H = g.hero(), pal = { h: H.top, d: mix(H.top, '#ffffff', 0.12), l: H.logoColour || '#eeeeee' };
-    const rows = ['...hhhh...', '..hh..hh..', '.hhhddhhh.', 'hhhhhhhhhh', 'hhhhllhhhh', 'hhhhllhhhh', 'hh.hhhh.hh', 'hh.hhhh.hh', 'hh.hhhh.hh', 'hd.dddd.dh'], x0 = Math.round(x) - 5 * s, y0 = Math.round(y);
-    ctx.fillStyle = 'rgba(255,236,190,.22)'; for (let r = 18; r > 6; r -= 4) { ctx.beginPath(); ctx.arc(x, y0 + 5 * s, r, 0, 6.283); ctx.fill(); }
+    const H = g.hero(), pal = { h: H.top, d: mix(H.top, '#ffffff', 0.12), k: mix(H.top, '#000000', 0.5) };
+    const rows = ['....hhhh....', '..hhkkkkhh..', '.hhhhkkhhhh.', 'hhhhhhhhhhhh', 'hhhhhhhhhhhh', 'hh.hhhhhh.hh', 'hh.hhhhhh.hh', 'hh.hhhhhh.hh', 'hh.hhhhhh.hh', 'hh.hhhhhh.hh', 'dd.dddddd.dd'], x0 = Math.round(x) - 6 * s, y0 = Math.round(y);
+    ctx.fillStyle = 'rgba(255,236,190,.22)'; for (let r = 20; r > 6; r -= 4) { ctx.beginPath(); ctx.arc(x, y0 + 5 * s, r, 0, 6.283); ctx.fill(); }
     const edge = mix(H.top, '#ffffff', 0.55);
-    for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) map2d(rows, x0 + ox, y0 + oy, { h: edge, d: edge, l: edge }, s);
+    for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) map2d(rows, x0 + ox, y0 + oy, { h: edge, d: edge, k: edge }, s);
     map2d(rows, x0, y0, pal, s);
+    map2d(['lll....lll', '..ll..ll..', '...l..l...', '...l..l...', '..ll..ll..', 'lll....lll'], Math.round(x) - 5, y0 + 3 * s + 1, { l: H.logoColour || '#0dc09d' });
     if (Math.sin(g.time() * 5) > 0.3) { R(x0 - 3, y0 + 2, 1, 3, '#ffffff'); R(x0 - 4, y0 + 3, 3, 1, '#ffffff'); }
   };
   const callout = (cx, y, w, h, bg, edge, tailX, tailY, a) => {
@@ -275,9 +276,9 @@
       if (st.floorTix.length > 48) st.floorTix.splice(0, st.floorTix.length - 48);
       const b = t - st.bellT;
       if (st.bellT > 0 && b > 3.5 && st.bellSaid === 0) { st.bellSaid = 1; g.say('Coming...', HH, 104, 2.2); }
-      const angry = st.grab || t - st.snatchT < 6, target = angry || st.bellT > 0 && st.bellSaid < 9 && b > 4 && b < 20 ? DESK : HH;
+      const angry = st.grab || t - st.snatchT < 0.6, target = angry || st.bellT > 0 && st.bellSaid < 9 && b > 4 && b < 20 ? DESK : HH;
       const dx = target - st.ax, v = st.grab || st.snatched ? 36 : 12; st.aMoving = Math.abs(dx) > 0.5; if (st.aMoving) { st.ax += Math.sign(dx) * Math.min(Math.abs(dx), v * dt); st.aFace = Math.sign(dx); }
-      if (st.grab && !st.aMoving) Object.assign(st, { grab: false, snatched: true, snatchT: t });
+      if (st.grab && !st.aMoving) { Object.assign(st, { grab: false, snatched: true, snatchT: t }); g.say('Lovely bell, dear. Mine now.', st.ax, 104, 2.5); }
       if (st.snatched && !angry && !st.aMoving) Object.assign(st, { snatched: false, kept: true });
       if (b < 20 && st.bellSaid === 1 && !st.aMoving && Math.abs(st.ax - DESK) < 1) { st.bellSaid = 2; st.dearT = t; g.say('Yes, dear?', st.ax, 104, 2.5); }
       if (st.bellSaid === 2 && t - st.dearT > 2.6) { st.bellSaid = 3;
@@ -301,7 +302,7 @@
         st.rings = st.rings.filter(r => t - r < 3).concat(t); st.bellT = t;
         if (st.rings.length >= 5) {
           Object.assign(st, { rings: [], grab: true, bellSaid: 9 });
-          g.say('I HEARD YOU THE FIRST TIME!', Math.round(st.ax), 100, 3); g.egg('cloakbell', 'The attendant took the bell'); return true;
+          g.say('Right, that’s quite enough of that!', Math.round(st.ax), 100, 2.5); g.egg('cloakbell', 'The attendant took the bell'); return true;
         }
         st.bellSaid = 0; g.say('Yes? How can I help?', ADA, 104, 2.2); return true;
       }
