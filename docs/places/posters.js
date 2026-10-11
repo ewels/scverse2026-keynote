@@ -258,10 +258,12 @@
     R(156, 34, 112, 112, '#1b2332'); T('multiqc_config.yaml', 160, 37, 4, '#7f8aab'); R(156, 44, 112, 1, '#2b3550');
     let y = 48;
     YAML.forEach((ls, i) => { if (k > 1.2 + i * 1.6) ls.forEach(s => { const [key, ...rest] = s.split(':'); T(key + (rest.length ? ':' : ''), 160, y, 5, '#ffd166'); if (rest.length) T(rest.join(':'), 160 + tw(key + ':', 5), y, 5, '#a9e34b'); y += 9; }); });
-    const fi = Math.min(3, Math.floor(Math.max(0, k - 0.2) / 1.6)), tx = k > 7 ? 212 : 120, ty = k > 7 ? 136 : 52 + fi * 27;
-    const ph = k < 0.2 ? 0 : clamp01(((k - 0.2) % 1.6) / 0.6);
+    // four fields then the copy button; the first move starts from the button, where the last loop ended
+    const TG = [[120, 52], [120, 79], [120, 106], [120, 133], [212, 136]];
+    const seg = Math.max(0, k - 0.2) / 1.6, fi = k > 7 ? 4 : Math.min(3, Math.floor(seg)), u = seg >= 4 ? 9 : (seg % 1) * 1.6;
+    const m = fi === 4 ? ease((k - 7) / 0.5) : k < 0.2 ? 0 : ease(u / 0.6), [ax, ay] = TG[(fi + 4) % 5], [bx, by] = TG[fi];
     if (k > 7) { R(178, 130, 68, 12, k > 7.6 ? '#2fb67c' : OR); T(k > 7.6 ? 'COPIED!' : 'COPY YAML', 212, 133, 5, '#ffffff', 'center'); }
-    cursor(lerp(150, tx, k > 7 ? ease((k - 7) / 0.5) : ph), lerp(150, ty, k > 7 ? ease((k - 7) / 0.5) : ph), k > 7.5 && k < 7.9 ? (7.9 - k) / 0.4 : ph >= 1 && (k - 0.2) % 1.6 < 0.9 ? 1 - ((k - 0.2) % 1.6 - 0.6) / 0.3 : 0);
+    cursor(lerp(ax, bx, m), lerp(ay, by, m), k > 7.5 && k < 7.9 ? (7.9 - k) / 0.4 : fi < 4 && u >= 0.6 && u < 0.9 ? 1 - (u - 0.6) / 0.3 : 0);
   };
   const fLicences = t => {
     fFrame('LICENCES AND DOIS', t);
