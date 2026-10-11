@@ -168,7 +168,7 @@
   };
 
   // Rows follow the signpost arms' order: rewrite, upstream, combine.
-  const ROWS = { rustar: ['RUSTAR', 'REWRITE', 'FASTER'], fastqc: ['FASTQC-RUST', 'UPSTREAM', 'PR SENT'], rustqc: ['RUSTQC', 'COMBINE', '15 MIN'] };
+  const ROWS = { rustar: ['RUSTAR', 'REWRITE', '99.9%'], fastqc: ['FASTQC-RUST', 'UPSTREAM', '2.7X'], rustqc: ['RUSTQC', 'COMBINE', '>60X'] };
   const BOARD = Object.keys(ROWS), COLS = [[0, 11, '#f7f3ea'], [12, 8, '#ffd166'], [21, 7, '#2fb67c']], FLAPS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-';
   const board = (st, t) => {
     R(BX + 12, 96, 3, 32, '#3b3f47'); R(BX + 142, 96, 3, 32, '#3b3f47');
@@ -176,7 +176,7 @@
     T('DEPARTURES', BX + 6, 43, 7, '#ffd166');
     const hh = (10 + Math.floor(t / 60)) % 24, mm = Math.floor(t) % 60;
     T(`${String(hh).padStart(2, '0')}${Math.floor(t * 2) % 2 ? ':' : ' '}${String(mm).padStart(2, '0')}`, BX + 151, 44, 5, '#f7f3ea', 'right');
-    ['TOOL', 'ROUTE', 'STATUS'].forEach((s, i) => T(s, BX + 6 + COLS[i][0] * 5, 54, 5, '#7f8aab'));
+    ['TOOL', 'ROUTE', 'RESULT'].forEach((s, i) => T(s, BX + 6 + COLS[i][0] * 5, 54, 5, '#7f8aab'));
     BOARD.forEach((key, r) => {
       const y = 61 + r * 11, f = st.row && r === st.row.p ? t - st.row.at : st.row && r < st.row.p ? 99 : -1;
       COLS.forEach(([c0, n, col], i) => { const word = ROWS[key][i];
