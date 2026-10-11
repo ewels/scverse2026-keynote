@@ -307,7 +307,8 @@
       cursor(xb, 90, 0);
     }
     if (k > 7) { R(214, 32, 48, 10, '#e6eeff'); T('ZOOMED', 238, 34, 5, '#3b5bdb', 'center'); }
-    SER.forEach((c, s) => { R(72 + s * 38, 138, 6, 4, c); T(`S${s + 1}`, 81 + s * 38, 137, 5, '#3a3f4a'); });
+    if (k > 7.4) { R(52, 134, 216, 14, '#fff3c4'); T('STATIC EXPORTS WITHOUT CHROMIUM', 160, 137, 6, '#8a5a00', 'center'); }
+    else SER.forEach((c, s) => { R(72 + s * 38, 138, 6, 4, c); T(`S${s + 1}`, 81 + s * 38, 137, 5, '#3a3f4a'); });
   };
   const arrow = (x0, y, x1, c, t) => { R(x0, y, x1 - x0, 2, c); for (let i = 0; i < 4; i++) R(x1 - 4 + i, y - 3 + i, 1, 8 - i * 2, c); const p = ((t * 0.9) % 1); R(Math.round(lerp(x0, x1 - 6, p)), y - 1, 4, 4, '#e8590c'); };
   const pq = (x, y, s, lab) => { ['#f5a623', '#6c8cff', '#2fb67c', '#b28dff'].forEach((c, j) => { R(x + j * 7 * s, y, 6 * s, 26 * s, mix(c, '#ffffff', 0.55)); for (let r = 0; r < 26 * s; r += 4) R(x + j * 7 * s, y + r, 6 * s, 2, c); }); if (lab) T(lab, x + 14 * s, y + 26 * s + 3, 5, INK, 'center'); };

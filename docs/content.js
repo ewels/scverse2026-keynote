@@ -130,7 +130,7 @@ const TOPICS = {
                 { at:'messy', id:'merge', say:'MultiQC: one report for all of them' },
                 { at:'bin', id:'inputs', say:'Works with any inputs' },
                 { at:'features', feature:'poster', say:'What’s new',
-                  steps:['Config builder','Licences and DOIs','ECharts plots','Parquet and preprocessing'] },
+                  steps:['Config builder','Licences and DOIs','ECharts: interactive plots, static exports without Chromium','Parquet and preprocessing'] },
                 { at:'empty', id:'logs', say:'Write nice logs, with filename suffixes' },
                 { at:'empty', id:'modules', say:'More MultiQC modules, please!', who:'host' },
               ] },
