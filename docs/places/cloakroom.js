@@ -172,7 +172,7 @@
     ctx.globalAlpha = 1;
   };
   const welcomePack = (t, a) => {
-    const cx = 296, y = 46, x = callout(cx, y, 92, 58, '#e8f6ec', '#2f8f5a', 300, y, a);
+    const cx = 286, y = 46, x = callout(cx, y, 92, 58, '#e8f6ec', '#2f8f5a', 290, y, a);
     R(x, y, 92, 11, '#2f8f5a'); T('WELCOME PACK', cx, y + 3, 6, '#ffffff', 'center');
     if (t > 0.5) { R(x + 6, y + 15, 26, 30, '#ffffff'); R(x + 26, y + 15, 6, 6, '#c9d6e8'); R(x + 6, y + 15, 26, 1, '#1b2332');
       for (let i = 0; i < 6; i++) R(x + 9, y + 23 + i * 3, 12 + ((i * 7) % 9), 1, i ? '#9aa0aa' : '#1b2332');
@@ -184,7 +184,7 @@
     ctx.globalAlpha = 1;
   };
   const humanPack = (t, a) => {
-    const cx = 124, y = 46, x = callout(cx, y, 92, 58, '#f6ead0', '#7a2a1a', 120, y, a);
+    const cx = 150, y = 46, x = callout(cx, y, 92, 58, '#f6ead0', '#7a2a1a', 126, y, a);
     R(x, y, 92, 11, '#7a2a1a'); T('WELCOME PACK', cx, y + 3, 6, '#ffd166', 'center');
     if (t > 0.5) { const bx = x + 5, by = y + 15;
       R(bx, by, 38, 30, '#1b2332'); R(bx + 1, by + 1, 36, 28, '#ffffff'); R(bx + 1, by + 1, 36, 4, '#d9dee6');
@@ -258,7 +258,7 @@
   let cur = '', kNow = -1;
   return {
     width: W, floor: 154, spawn: 20, exit: EXIT, host: ADA,
-    focus: { counter: BELL + 10, rail: 304, rack: 420, coats: 452 },
+    focus: { counter: BELL + 10, rail: 304, rack: 456, coats: 452 },
     props: [
       { id: 'tickets', x: DISP, label: 'Take a ticket' },
       { id: 'bell', x: BELL, r: 10, label: 'Ring the bell' },
