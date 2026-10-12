@@ -73,17 +73,11 @@ cd worker && npm install && npx wrangler login && npx wrangler deploy
 sed -n 's/^PRESENTER_KEY=//p' ../.env | npx wrangler secret put PRESENTER_KEY
 ```
 
-Put the printed address in `KEYNOTE_URL` in `.env`. After that, GitHub Actions deploys every push to `main` that changes `docs/` or `worker/`, once the tests pass. It needs the `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` repository secrets. A deploy drops every phone for a moment, so don't push during the talk.
+Put the printed address in `KEYNOTE_URL` in `.env`. Run `npx wrangler deploy` again after each change. A deploy drops every phone for a moment, so don't deploy during the talk.
 
 ### Present
 
 Run `./present.sh` (needs [gum](https://github.com/charmbracelet/gum)) and pick **Start the talk**. It opens the stage and copies the moderator link to the clipboard, so the key never shows on screen. Run it before the projector mirrors your screen. Press F for full screen, reset the rehearsal votes, and open the moderator link on your phone. The dots turn green when everything is connected. If the connection drops, the game carries on.
-
-### Move to GitHub Pages afterwards
-
-1. Make the repo public, then set Pages to deploy from `main` and `/docs`.
-2. Remove the `deploy` job from `.github/workflows/test.yml`.
-3. Delete the Worker with `npx wrangler delete`, or leave it: it costs nothing when idle.
 
 ### Tests
 

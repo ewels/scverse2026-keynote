@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A conference keynote presented as a pixel-art side-scrolling game, plus phone companion pages for live audience ranking and Q&A. There is no build step or bundler: the pages are hand-written HTML with inline CSS/JS, and the backend is one Worker file. The only tooling is Playwright smoke tests at the repo root (also run in GitHub Actions on push and PR; pushes to `main` that touch `docs/` or `worker/` then deploy the Worker, using the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repo secrets) and `present.sh`, which opens the stage and copies the moderator link using the key and address in the gitignored `.env` (format in `.env.example`; needs `gum`).
+A conference keynote presented as a pixel-art side-scrolling game, plus phone companion pages for live audience ranking and Q&A. There is no build step or bundler: the pages are hand-written HTML with inline CSS/JS, and the backend is one Worker file. The only tooling is Playwright smoke tests at the repo root (also run in GitHub Actions on push and PR) and `present.sh`, which opens the stage and copies the moderator link using the key and address in the gitignored `.env` (format in `.env.example`; needs `gum`).
 
-- `docs/` — static site. During the talk the Worker serves it; afterwards it moves to GitHub Pages (`main:/docs`) with live features off. `index.html` is the game engine (and the stage view with `?stage`), `content.js` holds the talk's content (characters, topics and their beats, pixel icons) as `window.KEYNOTE_CONTENT`, `places/` has one classic script per topic's place (API in `places/README.md`), `join/` is the audience phone page, `mod/` is the presenter's moderation phone page.
+- `docs/` — static site. GitHub Pages serves it from `main:/docs` with live features off; during the talk the Worker served it. `index.html` is the game engine (and the stage view with `?stage`), `content.js` holds the talk's content (characters, topics and their beats, pixel icons) as `window.KEYNOTE_CONTENT`, `places/` has one classic script per topic's place (API in `places/README.md`), `join/` is the audience phone page, `mod/` is the presenter's moderation phone page.
 - `worker/` — Cloudflare Worker + one SQLite-backed Durable Object (`Room`, fixed id `keynote`) that holds all live state and talks to every client over a single WebSocket endpoint, `/api/ws`. Every other path goes to the `ASSETS` binding, which serves `../docs`.
 
 ## Project rules
@@ -18,7 +18,7 @@ A conference keynote presented as a pixel-art side-scrolling game, plus phone co
 - British English in anything user-facing.
 - Keep diffs small; don't reformat whole files.
 - Only deploy, push, make the repo public or touch GitHub Pages settings when explicitly asked.
-- The repo will be made public: never commit personal details (email addresses, Cloudflare account names or IDs, the deployed `*.workers.dev` address). They belong in `.env`.
+- The repo is public: never commit personal details (email addresses, Cloudflare account names or IDs, the deployed `*.workers.dev` address). They belong in `.env`.
 
 ## Running locally
 
