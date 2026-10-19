@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Choose your own keynote</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +21,7 @@
   :root:not([data-theme="light"]){ --bg:#121823; --fg:#e4e9f0; --muted:#8e99ab; --line:#253044; --panel:#182131; }
 }
 :root[data-theme="dark"]{ --bg:#121823; --fg:#e4e9f0; --muted:#8e99ab; --line:#253044; --panel:#182131; }
-html{ scroll-padding-top:env(safe-area-inset-top,0px); }
+html{ scroll-padding-top:env(safe-area-inset-top,0px); touch-action:manipulation; -webkit-text-size-adjust:100%; }
 *,*::before,*::after{ box-sizing:inherit; }
 body{ margin:0; background:var(--bg); color:var(--fg); font-family:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif; font-size:16px; line-height:1.5; }
 .wrap{ max-width:1180px; margin:0 auto; padding:16px 16px 36px; }
@@ -66,6 +66,7 @@ header p{ margin:4px 0 0; color:var(--muted); max-width:60ch; }
 #shell:fullscreen .stage{ width:min(100vw, 177.78vh); border-radius:0; }
 /* stand-in for phones without element full screen (iPhone Safari) */
 #shell.pfs{ position:fixed; inset:0; z-index:10; display:flex; align-items:center; justify-content:center; background:#000; }
+html:has(#shell.pfs){ overflow:hidden; }
 #shell.pfs .stage{ width:min(100vw, 177.78vh, 177.78dvh); border-radius:0; }
 .stage{ position:relative; width:min(100%, max(320px, calc((100svh - 200px) * 1.7778))); aspect-ratio:16/9; margin:0 auto; background:#0d1220; border-radius:12px; overflow:hidden; container-type:inline-size; user-select:none; -webkit-user-select:none; touch-action:none; }
 .stage canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; }
@@ -148,6 +149,8 @@ header p{ margin:4px 0 0; color:var(--muted); max-width:60ch; }
 .big.badge small{ color:#586274; }
 .fade{ position:absolute; inset:0; background:#000; opacity:0; transition:opacity .34s ease; pointer-events:none; }
 
+.stage,.pad{ -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; }
+.pad{ -webkit-user-select:none; user-select:none; }
 .pad{ display:flex; justify-content:center; align-items:center; gap:10px; margin:14px auto 6px; }
 .pad button{ font-family:Silkscreen, SilkscreenLocal, monospace; font-size:18px; min-width:64px; height:52px; border-radius:12px; border:1px solid var(--line); background:var(--panel); color:var(--fg); cursor:pointer; touch-action:none; }
 .pad button:active{ background:var(--hi); color:var(--hi-ink); }
@@ -280,6 +283,9 @@ $('#stage').addEventListener('pointerdown', e=>{
 const touchUp=e=>{ const k=touchKeys.get(e.pointerId); if(!k) return; touchKeys.delete(e.pointerId);
   if(![...touchKeys.values()].includes(k)) Input.release(k); };
 ['pointerup','pointercancel'].forEach(t=>$('#stage').addEventListener(t,touchUp));
+// iOS Safari ignores user-scalable=no, so stop its pinch and double-tap zoom by hand.
+['gesturestart','gesturechange','dblclick'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+document.querySelectorAll('#stage, .pad button[data-k]').forEach(el=>el.addEventListener('touchstart',e=>{ if(e.cancelable) e.preventDefault(); },{passive:false}));
 $('#fs').addEventListener('click', ()=>{ toggleFs(); $('#fs').blur(); });
 
 /* ================= overlays ================= */
