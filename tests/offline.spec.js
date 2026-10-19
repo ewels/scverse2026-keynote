@@ -101,3 +101,24 @@ test('Right in the Q&A room ends the game; runs are kept and every egg can be li
   await expect(page.locator('#over')).toBeHidden();
   expect(errors).toEqual([]);
 });
+
+test('full screen, tapping the stage walks and acts', async ({ page, context }) => {
+  const errors = await openGame(page, context);
+  await page.waitForFunction(() => window.__game && window.__game.scene === 'menu');
+  await page.evaluate(() => document.querySelector('#shell').classList.add('pfs'));
+  const box = await page.locator('#stage').boundingBox();
+  // Taps during a fade are dropped, like keys, so keep tapping until the game reacts.
+  const tapUntil = async (f, cond) => {
+    for (let i = 0; i < 60; i++) {
+      if (await page.evaluate(cond)) return;
+      await page.mouse.click(box.x + box.width * f, box.y + box.height / 2);
+      await page.waitForTimeout(150);
+    }
+    throw new Error(`Tapping at ${f} never satisfied: ${cond}`);
+  };
+  await tapUntil(0.9, () => window.__game.scene === 'select');
+  await tapUntil(0.9, () => window.__game.sel === 1);
+  await tapUntil(0.1, () => window.__game.sel === 0);
+  await tapUntil(0.5, () => !!window.__game.chosen);
+  expect(errors).toEqual([]);
+});
